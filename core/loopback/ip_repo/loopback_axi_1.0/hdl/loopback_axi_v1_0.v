@@ -18,6 +18,8 @@
 	)
 	(
 		// Users to add ports here
+        input wire softreset,
+        input wire start,
 
 		// User ports ends
 		// Do not modify the ports beyond this line
@@ -57,6 +59,8 @@
 		.C_M_AXI_DATA_WIDTH(C_M00_AXI_DATA_WIDTH),
 		.C_M_TRANSACTIONS_NUM(C_M00_AXI_TRANSACTIONS_NUM)
 	) loopback_axi_v1_0_M00_AXI_inst (
+        .REG_AXI_START(start),
+        .REG_AXI_SOFTRESET(softreset),
 		.INIT_AXI_TXN(m00_axi_init_axi_txn),
 		.ERROR(m00_axi_error),
 		.TXN_DONE(m00_axi_txn_done),
