@@ -13,50 +13,21 @@
 
 `define OP_out      6'd29
 
-`define r0  5'd0
-`define r1  5'd1
-`define r2  5'd2
-`define r3  5'd3
-`define r4  5'd4
-`define r5  5'd5
-`define r6  5'd6
-`define r7  5'd7
-`define r8  5'd8
-`define r9  5'd9
-`define r10 5'd10
+`define COM_li(rD, simm16)       {`OP_li,   rD,   5'd0, simm16     }
+`define COM_mr(rD, rA)           {`OP_mr,   rD,   rA,   16'd0      }
+`define COM_addi(rD, rA, simm16) {`OP_addi, rD,   rA,   simm16     }
+`define COM_add(rD, rA, rB)      {`OP_add,  rD,   rA,   rB,  11'd0 }
+`define COM_sub(rD, rA, rB)      {`OP_sub,  rD,   rA,   rB,  11'd0 }
 
-`define COM_li(rD, simm16)       {OP_li,   rD,   5'd0, simm16}
-`define COM_mr(rD, rA)           {OP_mr,   rD,   rA,   16'd0 }
-`define COM_addi(rD, rA, simm16) {OP_addi, rD,   rA,   simm16}
-`define COM_add(rD, rA, rB)      {OP_add,  rD,   rA,   16'd0 }
-`define COM_sub(rD, rA, rB)      {OP_sub,  rD,   rA,   16'd0 }
+`define COM_b(simm26)            {`OP_b,    simm26                 }
 
-`define COM_b(simm26)            {OP_b,    simm26            }
-
-`define COM_out(rA)              {OP_out,  rA,   5'd0, 16'd0 }
+`define COM_out(rA)              {`OP_out,  rA,   5'd0, 16'd0      }
 
 `define A_COM_add 4'd1
 `define A_COM_sub 4'd2
 
-function [0:31] romdata;
-  input [0:31] address;
 
-  case (address)
-  32'd0: romdata = `COM_mr(`r1, `r0);
-  32'd1: romdata = `COM_addi(`r1, `r1, 16'd1);
-  32'd2: romdata = `COM_mr(`r2, `r0);
-  32'd3: romdata = `COM_mr(`r3, `r0);
-
-  32'd4: romdata = `COM_out(`r1);
-  32'd5: romdata = `COM_mr(`r3, `r2);
-  32'd6: romdata = `COM_mr(`r2, `r1);
-  32'd7: romdata = `COM_add(`r1, `r2, `r3);
-  32'd8: romdata = `COM_b(26'b11_111111_111111_111111_111100);
-  default: romdata = 32'h0;
-  endcase
-endfunction
-
-function alu(
+module alu(
   input wire [0:31] rA,
   input wire [0:31] rB,
   input wire [0:3] command,
@@ -68,11 +39,20 @@ function alu(
 endmodule
 
 module controller(
+  output reg [0:31] out_reg,
   input wire CLK,
   input wire RST
 );
   reg [0:31] pc;
   reg [0:31] register [0:3];
+  wire [0:31] r0;
+  wire [0:31] r1;
+  wire [0:31] r2;
+  wire [0:31] r3;
+  assign r0 = register[0];
+  assign r1 = register[1];
+  assign r2 = register[2];
+  assign r3 = register[3];
   reg [0:1] state;
 
   reg [0:31] inst;
@@ -96,10 +76,34 @@ module controller(
   alu int_alu(rA, rB, command, rD);
   reg [0:4] save_reg;
 
+  function [0:31] romdata;
+    input [0:31] address;
+
+    localparam [0:4] _r0 = 5'd0;
+    localparam [0:4] _r1 = 5'd1;
+    localparam [0:4] _r2 = 5'd2;
+    localparam [0:4] _r3 = 5'd3;
+
+    case (address)
+    32'd0: romdata = `COM_mr(_r1, _r0);
+    32'd1: romdata = `COM_addi(_r1, _r1, 16'd1);
+    32'd2: romdata = `COM_mr(_r2, _r0);
+    32'd3: romdata = `COM_mr(_r3, _r0);
+
+    32'd4: romdata = `COM_out(_r1);
+    32'd5: romdata = `COM_mr(_r3, _r2);
+    32'd6: romdata = `COM_mr(_r2, _r1);
+    32'd7: romdata = `COM_add(_r1, _r2, _r3);
+    32'd8: romdata = `COM_b(26'b11_111111_111111_111111_111100);
+    default: romdata = 32'h0;
+    endcase
+  endfunction
+
   always @(posedge CLK) begin
     if (RST) begin
       pc <= 32'd0;
       state <= `C_ST_fetch;
+      register[0] <= 32'd0;
     end else begin
       case (state)
 
@@ -139,13 +143,19 @@ module controller(
           rB <= inst_imm26[0] ? {6'b111111, inst_imm26} : {6'h0, inst_imm26};
           save_reg <= 5'd0;
         end
+        `OP_out: begin
+          rA <= register[inst_rD];
+          rB <= 32'd0;
+          command <= `A_COM_add;
+          save_reg <= 5'd0;
+        end
         endcase
         state <= `C_ST_exec;
       end
 
 
       `C_ST_exec: begin
-        register[save_reg] <= rD;
+        if (save_reg != 5'd0) register[save_reg] <= rD; // unable to write to zero register
         state <= `C_ST_write;
       end
 
@@ -154,9 +164,11 @@ module controller(
         if (inst_op == `OP_b) pc <= rD;
         else pc <= pc + 32'd1;
 
+        if (inst_op == `OP_out) out_reg <= rD;
         state <= `C_ST_fetch;
       end
       endcase
     end
 
   end
+endmodule
