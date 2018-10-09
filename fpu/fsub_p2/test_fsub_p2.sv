@@ -1,7 +1,7 @@
 `timescale 1ns / 100ps
 `default_nettype none
 
-module test_fadd_p2
+module test_fsub_p2
   #(parameter NSTAGE = 2)
    ();
    wire [31:0] x1,x2,y;
@@ -27,10 +27,10 @@ module test_fadd_p2
    assign x1 = x1_reg[0];
    assign x2 = x2_reg[0];
 
-   fadd_p2 u1(x1,x2,y,ovf,clk,rstn);
+   fsub_p2 u1(x1,x2,y,ovf,clk,rstn);
 
    initial begin
-      // $dumpfile("test_fadd_p2.vcd");
+      // $dumpfile("test_fsub_p2.vcd");
       // $dumpvars(0);
       #1;
       rstn = 0;
