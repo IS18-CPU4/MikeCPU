@@ -227,6 +227,7 @@
                     wvalid <= 1'b1;
                     awvalid <= 1'b1;
                     awaddr <= 32'h4;
+                    request_issued <= 1'b1;
                     wdata <= wdata;
                 end
             end
