@@ -1,36 +1,51 @@
 `default_nettype none
 
-module f_mul
+module fadd
    ( input wire [31:0] x1,
      input wire [31:0] x2,
-     output reg [31:0] y,
-     output reg ovf,
-     input wire clk,
-     input wire rstn);
+     output wire [31:0] y,
+     output wire ovf);
 
-  wire s1, s2;
-  wire [7:0] e1, e2;
-  wire [22:0] m1, m2;
+   /* assumptions
+    * - inputs and output are not unnormal numbers or NaN or +-inf 
+    * - if e is 0, the number is interpreted as +0
+    * - overflow and underflow are treated as the same for ovf wire
+    * - when underflow, y will be 0
+    */
 
-  assign {s1, e1, m1} = x1;
-  assign {s2, e2, m2} = x2;
+   // split sequence to each subsequence
+   wire s1, s2;
+   wire [7:0] e1, e2;
+   wire [22:0] m1, m2;
+   assign {s1, e1, m1} = x1;
+   assign {s2, e2, m2} = x2;
 
-  wire s;
-  wire [7:0] e;
-  wire [8:0] tmp_e;
-  wire [45:0] tmp_m;
+   // calc s for y
+   wire s;
+   assign s = s1 ^ s2;
 
-  assign s = s1 ^ s2; // XOR
-  assign tmp_e = e1 + e2 + 9'd127;
-  assign tmp_m = m1 * m2;
+   // calc m
+   wire [47:0] tmp_m;
+   // 1 is appended to m1 and m2 before multiplication
+   assign tmp_m = {1'b1, m1} * {1'b1, m2};
+   wire [22:0] m;
+   assign m = (tmp_m[47] == 1'b0) ? tmp_m[46:24] : tmp_m[47:25];
 
-  always @(posedge clk) begin
-     if (~rstn) begin
-       y <= 0;
-       ovf <= 0;
-     end else begin
-     end
-   end
+   // calc e
+   wire [8:0] tmp_e;
+   assign tmp_e = (tmp_m[47] == 1'b0) ? {1'b0, e1} + {1'b0, e2} : {1'b0, e1} + {1'b0, e2} + 9'b1;
+   wire [8:0] tmp_tmp_e;
+   wire [7:0] e;
+   assign tmp_tmp_e = tmp_e - 9'd127;
+   assign e = tmp_tmp_e[7:0];
+
+   // determine whether overflow or underflow
+   wire unf;
+   assign unf = (tmp_e <= 9'd127) || (e1 == 8'd0 || e2 == 8'd0); 
+   assign ovf = unf || (tmp_e >= 9'd382);
+
+   assign y = (unf) ? 32'd0 : {s, e, m};
+
 endmodule
 
 `default_nettype wire
