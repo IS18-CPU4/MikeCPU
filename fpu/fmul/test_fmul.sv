@@ -84,8 +84,8 @@ module test_fmul();
                         
                         #1;
 
-                        if (fybit[30:23] === 0) begin
-                           if (y !== 0) begin
+                        if (fybit[30:23] === 0 || (fybit[30:23] === 23'd1 && fybit[22:0] === 23'd0)) begin
+                           if (!(y === 0 || y[30:0] === fybit[30:0])) begin
                               $display("x1, x2 = %b %b", x1, x2);
                               $display("%e %b %b\n", $bitstoshortreal(y), y, ovf);
                            end
