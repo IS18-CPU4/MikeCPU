@@ -1,6 +1,6 @@
 `default_nettype none
 
-module fadd
+module fmul
    ( input wire [31:0] x1,
      input wire [31:0] x2,
      output wire [31:0] y,
@@ -29,11 +29,11 @@ module fadd
    // 1 is appended to m1 and m2 before multiplication
    assign tmp_m = {1'b1, m1} * {1'b1, m2};
    wire [22:0] m;
-   assign m = (tmp_m[47] == 1'b0) ? tmp_m[46:24] : tmp_m[47:25];
+   assign m = (tmp_m[47] == 1'b0) ? tmp_m[45:23] : tmp_m[46:24];
 
    // calc e
    wire [8:0] tmp_e;
-   assign tmp_e = (tmp_m[47] == 1'b0) ? {1'b0, e1} + {1'b0, e2} : {1'b0, e1} + {1'b0, e2} + 9'b1;
+   assign tmp_e = (tmp_m[47] == 1'b0) ? {1'b0, e1} + {1'b0, e2} : {1'b0, e1} + {1'b0, e2} + 9'd1;
    wire [8:0] tmp_tmp_e;
    wire [7:0] e;
    assign tmp_tmp_e = tmp_e - 9'd127;
@@ -42,7 +42,7 @@ module fadd
    // determine whether overflow or underflow
    wire unf;
    assign unf = (tmp_e <= 9'd127) || (e1 == 8'd0 || e2 == 8'd0); 
-   assign ovf = unf || (tmp_e >= 9'd382);
+   assign ovf = (tmp_e >= 9'd382);
 
    assign y = (unf) ? 32'd0 : {s, e, m};
 
