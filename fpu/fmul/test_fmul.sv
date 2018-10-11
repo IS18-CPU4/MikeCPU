@@ -1,11 +1,10 @@
 `timescale 1ns / 100ps
 `default_nettype none
 
-module test_fmul
-  #(parameter NSTAGE = 3)
-   ();
+module test_fadd();
    wire [31:0] x1,x2,y;
    wire        ovf;
+   logic [31:0] x1i,x2i;
    shortreal    fx1,fx2,fy;
    int          i,j,k,it,jt;
    bit [22:0]   m1,m2;
@@ -13,42 +12,18 @@ module test_fmul
    logic [31:0] fybit;
    int          s1,s2;
    logic [23:0] dy;
-   bit [22:0] 	tm;
-   logic 	fovf;
-   bit 		checkovf;
+   bit [22:0] tm;
+   bit 	      fovf;
+   bit 	      checkovf;
 
-   logic 	clk;
-   logic 	rstn;
-
-   logic [31:0]	x1_reg[NSTAGE:0];
-   logic [31:0]	x2_reg[NSTAGE:0];
-   logic 	val[NSTAGE:0];
-
-   assign x1 = x1_reg[0];
-   assign x2 = x2_reg[0];
-
-   fmul u1(x1,x2,y,ovf,clk,rstn);
+   assign x1 = x1i;
+   assign x2 = x2i;
+   
+   fadd u1(x1,x2,y,ovf);
 
    initial begin
       // $dumpfile("test_fmul.vcd");
       // $dumpvars(0);
-      #1;
-      rstn = 0;
-      clk = 1;
-      val = {default: 1'b0};
-      x1_reg[0] = 0;
-      x2_reg[0] = 0;
-
-      #1;
-      clk = 0;
-      #1;
-      clk = 1;
-      rstn = 1;
-      
-      #1;
-      clk = 0;
-      #1;
-      clk = 1;
 
       for (i=0; i<256; i++) begin
          for (j=0; j<256; j++) begin
@@ -56,6 +31,8 @@ module test_fmul
                for (s2=0; s2<2; s2++) begin
                   for (it=0; it<10; it++) begin
                      for (jt=0; jt<10; jt++) begin
+                        #1;
+
                         case (it)
                           0 : m1 = 23'b0;
                           1 : m1 = {22'b0,1'b1};
@@ -90,14 +67,28 @@ module test_fmul
                           end
                         endcase
                         
-                        x1_reg[0] <= {s1[0],i[7:0],m1};
-                        x2_reg[0] <= {s2[0],j[7:0],m2};
-			val[0] <= 1;
+                        x1i = {s1[0],i[7:0],m1};
+                        x2i = {s2[0],j[7:0],m2};
 
+                        fx1 = $bitstoshortreal(x1i);
+                        fx2 = $bitstoshortreal(x2i);
+                        fy = fx1 * fx2; // + -> *
+                        fybit = $shortrealtobits(fy);
+
+			checkovf = i < 255 && j < 255;
+			if ( checkovf && fybit[30:23] == 255 ) begin
+			   fovf = 1;
+			end else begin
+			   fovf = 0;
+			end
+                        
                         #1;
-			clk = 0;
-			#1;
-			clk = 1;
+
+                        if (y !== fybit || ovf !== fovf) begin
+                           $display("x1, x2 = %b %b", x1, x2);
+                           $display("%e %b %b", fy, $shortrealtobits(fy), fovf);
+                           $display("%e %b %b\n", $bitstoshortreal(y), y, ovf);
+                        end
                      end
                   end
                end
@@ -110,9 +101,10 @@ module test_fmul
             for (s2=0; s2<2; s2++) begin
                for (j=0;j<23;j++) begin
                   repeat(10) begin
+                     #1;
 
                      {m1,dum1} = $urandom();
-                     x1_reg[0] <= {s1[0],i[7:0],m1};
+                     x1i = {s1[0],i[7:0],m1};
                      {m2,dum2} = $urandom();
                      for (k=0;k<j;k++) begin
                         tm[k] = m2[k];
@@ -120,46 +112,33 @@ module test_fmul
                      for (k=j;k<23;k++) begin
                         tm[k] = m1[k];
                      end
-                     x2_reg[0] <= {s2[0],i[7:0],tm};
-		     val[0] <= 1;
+                     x2i = {s2[0],i[7:0],tm};
+
+                     fx1 = $bitstoshortreal(x1i);
+                     fx2 = $bitstoshortreal(x2i);
+                     fy = fx1 + fx2;
+                     fybit = $shortrealtobits(fy);
+                     
+		     checkovf = i < 255;
+		     if (checkovf && fybit[30:23] == 255) begin
+			fovf = 1;
+		     end else begin
+			fovf = 0;
+		     end
 
                      #1;
-		     clk = 0;
-		     #1;
-		     clk = 1;
+
+                     if (y !== fybit || ovf !== fovf) begin
+                        $display("x1, x2 = %b %b", x1, x2);
+                        $display("%e %b %b", fy, $shortrealtobits(fy), fovf);
+                        $display("%e %b %b\n", $bitstoshortreal(y), y, ovf);
+                     end
                   end
                end
             end
          end
       end
       $finish;
-   end
-
-   always @(posedge clk) begin
-      x1_reg[NSTAGE:1] <= x1_reg[NSTAGE-1:0];
-      x2_reg[NSTAGE:1] <= x2_reg[NSTAGE-1:0];
-      val[NSTAGE:1] <= val[NSTAGE-1:0];
-   end
-   
-   always @(posedge clk) begin
-      if (val[NSTAGE]) begin
-	 fx1 = $bitstoshortreal(x1_reg[NSTAGE]);
-	 fx2 = $bitstoshortreal(x2_reg[NSTAGE]);
-	 fy = fx1 * fx2;  // + to *
-	 fybit = $shortrealtobits(fy);
-	 checkovf = x1_reg[NSTAGE][30:23] < 255 && x2_reg[NSTAGE][30:23] < 255;
-	 if ( checkovf && fybit[30:23] == 255 ) begin
-	    fovf = 1;
-	 end else begin
-	    fovf = 0;
-	 end
-
-	 if (y !== fybit || ovf !== fovf) begin
-            $display("x1, x2 = %b %b", x1_reg[NSTAGE], x2_reg[NSTAGE]);
-            $display("%e %b %b", fy, fybit, fovf);
-            $display("%e %b %b\n", $bitstoshortreal(y), y, ovf);
-	 end
-      end
    end
 endmodule
 
