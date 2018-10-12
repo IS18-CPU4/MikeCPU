@@ -44,7 +44,8 @@ module fmul
    assign unf = (tmp_e <= 9'd127) || (e1 == 8'd0 || e2 == 8'd0); 
    assign ovf = (tmp_e >= 9'd382);
 
-   assign y = (unf) ? 32'd0 : {s, e, m};
+   assign y = (unf) ? 32'd0 :
+              (ovf) ? {s, 31'b1111111100000000000000000000000} : {s, e, m};
 
 endmodule
 
