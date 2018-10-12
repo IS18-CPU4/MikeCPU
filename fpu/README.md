@@ -2,8 +2,8 @@ fpu
 
 # Tasks
 - fadd [DONE]
-- fsub
-- fmul
+- fsub [DONE]
+- fmul [DONE]
 - fdiv
 - fsqrt
 - fabs
@@ -11,3 +11,5 @@ fpu
 - fld
 - fst
 - fcmp
+- fadd, fsub 非正規化数に対応しない
+- fmul 多段に
