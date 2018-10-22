@@ -3,10 +3,32 @@
 `define OP_addi     6'd2
 `define OP_add      6'd3
 `define OP_sub      6'd4
-`define OP_st       6'b011010
-`define OP_out      6'b111111
+`define OP_slwi     6'd5
+`define OP_srwi     6'd6
+
+`define OP_slw      6'd7  // temporal
+`define OP_srw      6'd8  // temporal
 
 `define OP_b        6'd14
+`define OP_beq      6'd15
+`define OP_bne      6'd16
+`define OP_blt      6'd17
+`define OP_bl       6'd18
+`define OP_blr      6'd19
+
+`define OP_mflr     6'd20
+`define OP_mtlr     6'd21
+
+`define OP_cmpwi    6'd22
+`define OP_cmpw     6'd23
+
+`define OP_ld       6'b011001
+`define OP_st       6'b011010
+
+
+`define OP_in      6'b111110
+`define OP_out      6'b111111
+
 
 
 `define COM_li(rD, simm16)       {`OP_li,   rD,   5'd0, simm16     }
@@ -22,6 +44,12 @@
 `define A_COM_nop 4'd0
 `define A_COM_add 4'd1
 `define A_COM_sub 4'd2
+`define A_COM_sll 4'd3
+`define A_COM_srl 4'd4
+
+`define ERR_C_INVALID_STATE 8'b1000_0000
+`define ERR_C_INVALID_OP    8'b0100_0000
+`define ERR_C_HALT          8'b0000_0001
 
 
 module Alu(
@@ -40,6 +68,9 @@ module Alu(
         `A_COM_nop: out = a;
         `A_COM_add: out = a + b;
         `A_COM_sub: out = a - b;
+        `A_COM_sll: out = a << b;
+        `A_COM_srl: out = a >> b;
+        `A_COM_sub: out = a - b;
         default: out = 0;
       endcase
     end
@@ -48,7 +79,6 @@ module Alu(
   assign rD = out(rA, rB, command);
 endmodule
 
-`define IO_WRITE_ADDR_OFFSET 32'h00FFFF00
 module Controller(
   input wire [31:0] mem_rdata,
   output reg [31:0] mem_wdata,
@@ -75,6 +105,9 @@ module Controller(
 );
   
   reg [31:0] pc;
+  reg [31:0] jump_pc;
+  reg will_jump;
+
   assign mem_inst_addr = {pc[29:0], 2'b00};
   assign mem_inst_enable = 1'b1;
   wire [5:0] inst_op;
@@ -89,16 +122,27 @@ module Controller(
   assign inst_imm16 = inst[16:31];
   assign inst_imm26 = inst[6:31];
 
-  reg [31:0] _register [0:31];
-  function [31:0] register (input [4:0] reg_num);
-    register = (reg_num == 5'd0) ? 32'd0 : _register[reg_num];
-  endfunction
-  reg [31:0] rA;
-  reg [31:0] rB;
+  reg reg_we;
+  reg [31:0] reg_wdata;
+  wire [31:0] rA;
+  wire [31:0] rB;
   wire [31:0] rD;
+  RegisterFile register(inst_rD, inst_rA, inst_rB, rD, rA, rB, 
+    reg_we, reg_wdata, CLK);
+
+  reg [0:3] condreg;
+  wire c0_lt, c0_gt, c0_eq, c0_of;
+  assign {c0_lt, c0_gt, c0_eq, c0_of} = condreg;
+
+  reg [31:0] linkreg;
+
   reg [3:0] command;
-  reg [31:0] save_reg;
-  Alu int_alu(rA, rB, command, rD);
+  reg use_imm;
+  reg [31:0] imm;
+  wire [31:0] alu_in0, alu_in1, alu_out;
+  assign alu_in0 = rA;
+  assign alu_in1 = use_imm ? imm : rB;
+  Alu int_alu(alu_in0, alu_in1, command, alu_out);
 
   function [31:0] simm16_32 (
     input [0:15] simm16
@@ -117,13 +161,23 @@ module Controller(
   localparam [2:0] s_decode = 3'b010;
   localparam [2:0] s_exec   = 3'b011;
   localparam [2:0] s_write  = 3'b100;
-  localparam [2:0] s_io     = 3'b101;
+  localparam [2:0] s_i      = 3'b101;
+  localparam [2:0] s_o      = 3'b110;
   localparam [2:0] s_halt   = 3'b111;
   reg [2:0] state;
 
   
   always @(posedge CLK) begin
     if (~RSTN) begin
+      reg_we <= 0;
+      reg_wdata <= 0;
+      condreg <= 0;
+      linkreg <= 0;
+
+      use_imm <= 0;
+      imm <= 0;
+      command <= `A_COM_nop;
+
       mem_wdata <= 0;
       mem_enable <= 0;
       mem_wenable <= 0;
@@ -133,109 +187,222 @@ module Controller(
       io_write_req <= 0;
       io_wdata <= 0;
 
-      rA <= 0;
-      rB <= 0;
-      command <= `A_COM_nop;
-      save_reg <= 0;
-
-      _register[0] <= 32'd0;
-
       state <= s_init;
       pc <= 0;
+      will_jump <= 0;
     end else begin
       case (state)
+
+///////////////////////////////////////////////////
         s_init: begin
           if (boot) begin
             pc <= 0;
             state <= s_fetch;
           end
         end
+///////////////////////////////////////////////////
         s_fetch: begin
-          save_reg <= 0;
-          command <= 0;
-          rA <= 0;
-          rB <= 0;
           state <= s_decode;
+          will_jump <= 0;
+          use_imm <= 1'b0;
+          reg_we <= 1'b0;
         end
+///////////////////////////////////////////////////
         s_decode: begin
-          err <= _register[5'd3];
           state <= s_exec;
           // now inst_** are valid
           case (inst_op)
             `OP_li: begin
-              rA <= simm16_32(inst_imm16);
-              command <= `A_COM_nop;
-              save_reg <= inst_rD;
-            end
-            `OP_add: begin
-              rA <= register(inst_rA);
-              rB <= register(inst_rB);
-              command <= `A_COM_add;
-              save_reg <= inst_rD;
-            end
-            `OP_addi: begin
-              rA <= register(inst_rA);
-              rB <= simm16_32(inst_imm16);
-              command <= `A_COM_add;
-              save_reg <= inst_rD;
             end
             `OP_mr: begin
-              rA <= register(inst_rA);
-              command <= `A_COM_nop;
-              save_reg <= inst_rD;
             end
-            `OP_b: begin
-              rA <= pc;
-              rB <= simm26_32(inst_imm26);
+
+            `OP_addi: begin
+              use_imm <= 1'b1;
+              imm <= simm16_32(inst_imm16);
               command <= `A_COM_add;
-              save_reg <= 5'd0;
+            end
+
+            `OP_add: begin
+              command <= `A_COM_add;
+            end
+
+            `OP_sub: begin
+              command <= `A_COM_sub;
+            end
+            
+            `OP_slwi: begin
+              command <= `A_COM_sll;
+              use_imm <= 1'b1;
+              imm <= inst_rB;
+            end
+
+            `OP_srwi: begin
+              command <= `A_COM_srl;
+              use_imm <= 1'b1;
+              imm <= inst_rB;
+            end
+
+            `OP_slw: begin
+              command <= `A_COM_sll;
+            end
+
+            `OP_srw: begin
+              command <= `A_COM_srl;
+            end
+
+            `OP_b: begin
+              jump_pc <= pc + simm26_32(inst_imm26);
+              will_jump <= 1'b1;
+            end
+
+            `OP_beq: begin
+              jump_pc <= pc + simm26_32(inst_imm26);
+              will_jump <= c0_eq;
+            end
+
+            `OP_bne: begin
+              jump_pc <= pc + simm26_32(inst_imm26);
+              will_jump <= ~c0_eq;
+            end
+
+            `OP_blt: begin
+              jump_pc <= pc + simm26_32(inst_imm26);
+              will_jump <= c0_lt;
+            end
+
+            `OP_bl: begin
+              jump_pc <= pc + simm26_32(inst_imm26);
+              will_jump <= 1'b1;
+              linkreg <= pc + 1;
+            end
+
+            `OP_blr: begin
+              jump_pc <= linkreg;
+              will_jump <= 1'b1;
+            end
+
+            `OP_mflr: begin
+            end
+            `OP_mtlr: begin
+              linkreg <= rD;
+            end
+
+            `OP_cmpwi: begin
+              command <= `A_COM_sub;
+              use_imm <= 1'b1;
+              imm <= simm16_32(inst_imm16);
+            end
+            `OP_cmpw: begin
+              command <= `A_COM_sub;
+            end
+
+            `OP_ld: begin
+              mem_addr <= rA + simm16_32(inst_imm16);
+              mem_enable <= 1'b1;
             end
             `OP_st: begin
-              rA <= register(inst_rA);
-              rB <= simm16_32(inst_imm16);
-              save_reg <= 5'd0;
+              mem_addr <= rA + simm16_32(inst_imm16);
+              mem_wdata <= rD;
+              mem_enable <= 1'b1;
+              mem_wenable <= 4'b1111;
             end
-            `OP_out: rA <= register(inst_rD);
+
+            `OP_out: begin
+              io_wdata <= rD[7:0];
+              state <= s_o;
+            end
+            `OP_in: begin
+              state <= s_i;
+            end
+
+            default: begin
+              err <= `ERR_C_INVALID_OP;
+              state <= s_halt;
+            end
           endcase
         end
+///////////////////////////////////////////////////
         s_exec: begin
-          // now ALU output is valid
-          if (save_reg != 5'd0) _register[save_reg] <= rD;
-          if (inst_op == `OP_st) begin
-            mem_wdata <= register(inst_rD);
-            mem_addr <= {2'b00, rD[31:2]};
-            mem_wenable <= 4'b1111;
-            mem_enable <= 1'b1;
-          end
-          if (inst_op == `OP_out) begin
-            io_wdata <= rA[7:0];
-            io_write_req <= 1'b1;
-            state <= s_io;
-          end
-          else state <= s_write;
+          case (inst_op)
+            `OP_ld: begin
+              mem_enable <= 1'b0;
+            end
+            `OP_st: begin
+              mem_enable <= 1'b0;
+              mem_wenable <= 1'b0;
+            end
+          endcase
+          state <= s_write;
         end
+///////////////////////////////////////////////////
         s_write: begin
-          if (inst_op == `OP_b) pc <= rD;
+          // now ALU output is valid
+          // now bram rdata is valid
+          if (will_jump) pc <= jump_pc;
           else pc <= pc + 32'd1;
-
-          if (mem_enable) begin
-            mem_wenable <= 4'd0;
-            mem_enable <= 1'b0;
+          
+          if (inst_op == `OP_li) begin
+            reg_wdata <= simm16_32(inst_imm16);
+            reg_we <= 1'b1;
+          end
+          if (inst_op == `OP_mr) begin
+            reg_wdata <= rA;
+            reg_we <= 1'b1;
+          end
+          if ((inst_op >= `OP_addi) && (inst_op <= `OP_srwi)) begin
+            reg_wdata <= alu_out;
+            reg_we <= 1'b1;
+          end
+          if (inst_op == `OP_mflr) begin
+            reg_wdata <= linkreg;
+            reg_we <= 1'b1;
+          end
+          if (inst_op == `OP_cmpwi) begin
+            condreg <= {alu_out[31], ~(alu_out[31]), ~(|alu_out), 1'b0};
+          end
+          if (inst_op == `OP_cmpw) begin
+            condreg <= {alu_out[31], ~(alu_out[31]), ~(|alu_out), 1'b0};
+          end
+          if (inst_op == `OP_ld) begin
+            reg_wdata <= mem_rdata;
+            reg_we <= 1'b1;
           end
 
           state <= s_fetch;
         end
-        s_io: begin
-          io_write_req <= 1'b0;
-          io_read_req <= 1'b0;
-          if (io_done) begin
-            pc <= pc + 32'd1;
-            state <= s_fetch;
+///////////////////////////////////////////////////
+        s_i: begin
+          if (io_read_req) begin
+            // requesting
+            if (io_done) begin
+              io_read_req <= 1'b0;
+              reg_wdata <= {24'd0, io_rdata};
+              reg_we <= 1'b1;
+              pc <= pc + 1'b1;
+              state <= s_fetch;
+            end
+          end else begin
+            if (io_ready) io_read_req <= 1'b1;
           end
         end
+        s_o: begin
+          if (io_write_req) begin
+            io_write_req <= 1'b0;
+            pc <= pc + 1'b1;
+            state <= s_fetch;
+          end else begin
+            if (io_ready) io_write_req <= 1'b1;
+          end
+        end
+///////////////////////////////////////////////////
         s_halt: begin
-          err <= 8'hFF;
+          err <= err | `ERR_C_HALT;
           state <= state;
+        end
+        default: begin
+          err <= `ERR_C_INVALID_STATE;
+          state <= s_halt;
         end
       endcase
     end

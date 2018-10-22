@@ -161,6 +161,7 @@ module IObuf(
             ext_wdata <= req_data;
           end
         end
+        default: begin end
       endcase
     end
   end
