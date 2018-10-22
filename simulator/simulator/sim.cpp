@@ -176,6 +176,6 @@ int main(int argc, char**argv) {
 		}
 	}
 	cout << "finish execution! return value: " << endl;
-	cout << "GPR[3]:" << hex << GPR[3]<< << " FPR[1]:" << FPR[1] <<  hex << endl;
+	cout << "GPR[3]:" << hex << GPR[3]<< " FPR[1]:" << FPR[1] <<  hex << endl;
 	debug();
 }
