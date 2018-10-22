@@ -47,13 +47,13 @@ int main(int argc, char *argv[]){
     x1.i = input.i;
     x2.i = input.i + ((uint32_t)1 << 13);
     x0.f = 1.0 / x1.f + 1.0 / x2.f;
-    constant.f = 2.0 * x0.f - input.f * x0.f * x0.f;
+    constant.f = 2.0 * x0.f - input.f * x0.f * x0.f / 2.0;
     printbit(constant.i, 22, 0);
     gradient.f = x0.f * x0.f;
     if (get_up2down(gradient.i, 30, 23) == 127) {
-      printbit(get_up2down(gradient.i, 22, 1), 22, 0);
+      printbit(get_up2down(gradient.i, 22, 0) + ((uint32_t)1 << 23), 24, 2);
     } else if (get_up2down(gradient.i, 30, 23) == 128) {
-      printbit(get_up2down(gradient.i, 22, 1) + ((uint32_t)1 << 23), 22, 0);
+      printbit(get_up2down(gradient.i, 22, 0) + ((uint32_t)1 << 23), 23, 1);
     } else {
       return 1;
     }
