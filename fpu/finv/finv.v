@@ -30,17 +30,17 @@ module finv
    wire [22:0] m;
    wire [45:0] val;
    wire [9:0] key;
-   wire [12:0] var;
-   assign {key, var} = xm;
+   wire [12:0] v;
+   assign {key, v} = xm;
    // lookup table and get constant and grad
-   lookup_table(key, val);
+   lookup_table lt(key, val);
    wire [23:0] constant;
    wire [24:0] grad;
    // constant supplements 1 at the MSB
    // grad supplements 00 at the LSB
    assign {constant, grad} = {1'b1, val, 2'b0};
    wire [39:0] tmp_grad; // 39:0 comes from 14 + 25
-   assign tmp_grad = var * grad;
+   assign tmp_grad = v * grad;
    wire [23:0] tmp_tmp_grad;
    // grad part is 14 bit long (meaning small)
    assign tmp_tmp_grad = {10'd0, tmp_grad[39:26]};
@@ -49,6 +49,7 @@ module finv
    assign m = (xm == 23'd0) ? 23'd0 : tmp_m[22:0];
 
    assign y = {s, e, m};
+   assign ovf = 0;
 
 endmodule
 
