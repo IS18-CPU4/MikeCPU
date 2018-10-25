@@ -1,4 +1,4 @@
-#simulator
+# cpu-ex
 simulator
 
 powerpcの命令セットを参考にしたオリジナルの命令セットをシミュレートする
@@ -27,3 +27,12 @@ vim で :%!xxd  戻すときは :%!xxd -r
 10/22
 命令列が割り当てられてるものはout以外動く(はず)
 floatにloadがないので、simulatorのinitializationのステップで好きなレジスタにいれる。
+
+10/26
+--stepでstep実行
+-h
+基本的に16進数表記なので注意
+step実行以外にも細かいところをいじった(initializationとかが多少やりやすくなってる)
+命令追加はまだ
+
+
