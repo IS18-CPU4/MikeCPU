@@ -46,6 +46,12 @@ uint32_t op_st(const vector<string>&);
 uint32_t op_fld(const vector<string>&);
 uint32_t op_fst(const vector<string>&);
 
+uint32_t op_slw(const vector<string>&);
+uint32_t op_srw(const vector<string>&);
+uint32_t op_bc(const vector<string>&);
+uint32_t op_itof(const vector<string>&);
+uint32_t op_ftoi(const vector<string>&);
+
 uint32_t set_txt(const vector<string>&);
 uint32_t set_align(const vector<string>&);
 uint32_t set_globl(const vector<string>&);

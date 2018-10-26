@@ -1,5 +1,6 @@
 calc:
-	li r1, 4
-	addi r2, r1, 16
-	add r3, r1, r2
+	li r3, 4
+	addi r4, r3, 16
+	add r5, r4, r3
+	mr r3, r5
 

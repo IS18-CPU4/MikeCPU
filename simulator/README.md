@@ -1,3 +1,4 @@
+# cpu-ex
 simulator
 
 powerpcの命令セットを参考にしたオリジナルの命令セットをシミュレートする
@@ -28,10 +29,21 @@ vim で :%!xxd  戻すときは :%!xxd -r
 floatにloadがないので、simulatorのinitializationのステップで好きなレジスタにいれる。
 
 10/26
+assembler:
+追加された命令に対応
+outは追加してない
+.sファイルにコメントを書けるようにした #開始で、1行に渡って書くことが可能。
+errorがわかりやすくなった。
+
+simulator:
+追加された命令に対応
 --stepでstep実行
--h
+-h, --helpでhelp
 基本的に16進数表記なので注意
 step実行以外にも細かいところをいじった(initializationとかが多少やりやすくなってる)
-命令追加はまだ
+errorをわかりやすくする
+
+
+インライン展開とかで高速化を目指す
 
 

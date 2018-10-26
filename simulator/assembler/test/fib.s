@@ -1,3 +1,4 @@
+#pls set r3 <- argument
 fib:
 	cmpwi r3, 0
 	blt mzero

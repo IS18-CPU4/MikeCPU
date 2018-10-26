@@ -61,13 +61,13 @@ int32_t get_simm26(const uint32_t ui) {
 }
 
 void cr0_set0() {
-	CR = (CR & 0x9FFFFFFF) | (1 << 31);
+	CR = (CR & 0x10000000) | (1 << 31);
 }
 void cr0_set1() {
-	CR = (CR & 0x5FFFFFFF) | (1 << 30);
+	CR = (CR & 0x10000000) | (1 << 30);
 }
 void cr0_set2() {
-	CR = (CR & 0x03FFFFFF) | (1 << 29);
+	CR = (CR & 0x10000000) | (1 << 29);
 }
 
 
@@ -360,4 +360,66 @@ void fstore() {
 		exit(1);
 	}
 	*((float*)&DATA_MEM[addr]) = FPR[rD];
+}
+
+//added
+
+void l_shift_lg() {
+	initReg();
+	if (rD == 0) {
+		cerr << "cannot write in GPR[0] : slw" << endl;
+		exit(1);
+	}
+	GPR[rD] = (GPR[rA] << GPR[rB]);
+}
+void r_shift_lg() {
+	initReg();
+	if (rD == 0) {
+		cerr << "cannot write in GPR[0] : srw" << endl;
+		exit(1);
+	}
+	GPR[rD] = (GPR[rA] >> GPR[rB]);
+}
+void branch_cond() {
+	rD = get_rD(OP);
+	switch (rD) {
+	case 0:
+		if (CR & (1 << 31)) {
+			simm16 = get_simm16(OP);
+			PC += simm16;
+		} else {
+			PC++;
+		}
+		break;
+	case 1:
+		if (CR & (1 << 30)) {
+			simm16 = get_simm16(OP);
+			PC += simm16;
+		} else {
+			PC++;
+		}
+		break;
+	case 2:
+		if (CR & (1 << 29)) {
+			simm16 = get_simm16(OP);
+			PC += simm16;
+		} else {
+			PC++;
+		}
+		break;
+	}
+}
+void int_to_float() {
+	rD = get_rD(OP);
+	rA = get_rA(OP);
+	FPR[rD] = (float)(GPR[rA]);
+}
+void float_to_int() {
+	rD = get_rD(OP);
+	if (rD == 0) {
+		cerr << "cannot write in GPR[0] : ftoi" << endl;
+		exit(1);
+	}
+	rA = get_rA(OP);
+	GPR[rD] = (uint32_t)(FPR[rA]);
 }

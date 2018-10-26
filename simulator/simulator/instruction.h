@@ -48,4 +48,11 @@ void store();
 void fload();
 void fstore();
 
+//added
+void l_shift_lg();
+void r_shift_lg();
+void branch_cond();
+void int_to_float();
+void float_to_int();
+
 #endif //INSTRUCTION_H_
