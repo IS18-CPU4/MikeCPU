@@ -259,6 +259,10 @@ uint32_t op_ftoi(const vector<string>& vitem){
 	op = (1 << 31) | (1 << 26);
 	return (op | get_rD(vitem[1]) | get_rA(vitem[2]));
 }
+uint32_t op_out(const vector<string>& vitem) {
+	op = (1 << 31) | (1 << 30) | (1 << 29) | (1 << 28) | (1 << 27) | (1 << 26);
+	return (op |get_rD(vitem[1]));
+}
 
 uint32_t set_txt(const vector<string>& vitem) {
 	return 0;

@@ -54,5 +54,6 @@ void r_shift_lg();
 void branch_cond();
 void int_to_float();
 void float_to_int();
+void out();
 
 #endif //INSTRUCTION_H_

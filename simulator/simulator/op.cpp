@@ -126,6 +126,9 @@ int do_op() {
 		case 33:
 			cout << "opname ftoi" << endl;
 			float_to_int();PC++;break;
+		case 63:
+			cout << "opname out" << endl;
+			out();PC++;break;
 		default:
 			cerr << "undefined instruction" << endl;
 			return 1;

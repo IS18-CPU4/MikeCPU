@@ -423,3 +423,9 @@ void float_to_int() {
 	rA = get_rA(OP);
 	GPR[rD] = (uint32_t)(FPR[rA]);
 }
+
+void out() {
+	rD = get_rD(OP);
+	uint32_t result = 0x0000FFFF & GPR[rD];
+	cout << "operation out..." << hex << result << dec << endl;
+}

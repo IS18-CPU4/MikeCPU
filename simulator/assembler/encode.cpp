@@ -46,6 +46,7 @@ uint32_t encode_to_op(vector<string> vitem) {
 	if (scmp("bc")) {return op_bc(vitem);}
 	if (scmp("itof")) {return op_itof(vitem);}
 	if (scmp("ftoi")) {return op_ftoi(vitem);}
+	if (scmp("out")) {return op_out(vitem);}
 
 	if (scmp(".text")) {return set_txt(vitem);}
 	if (scmp(".align")) {return set_align(vitem);}
