@@ -39,11 +39,11 @@ module finv
    // constant supplements 1 at the MSB
    // grad supplements 00 at the LSB
    assign {constant, grad} = {1'b1, val, 2'b0};
-   wire [39:0] tmp_grad; // 39:0 comes from 14 + 25
+   wire [37:0] tmp_grad; // 37 comes from 13 + 25 - 1
    assign tmp_grad = v * grad;
    wire [23:0] tmp_tmp_grad;
    // grad part is 14 bit long (meaning small)
-   assign tmp_tmp_grad = {10'd0, tmp_grad[39:26]};
+   assign tmp_tmp_grad = {10'd0, tmp_grad[37:24]};
    wire [23:0] tmp_m;
    assign tmp_m = constant - tmp_tmp_grad;
    assign m = (xm == 23'd0) ? 23'd0 : tmp_m[22:0];
