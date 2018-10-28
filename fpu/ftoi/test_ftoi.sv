@@ -67,9 +67,6 @@ module test_ftoi();
                         end
                      end
                   end
-               end
-            end
-         end
       end
       $finish;
    end
