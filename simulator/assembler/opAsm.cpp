@@ -206,15 +206,15 @@ uint32_t op_mtlr(const vector<string>& vitem){
 //compare
 uint32_t op_cmpwi(const vector<string>& vitem){
 	op = (1 << 30) | (1 << 28) | (1 << 27);
-	return (op | get_rA(vitem[1]) | get_simm16(vitem[2]));
+	return (op | get_rD(vitem[1]) | get_rA(vitem[2]) | get_simm16(vitem[3]));
 }
 uint32_t op_cmpw(const vector<string>& vitem){
 	op = (1 << 30) | (1 << 28) | (1 << 27) | (1 << 26);
-	return (op | get_rA(vitem[1]) | get_rB(vitem[2]));
+	return (op | get_rD(vitem[1]) | get_rA(vitem[2]) | get_rB(vitem[3]));
 }
 uint32_t op_fcmp(const vector<string>& vitem){
 	op = (1 << 30) | (1 << 29);
-	return (op | get_rA(vitem[1]) | get_rB(vitem[2]));
+	return (op | get_rD(vitem[1]) | get_rA(vitem[2]) | get_rB(vitem[3]));
 }
 
 

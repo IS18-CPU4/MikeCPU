@@ -21,7 +21,7 @@ vim で :%!xxd  戻すときは :%!xxd -r
 
 10/22
 floatにloadがないので、simulatorのinitializationのステップで好きなレジスタにいれる。
-inttofloatが追加されたのでそれでもいい
+inttofloatでよくなった。
 
 10/26
 assembler:
@@ -36,8 +36,11 @@ simulator:
 基本的に16進数表記なので注意
 step実行以外にも細かいところをいじった(initializationとかが多少やりやすくなってる)
 errorをわかりやすくする
+
 インライン展開とかで高速化を目指す
 
 10/28
 outを追加
+cmpとbcの調整:いまは32bit condregを4bitごとに8つに分割していて、cmp系統では8つのうちどれを使うかをcrDで指定 bcでは0~31のbitで指定する仕様
 
+assemblerとsimulatorを一括でmake cleanできるようにした
