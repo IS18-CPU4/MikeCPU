@@ -38,26 +38,24 @@ int main(int argc, char *argv[]){
 
   one.f = 1.0;
 
-  // A0: 0 ~ 1023
-  for (key = 0; key < 0x400; key++) {
-    printf("(key == 10'b");
-    printbit(key, 9, 0);
+  // A0: 0 ~ 2047
+  for (key = 0; key < 0x400*2; key++) {
+    printf("(key == 11'b");
+    printbit(key, 10, 0);
     printf(") ? 46'b");
-    input.i = one.i + (key << 13);
+    input.i = one.i + (key << 12);
     x1.i = input.i;
-    x2.i = input.i + ((uint32_t)1 << 13);
-    x0.f = 1.0 / x1.f + 1.0 / x2.f;
-    constant.f = 2.0 * x0.f - input.f * x0.f * x0.f / 2.0;
+    x2.i = input.i + ((uint32_t)1 << 12);
+    x0.f = (1.0 / x1.f + 1.0 / x2.f) / 2.0;
+    constant.f = x0.f;
     printbit(constant.i, 22, 0);
     gradient.f = x0.f * x0.f;
-    if (get_up2down(gradient.i, 30, 23) == 127) {
-      printbit(get_up2down(gradient.i, 22, 0) + ((uint32_t)1 << 23), 24, 2);
-    } else if (get_up2down(gradient.i, 30, 23) == 128) {
-      printbit(get_up2down(gradient.i, 22, 0) + ((uint32_t)1 << 23), 23, 1);
+    if (get_up2down(gradient.i, 30, 23) == 126) {
+      printbit((get_up2down(gradient.i, 22, 0) + ((uint32_t)1 << 23)) / 2, 22, 0);
     } else {
-      return 1;
+      printbit((get_up2down(gradient.i, 22, 0) + ((uint32_t)1 << 23)) / 4, 22, 0);
     }
-    if (key == 0x3ff) {
+    if (key == 0x400*2-1) {
       printf(" : 46'd0;\n");
     } else {
       printf(" :\n");
