@@ -35,16 +35,16 @@ module finv
    // lookup table and get constant and grad
    lookup_table lt(key, val);
    wire [24:0] constant;
-   wire [22:0] grad;
+   wire [23:0] grad;
    // constant supplements 1 at the MSB
    assign constant = {1'b1, val[45:23], 1'b0};
-   assign grad = val[22:0];
-   wire [46:0] grad2; // length 47 = 24 + 23
+   assign grad = {val[22:0], 1'b0};
+   wire [48:0] grad2; // length 49 = 25 + 24
    assign grad2 = {1'b1, xm, 1'b0} * grad;
-   wire [23:0] tmp_m;
-   assign tmp_m = constant - grad2[46:23];
+   wire [24:0] tmp_m;
+   assign tmp_m = constant - grad2[48:24];
    // assign tmp_m = constant - {1'b0, grad2[46:24]};
-   assign m = (xm == 23'd0) ? 23'd0 : {tmp_m[21:0], 1'b0};
+   assign m = (xm == 23'd0) ? 23'd0 : tmp_m[22:0];
 
    assign y = {s, e, m};
    assign ovf = 0;
@@ -2104,7 +2104,6 @@ module lookup_table
 (key == 11'b11111111101) ? 46'b0000000000101000000001101000000000101000000010 :
 (key == 11'b11111111110) ? 46'b0000000000011000000000101000000000011000000000 :
 (key == 11'b11111111111) ? 46'b0000000000001000000000001000000000001000000000 : 46'd0;
-
 
 endmodule
 
