@@ -6,6 +6,8 @@ fpu
 - fmul [DONE]
 - fdiv
 - fsqrt
+- ftoi
+- itof [DONE]
 - fabs
 - fmr (float move register)
 - fld

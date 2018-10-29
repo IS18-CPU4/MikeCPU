@@ -18,7 +18,7 @@ module test_itof();
 
    assign x1 = x1i;
    
-   ftoi u1(x1,y);
+   itof u1(x1,y);
 
    initial begin
       // $dumpfile("test_fmul.vcd");

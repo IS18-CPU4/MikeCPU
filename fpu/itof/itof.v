@@ -56,7 +56,7 @@ module itof
    wire [7:0] e;
    wire [22:0] m;
 
-   assign [30:0] tmp_i;
+   wire [30:0] tmp_i;
    assign tmp_i = i_abs << (l + 5'd1);
 
    assign m = tmp_i[30:8];
