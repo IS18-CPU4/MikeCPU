@@ -15,6 +15,7 @@ module test_ftoi();
    bit [22:0] tm;
    bit 	      fovf;
    bit 	      checkovf;
+   int fp;
 
    assign x1 = x1i;
    
@@ -23,6 +24,7 @@ module test_ftoi();
    initial begin
       // $dumpfile("test_fmul.vcd");
       // $dumpvars(0);
+      fp = $fopen("result.txt", "w");
 
       for (i=1; i<255; i++) begin // x1の指数部 0,255にならないようにした
             for (s1=0; s1<2; s1++) begin // x1の符号
@@ -49,8 +51,12 @@ module test_ftoi();
                         x1i = {s1[0],i[7:0],m1};
 
                         fx1 = $bitstoshortreal(x1i);
-                        fybit = $rtoi(real'(fx1));
-
+                        if (s1[0] == 0) begin
+                          fybit = $rtoi(real'(fx1) + 0.5);
+                        end else begin
+                          fybit = $rtoi(real'(fx1) - 0.5);
+                        end
+                        
                         checkovf = (i[7:0] >= 8'd158);
                         if ( checkovf ) begin
                            fovf = 1;
@@ -60,7 +66,14 @@ module test_ftoi();
                         
                         #1;
 
-                        if (!(fybit === y && fovf === ovf)) begin
+                        // $fdisplay(fp, "%b %b", x1, y);
+                        if (fovf === ovf) begin
+                           if (fybit !== y && (!ovf)) begin
+                             $display("x = %b", x1);
+                             $display("%b %b\n", fybit, fovf);
+                             $display("%b %b\n", y, ovf);
+                           end
+                        end else begin
                            $display("x = %b", x1);
                            $display("%b %b\n", fybit, fovf);
                            $display("%b %b\n", y, ovf);
@@ -68,6 +81,7 @@ module test_ftoi();
                      end
                   end
       end
+      $fclose(fp);
       $finish;
    end
 endmodule
