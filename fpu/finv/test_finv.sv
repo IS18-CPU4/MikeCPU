@@ -44,7 +44,7 @@ module test_finv();
         
         #1;
 
-        if (y + 32'd3 < fybit || fybit < y - 32'd3) begin
+        if (!(y+32'd4 > fybit && y-32'd4 < fybit)) begin
            $display("x = %b", x);
            $display("%e %b %b", fy, $shortrealtobits(fy), fovf);
            $display("%e %b %b\n", $bitstoshortreal(y), y, ovf);
