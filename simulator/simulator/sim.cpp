@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <stdint.h>
 #include <getopt.h>
+#include <arpa/inet.h>
 #include "op.h"
 
 #define INST_ADDR 0x10000
@@ -97,7 +98,7 @@ void debug();
 #define SHOWCR() cout << hex << CR << dec << endl
 #define SHOWLR() cout << hex << LR << dec << endl
 #define SHOWCTR() cout << hex << CTR << dec << endl
-#define SHOWPC() cout << hex << PC << dec << endl
+#define SHOWPC() cout << hex << (PC<<2) << dec << endl
 #define SHOWOP() cout << hex << OP << dec << endl
 
 void initialize() {
@@ -187,10 +188,14 @@ int normal() {
 	}
 	return 0;
 }
+
 int step() {
 	cout << "execute by step..." << endl;
 	PC = 0;
 	GPR[1] = 0x8000;//stack
+	uint32_t breakpoint = 0;
+	string str_pc;
+	uint32_t nxtOP;
 	while(PC < lastPC) {
 		bool next = 0;
 		while (!next) {
@@ -201,6 +206,48 @@ int step() {
 			case 'n':
 				next = 1;
 				break;
+			case 'b':
+				cout << "set breakpoint...current PC is " << hex << (PC << 2) <<dec << endl;
+				cout << "put PC in hex you want to make breakpoint (put e to end): ";
+				cin >> str_pc;
+				if (str_pc== "e") {
+					break;
+				} else {
+					try {
+						while (1) {
+							int int_pc= stoi(str_pc, nullptr, 0);
+							if (int_pc % 4 != 0) {
+								cout << "address is aligned by 4...try again" << endl;
+								continue;
+							}
+							cout << "breakpoint PC = " << hex<< int_pc<< dec << endl;
+							breakpoint = (int_pc>> 2);
+							break;
+						}
+					}catch (const invalid_argument& e) {
+						cout << "invalid_argument...try again." << endl;
+					}
+				}
+				break;
+			case 'r':
+				cout << "run to breakpoint" << endl;
+				while ((PC !=  breakpoint) && (PC < lastPC)) {
+					int result = do_op();
+					if (result) {
+						cerr << "error at PC:" << hex << (PC << 2) << dec << endl;
+						cerr << "move to debug mode" << endl;
+						debug();
+						return EXIT_FAILURE;
+					}
+				}
+				if (PC == breakpoint) {
+					cout << "reached breakpoint" << endl;
+				}
+				if (PC >= lastPC) {
+					cout << "reached end of execution" << endl;
+					return 0;
+				}
+				break;
 			case 'g':
 				SHOWGPR();break;
 			case 'f':
@@ -210,8 +257,10 @@ int step() {
 			case 'l':
 				SHOWLR();break;
 			case 'i':
+				cout << "next PC: ";
 				SHOWPC();
-				SHOWOP();
+				nxtOP = htonl(INST_MEM[PC]);
+				cout << "next OP: " << hex << nxtOP << dec << endl;
 				break;
 			case 'm':
 				while (1) {
@@ -252,11 +301,13 @@ int step() {
 				return EXIT_FAILURE;
 			case 'h':
 				cout << "'n'			next step" << endl
+						<< "'b'			set breakpoint" << endl
+						<< "'r'			run to breakpoint" << endl
 						<< "'g'			show GPRs" << endl
 						<< "'f'			show FPRs" << endl
 						<< "'c'			show condition register" << endl
 						<< "'l			show link register" << endl
-						<< "'i'			show PC and operation" << endl
+						<< "'i'			show next PC and next operation" << endl
 						<< "'m'			check data memory" << endl
 						<< "'s'			check stack" << endl
 						<< "'h'			show help" << endl

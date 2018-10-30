@@ -61,5 +61,3 @@ uint32_t encode_to_op(vector<string> vitem) {
 	cerr << "undefined instruction" << endl;
 	return 0xFFFFFFFF;
 }
-
-

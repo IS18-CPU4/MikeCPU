@@ -85,6 +85,9 @@ int main(int argc, char** argv) {
 				vitem.push_back(*itr2);
 			}
 		}
+		if (vitem[0].find_first_of("#", 0) == 0) {
+			continue;
+		}
 		if (vitem[0].find_last_of(':') == vitem[0].length()-1) {
 			cout << "label: " << line << endl;
 			vector<string> vtmp = StringSplit(vitem[0], ':');
