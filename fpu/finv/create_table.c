@@ -42,7 +42,7 @@ int main(int argc, char *argv[]){
   for (key = 0; key < 0x400*2; key++) {
     printf("(key == 11'b");
     printbit(key, 10, 0);
-    printf(") ? 46'b");
+    printf(") ? 47'b");
     input.i = one.i + (key << 12);
     x1.i = input.i;
     x2.i = input.i + ((uint32_t)1 << 12);
@@ -52,12 +52,12 @@ int main(int argc, char *argv[]){
     printbit(constant.i, 22, 0);
     gradient.f = x0.f * x0.f;
     if (get_up2down(gradient.i, 30, 23) == 126) {
-      printbit((get_up2down(gradient.i, 22, 0) + ((uint32_t)1 << 23)) / 2, 22, 0);
+      printbit((get_up2down(gradient.i, 22, 0) + ((uint32_t)1 << 23)), 23, 0);
     } else {
-      printbit((get_up2down(gradient.i, 22, 0) + ((uint32_t)1 << 23)) / 4, 22, 0);
+      printbit((get_up2down(gradient.i, 22, 0) + ((uint32_t)1 << 23)) / 2, 23, 0);
     }
     if (key == 0x400*2-1) {
-      printf(" : 46'd0;\n");
+      printf(" : 47'd0;\n");
     } else {
       printf(" :\n");
     }
