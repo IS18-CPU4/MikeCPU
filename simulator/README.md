@@ -65,3 +65,8 @@ mincaml/powerpcの規約に合わせてtest用の.sファイルとsimulatorを�
 
 bcondで相対アドレスが負のとき違うアドレスに飛んでしまうのを修正
 ba, balを追加
+
+assembler の出力の1行目に実行する機械語列のバイト数
+									2行目に_min_caml_startラベルの示すアドレスを追加　ラベルがない場合0になる
+simulatorでは_min_caml_startラベルのアドレスから命令を実行する
+

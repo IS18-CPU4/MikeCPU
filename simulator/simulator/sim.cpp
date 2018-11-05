@@ -62,6 +62,7 @@ uint32_t DATA_MEM[DATA_ADDR] = {};//データを保存するメモリ
 
 uint32_t PC;
 uint32_t OP;
+uint32_t mincamlStart;
 
 int lastPC;
 //bitを取り出す
@@ -209,7 +210,7 @@ void debug() {
 }
 
 int normal() {
-	PC = 0;
+	PC = mincamlStart >> 2;
 	GPR[3] = 0x8000;//stack
 	while(PC < lastPC) {
 		int result = do_op();
@@ -225,7 +226,7 @@ int normal() {
 
 int step() {
 	cout << "execute by step..." << endl;
-	PC = 0;
+	PC = mincamlStart >> 2;
 	GPR[3] = 0x8000;//stack
 	//uint32_t breakpoint = 0;
 	vector<uint32_t> breakpoint;
@@ -394,6 +395,11 @@ int main(int argc, char**argv) {
 	size_t cnt;
 	size_t pos = 0;
 	cout << "reading instruction..." << endl;
+	uint32_t codeByte;
+	fread(&codeByte, 4, 1, binary);
+	cout << "byte of code: " << hex << codeByte << dec << endl;
+	fread(&mincamlStart, 4, 1, binary);
+	cout << "_min_caml_start label address: " << hex << mincamlStart << dec << endl;
 	while ((cnt = fread(&INST_MEM[pos], 4, 2048, binary))) {
 		pos += cnt;
 	} 

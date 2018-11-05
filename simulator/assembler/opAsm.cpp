@@ -71,7 +71,7 @@ uint32_t get_simm16(const string str) {
 		} catch (const invalid_argument& e) {
 			try{
 				simm16 = labelMap.at(vtmp[1]);
-				cout << "ha(label)" << hex << simm16 << dec << endl;
+				cout << "label address: " << hex << simm16 << dec << endl;
 				return ((simm16 >> 16) & 0x0000FFFF);
 			} catch (const out_of_range&) {
 				cerr << "error in simm16...invalid_argument or undefined label" << endl;
@@ -88,7 +88,7 @@ uint32_t get_simm16(const string str) {
 		} catch (const invalid_argument& e) {
 			try{
 				simm16 = labelMap.at(vtmp[1]);
-				cout << "lo(label)" << hex << simm16 << dec << endl;
+				cout << "label address: " << hex << simm16 << dec << endl;
 				return (simm16 & 0x0000FFFF);
 			} catch (const out_of_range&) {
 				cerr << "error in simm16...invalid_argument or undefined label" << endl;
