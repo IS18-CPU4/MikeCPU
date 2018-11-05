@@ -48,6 +48,10 @@ uint32_t encode_to_op(vector<string> vitem) {
 	if (scmp("ftoi")) {return op_ftoi(vitem);}
 	if (scmp("out")) {return op_out(vitem);}
 
+	//added 2
+	if (scmp("ba")) {return op_ba(vitem);}
+	if (scmp("bal")) {return op_bal(vitem);}
+
 	if (scmp(".text")) {return set_txt(vitem);}
 	if (scmp(".align")) {return set_align(vitem);}
 	if (scmp(".globl")) {return set_globl(vitem);}

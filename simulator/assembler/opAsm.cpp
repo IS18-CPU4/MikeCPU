@@ -83,7 +83,7 @@ uint32_t get_simm16(const string str) {
 		vtmp[1].erase(vtmp[1].size()-1);
 		cout << "lo of " <<  vtmp[1] << endl;
 		try{
-			simm16 = stoi(str, nullptr, 0);
+			simm16 = stoi(vtmp[1], nullptr, 0);
 			return (simm16 & 0x0000FFFF);
 		} catch (const invalid_argument& e) {
 			try{
@@ -103,10 +103,8 @@ uint32_t get_simm16(const string str) {
 			return (simm16 & 0x0000FFFF);
 		} catch (const invalid_argument& e) {
 			try {
-				uint32_t addr = labelMap.at(str);
-				cout << "label address: " << hex << addr << dec << endl;
-				simm16 =  addr - PC;
-				cout << "simm16: "<< hex << simm16 << dec << endl;
+				simm16 = labelMap.at(str);
+				cout << "label address: " << hex << simm16 << dec << endl;
 				return (simm16 & 0x0000FFFF);
 			} catch (const out_of_range&) {
 				cerr << "error in simm16...invalid_argument or undefined label" << endl;
@@ -292,7 +290,8 @@ uint32_t op_srw(const vector<string>& vitem){
 }
 uint32_t op_bc(const vector<string>& vitem){
 	uint32_t simm16 = get_simm16(vitem[2]);
-	uint32_t addr = simm16 >> 2;
+	//simm16は絶対アドレスになるので0以上。
+	uint32_t addr = ((simm16 - PC) >> 2)& 0x0000FFFF;
 	op = (1 << 30) | (1 << 29) | (1 << 28) | (1 << 27) | (1 << 26);
 	return (op | get_rA(vitem[1]) | addr);
 }
@@ -307,6 +306,15 @@ uint32_t op_ftoi(const vector<string>& vitem){
 uint32_t op_out(const vector<string>& vitem) {
 	op = (1 << 31) | (1 << 30) | (1 << 29) | (1 << 28) | (1 << 27) | (1 << 26);
 	return (op |get_rD(vitem[1]));
+}
+
+uint32_t op_ba(const vector<string>& vitem) {
+	op = (1 << 31) | (1 << 27);
+	return (op |get_rD(vitem[1]));
+}
+uint32_t op_bal(const vector<string>& vitem) {
+	op = (1 << 31) | (1 << 27) | (1 << 26);
+	return (op | get_rD(vitem[1]));
 }
 
 uint32_t set_txt(const vector<string>& vitem) {

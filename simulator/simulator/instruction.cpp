@@ -389,3 +389,15 @@ void out() {
 	uint32_t result = 0x0000FFFF & GPR[rD];
 	cout << "operation out..." << hex << result << dec << endl;
 }
+
+void branch_abs() {
+	rD = get_rD(OP);
+	uint32_t addr = GPR[rD];
+	PC = addr;
+}	
+void branch_abs_and_link() {
+	rD = get_rD(OP);
+	uint32_t addr = GPR[rD];
+	LR = PC + 1;
+	PC = addr;
+}

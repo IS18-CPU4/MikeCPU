@@ -59,5 +59,9 @@ breakpointを設定できるようにしたが、いまのところPCでの指�
 breakpointを複数設定できる
 bcondを修正
 ha(label), lo(label)が読める
+
 regのinitializationで不適切な入力をいれたとき無限ループになるのを修正
 mincaml/powerpcの規約に合わせてtest用の.sファイルとsimulatorを調整
+
+bcondで相対アドレスが負のとき違うアドレスに飛んでしまうのを修正
+ba, balを追加
