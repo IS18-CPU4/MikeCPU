@@ -1,3 +1,5 @@
+#pls set fr3 <- argument
+#				 fr1 <- 1
 init:
 	fmr fr4, fr3
 	fmr fr5, fr0

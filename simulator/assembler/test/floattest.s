@@ -1,3 +1,5 @@
+#pls set fr3 <- some float
+#				 fr4 <- some float
 test:
 	fadd fr5, fr3, fr4
 	fsub fr6, fr3, fr4

@@ -25,34 +25,34 @@ int32_t simm16;
 int imm5;
 int32_t simm26;
 
-int get_rD(const uint32_t ui) {
+inline int get_rD(const uint32_t ui) {
 	uint32_t tmp = ui << 6;
 	tmp = tmp >> 27;
 	return int(tmp);
 }
-int get_rA(const uint32_t ui) {
+inline int get_rA(const uint32_t ui) {
 	uint32_t tmp = ui << 11;
 	tmp = tmp >> 27;
 	return int(tmp);
 }
-int get_rB(const uint32_t ui) {
+inline int get_rB(const uint32_t ui) {
 	uint32_t tmp = ui << 16;
 	tmp = tmp >> 27;
 	return int(tmp);
 }
-int32_t get_simm16(const uint32_t ui) {
+inline int32_t get_simm16(const uint32_t ui) {
 	if (ui & (1 << 15)) {
 		return (ui | 0xFFFF0000);
 	} else {
 		return (ui & 0x0000FFFF);
 	}
 }
-int get_imm5(const uint32_t ui){
+inline int get_imm5(const uint32_t ui){
 	uint32_t tmp = ui << 16;
 	tmp = tmp >> 27;
 	return int (tmp);
 }
-int32_t get_simm26(const uint32_t ui) {
+inline int32_t get_simm26(const uint32_t ui) {
 	if (ui & (1 << 25)) {
 		return (ui | 0xFC000000);
 	} else {
@@ -60,29 +60,43 @@ int32_t get_simm26(const uint32_t ui) {
 	}
 }
 
-void cr0_set0() {
-	CR = (CR & 0x9FFFFFFF) | (1 << 31);
+inline void cr0_set0(uint32_t cr) {
+	int bit = (8 - cr) * 4 - 1;
+	uint32_t tmp = (1 << bit) | (1 << (bit-1)) | (1 << (bit-2))| (1 << (bit-3));
+	CR = CR & ~tmp;
+	CR = CR | (1 << bit);
 }
-void cr0_set1() {
-	CR = (CR & 0x5FFFFFFF) | (1 << 30);
+inline void cr0_set1(uint32_t cr) {
+	int bit = (8 - cr) * 4 - 2;
+	uint32_t tmp = (1 << (bit+1)) | (1 << (bit)) | (1 << (bit-1))| (1 << (bit-2));
+	CR = CR & ~tmp;
+	CR = CR | (1 << bit);
 }
-void cr0_set2() {
-	CR = (CR & 0x03FFFFFF) | (1 << 29);
+inline void cr0_set2(uint32_t cr) {
+	int bit = (8 - cr) * 4 - 3;
+	uint32_t tmp = (1 << (bit+2)) | (1 << (bit+1)) | (1 << bit)| (1 << (bit-1));
+	CR = CR & ~tmp;
+	CR = CR | (1 << bit);
+}
+inline void cr0_set3(uint32_t cr){
+	int bit = (8 -cr) * 4 - 4;
+	uint32_t tmp = (1 << (bit+3)) | (1 << (bit+2)) | (1 << bit+1)| (1 << bit);
+	CR = CR & ~tmp;
+	CR = CR | (1 << bit);
 }
 
-
-void initReg() {
+inline void initReg() {
 	rD = get_rD(OP);
 	rA = get_rA(OP);
 	rB = get_rB(OP);
 }
-void initSimm16() {
+inline void initSimm16() {
 	rD = get_rD(OP);
 	rA = get_rA(OP);
 	simm16 = get_simm16(OP);
 }
 
-void initImm5() {
+inline void initImm5() {
 	rD = get_rD(OP);
 	rA = get_rA(OP);
 	imm5 = get_imm5(OP);
@@ -279,36 +293,33 @@ void move_to_link() {
 
 //compare
 void cmp_imm(){
-	rA = get_rA(OP);
-	simm16 = get_simm16(OP);
+	initSimm16();
 	if (GPR[rA] < simm16) {
-		cr0_set0();
+		cr0_set0(rD);
 	} else if (GPR[rA] == simm16) {
-		cr0_set2();
+		cr0_set2(rD);
 	} else {
-		cr0_set1();
+		cr0_set1(rD);
 	}
 }
 void cmp_reg() {
-	rA = get_rA(OP);
-	rB = get_rB(OP);
+	initReg();
 	if (GPR[rA] < GPR[rB]) {
-		cr0_set0();
+		cr0_set0(rD);
 	} else if (GPR[rA] == GPR[rB]) {
-		cr0_set2();
+		cr0_set2(rD);
 	} else {
-		cr0_set1();
+		cr0_set1(rD);
 	}
 }
 void fcmp_reg() {
-	rA = get_rA(OP);
-	rB = get_rB(OP);
+	initReg();
 	if (FPR[rA] < FPR[rB]) {
-		cr0_set0();
+		cr0_set0(rD);
 	} else if (FPR[rA] == FPR[rB]) {
-		cr0_set2();
+		cr0_set2(rD);
 	} else {
-		cr0_set1();
+		cr0_set1(rD);
 	}
 }
 
@@ -360,4 +371,53 @@ void fstore() {
 		exit(1);
 	}
 	*((float*)&DATA_MEM[addr]) = FPR[rD];
+}
+
+//added
+
+void l_shift_lg() {
+	initReg();
+	if (rD == 0) {
+		cerr << "cannot write in GPR[0] : slw" << endl;
+		exit(1);
+	}
+	GPR[rD] = (GPR[rA] << GPR[rB]);
+}
+void r_shift_lg() {
+	initReg();
+	if (rD == 0) {
+		cerr << "cannot write in GPR[0] : srw" << endl;
+		exit(1);
+	}
+	GPR[rD] = (GPR[rA] >> GPR[rB]);
+}
+void branch_cond() {
+	rD = get_rD(OP);
+	int bit = 31 - rD;
+	if (CR & (1 << bit)) {
+		simm16 = get_simm16(OP);
+		PC += simm16;
+	} else {
+		PC++;
+	}
+}
+void int_to_float() {
+	rD = get_rD(OP);
+	rA = get_rA(OP);
+	FPR[rD] = (float)(GPR[rA]);
+}
+void float_to_int() {
+	rD = get_rD(OP);
+	if (rD == 0) {
+		cerr << "cannot write in GPR[0] : ftoi" << endl;
+		exit(1);
+	}
+	rA = get_rA(OP);
+	GPR[rD] = (uint32_t)(FPR[rA]);
+}
+
+void out() {
+	rD = get_rD(OP);
+	uint32_t result = 0x0000FFFF & GPR[rD];
+	cout << "operation out..." << hex << result << dec << endl;
 }

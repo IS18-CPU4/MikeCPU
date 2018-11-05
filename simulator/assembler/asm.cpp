@@ -85,6 +85,9 @@ int main(int argc, char** argv) {
 				vitem.push_back(*itr2);
 			}
 		}
+		if (vitem[0].find_first_of("#", 0) == 0) {
+			continue;
+		}
 		if (vitem[0].find_last_of(':') == vitem[0].length()-1) {
 			cout << "label: " << line << endl;
 			vector<string> vtmp = StringSplit(vitem[0], ':');
@@ -109,8 +112,8 @@ int main(int argc, char** argv) {
 		cout << "deal with " << line << endl;
 		linenum++;
 		op = encode(line);
-		if (op == 0x80000000) {
-			cerr << "undefined operation PC:" << PC + 4 << endl;
+		if (op == 0xFFFFFFFF) {
+			return 1;
 		}
 		if (op == 0x00000000) {
 			cout << "not operation" << endl;

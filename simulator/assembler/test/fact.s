@@ -1,3 +1,4 @@
+#pls set r3 <- argument
 init:
 	mr r4, r3
 	mr r5, r0

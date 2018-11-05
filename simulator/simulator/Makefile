@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -Wall
+CFLAGS = -std=c++11 -Wall
 
 ALL: sim.o op.o instruction.o
 	$(CC) $(CFLAGS) -o sim sim.o op.o instruction.o

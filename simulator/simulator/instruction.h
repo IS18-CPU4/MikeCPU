@@ -2,16 +2,16 @@
 #define INSTRUCTION_H_
 
 
-int get_rD(const uint32_t);
-int get_rA(const uint32_t);
-int get_rB(const uint32_t);
-int32_t get_simm16(const uint32_t);
-int get_imm5(const uint32_t);
-int32_t get_simm26(const uint32_t);
+inline int get_rD(const uint32_t);
+inline int get_rA(const uint32_t);
+inline int get_rB(const uint32_t);
+inline int32_t get_simm16(const uint32_t);
+inline int get_imm5(const uint32_t);
+inline int32_t get_simm26(const uint32_t);
 
-void cr0_set0();
-void cr0_set1();
-void cr0_set2();
+inline void cr0_set0(const uint32_t);
+inline void cr0_set1(const uint32_t);
+inline void cr0_set2(const uint32_t);
 
 inline void initReg();
 inline void initSimm16();
@@ -47,5 +47,13 @@ void load();//word
 void store();
 void fload();
 void fstore();
+
+//added
+void l_shift_lg();
+void r_shift_lg();
+void branch_cond();
+void int_to_float();
+void float_to_int();
+void out();
 
 #endif //INSTRUCTION_H_
