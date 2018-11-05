@@ -33,6 +33,14 @@
 `define OP_fld      6'd27
 `define OP_fst      6'd28
 
+`define OP_slw      6'b011101
+`define OP_srw      6'b011110
+`define OP_bc       6'b011111
+`define OP_itof     6'b100000
+`define OP_ftoi     6'b100001
+`define OP_ba       6'b100010
+`define OP_bal      6'b100011
+
 
 `define OP_in      6'b111110
 `define OP_out      6'b111111
