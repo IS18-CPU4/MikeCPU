@@ -392,8 +392,8 @@ void r_shift_lg() {
 	GPR[rD] = (GPR[rA] >> GPR[rB]);
 }
 void branch_cond() {
-	rD = get_rD(OP);
-	int bit = 31 - rD;
+	rA = get_rA(OP);
+	int bit = 31 - rA;
 	if (CR & (1 << bit)) {
 		simm16 = get_simm16(OP);
 		PC += simm16;

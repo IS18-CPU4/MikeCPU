@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <getopt.h>
 #include <arpa/inet.h>
+#include <algorithm>
 #include "op.h"
 
 #define INST_ADDR 0x10000
@@ -193,8 +194,11 @@ int step() {
 	cout << "execute by step..." << endl;
 	PC = 0;
 	GPR[1] = 0x8000;//stack
-	uint32_t breakpoint = 0;
+	//uint32_t breakpoint = 0;
+	vector<uint32_t> breakpoint;
+	vector<uint32_t>::iterator bitr;
 	string str_pc;
+	int bi;
 	uint32_t nxtOP;
 	while(PC < lastPC) {
 		bool next = 0;
@@ -208,6 +212,10 @@ int step() {
 				break;
 			case 'b':
 				cout << "set breakpoint...current PC is " << hex << (PC << 2) <<dec << endl;
+				cout << "current breakpoint is..." << endl;
+				for (bitr = breakpoint.begin(), bi = 0; bitr != breakpoint.end(); bitr++, bi++) {
+					cout << "breakpoint " << dec << bi << ": "<< hex  << (*bitr << 2) << dec << endl;
+				}
 				cout << "put PC in hex you want to make breakpoint (put e to end): ";
 				cin >> str_pc;
 				if (str_pc== "e") {
@@ -221,7 +229,7 @@ int step() {
 								continue;
 							}
 							cout << "breakpoint PC = " << hex<< int_pc<< dec << endl;
-							breakpoint = (int_pc>> 2);
+							breakpoint.push_back(int_pc>> 2);
 							break;
 						}
 					}catch (const invalid_argument& e) {
@@ -231,7 +239,12 @@ int step() {
 				break;
 			case 'r':
 				cout << "run to breakpoint" << endl;
-				while ((PC !=  breakpoint) && (PC < lastPC)) {
+				while (PC < lastPC) {
+					bitr = find(breakpoint.begin(), breakpoint.end(), PC);
+					if (bitr != breakpoint.end()) {
+						breakpoint.erase(bitr);
+						break;
+					}
 					int result = do_op();
 					if (result) {
 						cerr << "error at PC:" << hex << (PC << 2) << dec << endl;
@@ -240,12 +253,11 @@ int step() {
 						return EXIT_FAILURE;
 					}
 				}
-				if (PC == breakpoint) {
-					cout << "reached breakpoint" << endl;
-				}
 				if (PC >= lastPC) {
 					cout << "reached end of execution" << endl;
 					return 0;
+				}else {
+					cout << "reached breakpoint" << endl;
 				}
 				break;
 			case 'g':
@@ -340,7 +352,6 @@ int main(int argc, char**argv) {
 	FILE* binary;
 
 	cout << "opening binary file..." << endl;
-	cout << optind << endl;
 	binary = fopen(argv[optind], "rb");
 	if (!binary) {
 		cerr << "cannot open file" << endl;
