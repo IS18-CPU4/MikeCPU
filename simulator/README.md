@@ -2,14 +2,15 @@ simulator
 
 powerpcの命令セットを参考にしたオリジナルの命令セットをシミュレートする
 
-simulator: /simulatorでmake 実行方法 ./sim [inputfile]
-assembler: /assemblerでmake 実行方法 ./asm [inputfile] [outputfile]
+/simulatorにおいてsimulatorとassemblerを一括でmakeできる。
+simulator: /simulator/simulatorでmake 実行方法 ./sim --option [inputfile]    (optionはなしで普通の実行。現状optionはstepとhelpのみ)
+assembler: /simulator/assemblerでmake 実行方法 ./asm [inputfile] [outputfile]
 
 stackはデータメモリのアドレスが大きい場所を使っているので注意。
-stackpointerは初めGPR[1]に0x8000がはいっている。
+stackpointerは初めGPR[3]に0x8000がはいっている。
 GPR[0]には書き込まないように。
-GPR[1]はスタックポインタとして使う。
-計算が終わったあとのデフォルトの返り値はGPR[3]かFPR[1]。それ以外はレジスタの中身をみる。
+GPR[3]はスタックポインタとして使う。
+計算が終わったあとのデフォルトの返り値はGPR[1]かFPR[1]。それ以外はレジスタの中身をみる。
 
 10/15
 .txt .align .globlなどの調整
@@ -41,7 +42,6 @@ errorをわかりやすくする
 
 10/28
 outを追加
-cmpとbcの調整:いまは32bit condregを4bitごとに8つに分割していて、cmp系統では8つのうちどれを使うかをcrDで指定 bcでは0~31のbitで指定する仕様
 
 10/29
 高速化について
@@ -49,6 +49,7 @@ OP関連の関数をOPクラスの関数オブジェクトに変更する
 constをつけられるところにつけてわかりやすくする
 例外処理
 ループの条件を調整
+コンパイル時の最適化
 
 10/30
 コメントによってラベルのアドレスがずれていたので修正
@@ -57,4 +58,6 @@ breakpointを設定できるようにしたが、いまのところPCでの指�
 11/6
 breakpointを複数設定できる
 bcondを修正
-ha(label), lo(label)が読める。
+ha(label), lo(label)が読める
+regのinitializationで不適切な入力をいれたとき無限ループになるのを修正
+mincaml/powerpcの規約に合わせてtest用の.sファイルとsimulatorを調整

@@ -56,6 +56,7 @@ uint32_t get_rB(const string str) {
 }
 uint32_t get_simm16(const string str) {
 	//int r = stoi(str);
+	//cout << "getsimm16" << endl;
 
 	uint32_t simm16;
 	regex re(R"(ha\(.*\))");
@@ -96,7 +97,7 @@ uint32_t get_simm16(const string str) {
 		}
 	}else {
 
-	//normal address
+	//	cout << "simm16 normal" << endl;
 		try{
 			simm16 = stoi(str, nullptr, 0);
 			return (simm16 & 0x0000FFFF);

@@ -1,22 +1,22 @@
 start:
-	li r3, 3
-	cmpwi cr0, r3, 3
+	li r1, 3
+	cmpwi cr0, r1, 3
 	bc cr2, equal
-	li r4, 3
+	li r2, 3
 	b end
 equal:
-	cmpwi cr2, r3, 4
+	cmpwi cr2, r1, 4
 	bc cr8, lessthan
-	li r4, 4
+	li r2, 4
 	b end
 lessthan:
-	cmpwi cr3, r3, 2
+	cmpwi cr3, r1, 2
 	bc cr13, morethan
-	li r4, 2
+	li r2, 2
 	b end
 morethan:
-	li r4, 0
+	li r2, 0
 	b end
 end:
-	mr r3, r4
-# 0:success 3:eq? 4:neg? 2:pos?
+	mr r2, r4
+# return number =  0:success 3:eq? 4:neg? 2:pos?

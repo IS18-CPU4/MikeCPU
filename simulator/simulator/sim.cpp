@@ -7,6 +7,7 @@
 #include <getopt.h>
 #include <arpa/inet.h>
 #include <algorithm>
+#include <climits>
 #include "op.h"
 
 #define INST_ADDR 0x10000
@@ -103,6 +104,9 @@ void debug();
 #define SHOWOP() cout << hex << OP << dec << endl
 
 void initialize() {
+	string index;
+	int intindex;
+	int intvalue;
 	cout << "initialization..." << endl;
 	while(1){
 		cout << "which register to set value? put char...GPR--g, FPR--f, end--e" << endl;
@@ -111,28 +115,57 @@ void initialize() {
 		switch(x) {
 		case 'g':
 			while (1) {
-				cout << "put index of GPR...put 0 to end setting" << endl;
-				int index;
+				cout << "put index of GPR...put e to end setting" << endl;
 				cin >> index;
-				if (0 == index) {break;}
-				cout << "put value of GPR[" << index << "]: ";
-				uint32_t value;
-				cin >> value;
-				GPR[index] = value;
+				if ("e" == index) {break;}
+				try {
+					intindex = stoi(index, nullptr, 0);
+					if (intindex == 0) {
+						cout << "you cannot set value in GPR[0]" << endl;
+						continue;
+					}
+					if (0 < intindex && intindex < 32) {
+						cout << "put value of GPR[" << intindex << "]: ";
+						string value;
+						cin >> value;
+						try {
+							intvalue = stoi(value, nullptr, 0);
+							GPR[intindex] = intvalue;
+						} catch (const invalid_argument &e) {
+							cout << "invalid input...try again." << endl;
+						}
+					} else {
+						cout << "put 1~31" << endl;
+					}
+				} catch (const invalid_argument& e) {
+					cout << "put 1~31" << endl;
+				}
 			}
 			cout << "end setting GPR" << endl;
 			SHOWGPR();
 			break;
 		case 'f':
 			while (1) {
-				cout << "put index of FPR...put 0 to end setting" << endl;
-				int index;
+				cout << "put index of FPR...put e to end setting" << endl;
 				cin >> index;
-				if (0 == index) {break;}
-				cout << "put value of FPR[" << index << "]: ";
-				float value;
-				cin >> value;
-				FPR[index] = value;
+				if ("e" == index) {break;}
+				try {
+					intindex = stoi(index, nullptr, 0);
+					if (0 <= intindex && intindex < 32) {
+						cout << "put value of FPR[" << intindex << "]: ";
+						float value;
+						for (cin >> value; !cin; cin >> value){
+							cin.clear();
+							cin.ignore();
+							cout << "put float!" << endl << "value: ";
+						}
+						FPR[intindex] = value;
+					} else {
+						cout << "put 0~31" << endl;
+					}
+				} catch (const invalid_argument& e) {
+					cout << "put 0~31" << endl;
+				}
 			}
 			cout << "end setting FPR" << endl;
 			SHOWFPR();
@@ -177,7 +210,7 @@ void debug() {
 
 int normal() {
 	PC = 0;
-	GPR[1] = 0x8000;//stack
+	GPR[3] = 0x8000;//stack
 	while(PC < lastPC) {
 		int result = do_op();
 		if (result) {
@@ -193,7 +226,7 @@ int normal() {
 int step() {
 	cout << "execute by step..." << endl;
 	PC = 0;
-	GPR[1] = 0x8000;//stack
+	GPR[3] = 0x8000;//stack
 	//uint32_t breakpoint = 0;
 	vector<uint32_t> breakpoint;
 	vector<uint32_t>::iterator bitr;
@@ -380,7 +413,7 @@ int main(int argc, char**argv) {
 	}
 	if (!result) {
 		cout << "finish execution! return value: " << endl;
-		cout << "GPR[3]:" << hex << GPR[3]<< " FPR[1]:" << FPR[1] <<  hex << endl;
+		cout << "GPR[1]:" << hex << GPR[1]<< " FPR[0]:" << FPR[0] <<  hex << endl;
 		debug();
 	}
 }

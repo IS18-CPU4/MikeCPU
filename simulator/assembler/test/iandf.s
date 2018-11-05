@@ -1,4 +1,4 @@
 start:
-	li r3, 4
-	itof fr1, r3
-	ftoi r4, fr1
+	li r1, 4
+	itof fr0, r1
+	ftoi r2, fr0

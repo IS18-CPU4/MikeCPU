@@ -177,60 +177,32 @@ void r_shift_lg_imm() {
 //float
 void fadd() {
 	initReg();
-	if (rD == 0) {
-		cerr << "cannot write in FPR[0] : fadd" << endl;
-		exit(1);
-	}
 	FPR[rD] = FPR[rA] + FPR[rB];
 }
 void fsub() {
 	initReg();
-	if (rD == 0) {
-		cerr << "cannot write in FPR[0] : fsub" << endl;
-		exit(1);
-	}
 	FPR[rD] = FPR[rA] - FPR[rB];
 }
 void fdiv() {
 	initReg();
-	if (rD == 0) {
-		cerr << "cannot write in FPR[0] : fsub" << endl;
-		exit(1);
-	}
 	FPR[rD] = FPR[rA] / FPR[rB];
 }
 void fmul() {
 	initReg();
-	if (rD == 0) {
-		cerr << "cannot write in FPR[0] : fmul" << endl;
-		exit(1);
-	}
 	FPR[rD] = FPR[rA] * FPR[rB];
 }
 void fsqrt() {
 	rD = get_rD(OP);
-	if (rD == 0) {
-		cerr << "cannot write in FPR[0] : fsqrt" << endl;
-		exit(1);
-	}
 	rA = get_rA(OP);
 	FPR[rD] = sqrt(FPR[rA]);
 }
 void fabs() {
 	rD = get_rD(OP);
-	if (rD == 0) {
-		cerr << "cannot write in FPR[0] : fdiv" << endl;
-		exit(1);
-	}
 	rA = get_rA(OP);
 	*((uint32_t*)&FPR[rD]) = *((uint32_t*)&FPR[rA]) & 0x7FFFFFFF;
 }
 void fmove_reg() {
 	rD = get_rD(OP);
-	if (rD == 0) {
-		cerr << "cannot write in FPR[0] : fmr" << endl;
-		exit(1);
-	}
 	rA = get_rA(OP);
 	FPR[rD] = FPR[rA];
 }
@@ -352,10 +324,6 @@ void store() {
 }
 void fload() {
 	initSimm16();
-	if (rD == 0) {
-		cerr << "cannot write in GPR[0] : ld" << endl;
-		exit(1);
-	}
 	uint32_t addr = GPR[rA] + simm16;
 	if (!(0 <= addr && addr < 0x10000)) {
 		cerr << "cannot load: memory overflow" << " " << hex << addr << endl;

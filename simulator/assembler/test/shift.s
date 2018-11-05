@@ -1,5 +1,5 @@
 shiftleft:
-	li r2, 4
-	slwi r3, r2, 2
+	li r1, 4
+	slwi r2, r1, 2
 shiftright:
-	srwi r4, r2, 2
+	srwi r5, r1, 2
