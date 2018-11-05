@@ -34,6 +34,22 @@ let rec print_knormal_t knormal =
                                 let _ = print_tab !kn_tab in
                                 let _ = print_endline id2 in
                                   kn_tab := !kn_tab - 1
+    | KNormal.LShift (id1, id2) -> let _ = print_tab !kn_tab in
+                                let _ = print_endline "LSHIFT" in
+                                let _ = (kn_tab := !kn_tab + 1) in
+                                let _ = print_tab !kn_tab in
+                                let _ = print_endline id1 in
+                                let _ = print_tab !kn_tab in
+                                let _ = print_endline id2 in
+                                  kn_tab := !kn_tab - 1
+    | KNormal.RShift (id1, id2) -> let _ = print_tab !kn_tab in
+                                let _ = print_endline "RSHIFT" in
+                                let _ = (kn_tab := !kn_tab + 1) in
+                                let _ = print_tab !kn_tab in
+                                let _ = print_endline id1 in
+                                let _ = print_tab !kn_tab in
+                                let _ = print_endline id2 in
+                                  kn_tab := !kn_tab - 1
     | KNormal.FNeg id -> let _ = print_tab !kn_tab in
                          let _ = print_endline "FNEG" in
                          let _ = (kn_tab := !kn_tab + 1) in

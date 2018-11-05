@@ -1,4 +1,4 @@
-(* translation into PowerPC assembly with infinite number of virtual registers *)
+(* translation into PowerPC like assembly with infinite number of virtual registers *)
 
 open Asm
 
@@ -48,6 +48,9 @@ let rec g env = function (* 式の仮想マシンコード生成 (caml2html: virtual_g) *)
   | Closure.Neg(x) -> Ans(Neg(x))
   | Closure.Add(x, y) -> Ans(Add(x, V(y)))
   | Closure.Sub(x, y) -> Ans(Sub(x, V(y)))
+  | Closure.LShift(x, y) -> Ans(Slw(x, V(y))) (*即値にする？*)
+(*  | Closure.LShift(x, Closure.Int(y)) -> Ans(Slw(x, C(y))) (*即値化*) *)
+  | Closure.RShift(x, y) -> Ans(Srw(x, V(y)))
   | Closure.FNeg(x) -> Ans(FNeg(x))
   | Closure.FAdd(x, y) -> Ans(FAdd(x, y))
   | Closure.FSub(x, y) -> Ans(FSub(x, y))

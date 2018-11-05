@@ -32,20 +32,20 @@ let reg r =
   else r
 
 let load_label r label =
+(*
   let r' = reg r in
-  let int_label = int_of_string label in (* labelが10進前提 *)
+  let int_label = int_of_string label in (* labelが10進前提 -> 嘘、L(関数名) の関数名がlabel、、、その命令アドレスは取得できない *)
   let ha_label = int_label lsr 16 in
   let lo_label = int_label - (ha_label lsl 16) in
   Printf.sprintf
 (*    "\tli\t%s, %d\n\tslwi\t%s, %s, %d\n\taddi\t%s, %s, %d\n" *)
     "\tli\t%s, %d\n\taddi\t%s, %s, %d\n"
     r' ha_label r' r' lo_label
-(*
+*)
   let r' = reg r in
   Printf.sprintf
     "\tlis\t%s, ha16(%s)\n\taddi\t%s, %s, lo16(%s)\n"
     r' label r' r' label
-*)
 (* 関数呼び出しのために引数を並べ替える(register shuffling) (caml2html: emit_shuffle) *)
 let rec shuffle sw xys =
   (* remove identical moves *)
@@ -101,6 +101,8 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprim
                                 Printf.fprintf oc "\tsub\t%s, %s, %s\n" (reg x) (reg y) (reg x)
   | NonTail(x), Slw(y, V(z)) -> Printf.fprintf oc "\tslw\t%s, %s, %s\n" (reg x) (reg y) (reg z) (* 要用意 *)
   | NonTail(x), Slw(y, C(z)) -> Printf.fprintf oc "\tslwi\t%s, %s, %d\n" (reg x) (reg y) z
+  | NonTail(x), Srw(y, V(z)) -> Printf.fprintf oc "\tsrw\t%s, %s, %s\n" (reg x) (reg y) (reg z)
+  | NonTail(x), Srw(y, C(z)) -> Printf.fprintf oc "\tsrwi\t%s, %s, %d\n" (reg x) (reg y) z
 (*
   | NonTail(x), Lwz(y, V(z)) -> Printf.fprintf oc "\tlwzx\t%s, %s, %s\n" (reg x) (reg y) (reg z)
   | NonTail(x), Lwz(y, C(z)) -> Printf.fprintf oc "\tlwz\t%s, %d(%s)\n" (reg x) z (reg y)

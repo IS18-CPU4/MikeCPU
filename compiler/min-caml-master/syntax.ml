@@ -1,4 +1,4 @@
-type t = (* MinCaml¤Î¹½Ê¸¤òÉ½¸½¤¹¤ë¥Ç¡¼¥¿·¿ (caml2html: syntax_t) *)
+type t = (* MinCamlï¿½Î¹ï¿½Ê¸ï¿½ï¿½É½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç¡ï¿½ï¿½ï¿½ï¿½ï¿½ (caml2html: syntax_t) *)
   | Unit
   | Bool of bool
   | Int of int
@@ -7,6 +7,8 @@ type t = (* MinCaml¤Î¹½Ê¸¤òÉ½¸½¤¹¤ë¥Ç¡¼¥¿·¿ (caml2html: syntax_t) *)
   | Neg of t
   | Add of t * t
   | Sub of t * t
+  | Mul of t * t
+  | Div of t * t
   | FNeg of t
   | FAdd of t * t
   | FSub of t * t

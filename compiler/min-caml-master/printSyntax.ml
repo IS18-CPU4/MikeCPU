@@ -41,6 +41,19 @@ let rec print_syntax_t syntax = (* Syntax.t型の標準出力 *)
                            let _ = print_syntax_t t1 in
                            let _ = print_syntax_t t2 in
                             tab := !tab - 1
+  | Syntax.LShift (t1, t2) -> let _ = print_tab !tab in
+                           let _ = print_endline "LSHIFT" in
+                           let _ = (tab := !tab + 1) in
+                           let _ = print_syntax_t t1 in
+                           let _ = print_syntax_t t2 in
+                            tab := !tab - 1
+  | Syntax.RShift (t1, t2) -> let _ = print_tab !tab in
+                           let _ = print_endline "RSHIFT" in
+                           let _ = (tab := !tab + 1) in
+                           let _ = print_syntax_t t1 in
+                           let _ = print_syntax_t t2 in
+                            tab := !tab - 1
+
   | Syntax.FNeg t -> let _ = print_tab !tab in
                      let _ = print_endline "FNEG" in
                      let _ = (tab := !tab + 1) in
@@ -127,6 +140,8 @@ let rec print_syntax_t syntax = (* Syntax.t型の標準出力 *)
                                               let _ = (tab := !tab + 1) in
                                               let _ = print_id_type_list id_type_list in
                                               let _ = print_syntax_t t1 in
+                                              let _ = print_tab !tab in
+                                              let _ = print_endline "IN" in
                                               let _ = print_syntax_t t2 in
                                                 tab := !tab - 1
   | Syntax.Array (t1, t2) -> let _ = print_tab !tab in
@@ -143,7 +158,7 @@ let rec print_syntax_t syntax = (* Syntax.t型の標準出力 *)
                              tab := !tab - 1
   | Syntax.Put (t1, t2, t3) -> let _ = print_tab !tab in
                                let _ = print_endline "PUT" in
-                               let _ = (tab := !tab - 1) in
+                               let _ = (tab := !tab + 1) in
                                let _ = print_syntax_t t1 in
                                let _ = print_syntax_t t2 in
                                let _ = print_syntax_t t3 in
@@ -165,12 +180,18 @@ and print_type ty = (* Type.t型の標準出力 *)
     | Type.Bool -> print_endline "BOOL"
     | Type.Int -> print_endline "INT"
     | Type.Float -> print_endline "FLOAT"
-    | Type.Fun (t_list, t) -> let _ = print_string "FUN " in
+    | Type.Fun (t_list, t) -> let _ = print_string "FUN (" in
                               let _ = print_type_list t_list in
-                              let _ = print_string " -> " in print_type t
-    | Type.Tuple (t_list) -> let _ = print_string "TUPPLE" in
-                             let _ = print_type_list t_list in print_newline ()
-    | Type.Array t -> let _ = print_string "ARRAY" in print_type t
+                              let _ = print_string " -> " in
+                              let _ = print_not_new_line_type t in
+                                print_endline ")"
+    | Type.Tuple (t_list) -> let _ = print_string "TUPLE(" in
+                             let _ = print_type_list t_list in
+                             let _ = print_string ")" in
+                               print_newline ()
+    | Type.Array t -> let _ = print_string "ARRAY(" in
+                      let _ = print_not_new_line_type t in
+                        print_endline ")"
     | Type.Var ({contents = None}) -> print_endline "VAR NONE"
     | Type.Var ({contents = Some (t)}) -> let _ = print_string "VAR " in print_type t
 and print_not_new_line_type ty = (* print_type_list用の改行しないprint_type *)
@@ -179,18 +200,26 @@ and print_not_new_line_type ty = (* print_type_list用の改行しないprint_ty
     | Type.Bool -> print_string "BOOL"
     | Type.Int -> print_string "INT"
     | Type.Float -> print_string "FLOAT"
-    | Type.Fun (t_list, t) -> let _ = print_string "FUN " in
+    | Type.Fun (t_list, t) -> let _ = print_string "FUN (" in
                               let _ = print_type_list t_list in
-                              let _ = print_string " -> " in print_not_new_line_type t
-    | Type.Tuple (t_list) -> let _ = print_string "TUPPLE" in
-                             let _ = print_type_list t_list in print_newline ()
-    | Type.Array t -> let _ = print_string "ARRAY" in print_not_new_line_type t
+                              let _ = print_string " -> " in
+                              let _ = print_not_new_line_type t in
+                                print_string ")"
+    | Type.Tuple (t_list) -> let _ = print_string "TUPLE(" in
+                             let _ = print_type_list t_list in
+                              print_string ")"
+    | Type.Array t -> let _ = print_string "ARRAY(" in
+                      let _ = print_not_new_line_type t in
+                        print_string ")"
     | Type.Var ({contents = None}) -> print_string "VAR NONE"
     | Type.Var ({contents = Some (t)}) -> let _ = print_string "VAR " in print_not_new_line_type t
 and print_type_list ty_list = (* Type.t listの標準出力 *)
   match ty_list with
     | [] -> print_string ""
-    | t::ty -> let _ = print_not_new_line_type t in print_type_list ty
+    | t::[] -> print_not_new_line_type t
+    | t::ty -> let _ = print_not_new_line_type t in
+               let _ = print_string "," in
+                 print_type_list ty
 and print_id_type_list id_type_list = (* (Id.t,Type.t) list 用の標準出力 *)
   match id_type_list with
     | [] -> print_string ""

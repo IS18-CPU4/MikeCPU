@@ -42,6 +42,8 @@ let rec parse x alpha_env =
     | Neg(x) -> Neg(c_find x alpha_env)
     | Add(x, y) -> Add(c_find x alpha_env, c_find y alpha_env)
     | Sub(x, y) -> Sub(c_find x alpha_env, c_find y alpha_env)
+    | LShift(x, y) -> LShift(c_find x alpha_env, c_find y alpha_env)
+    | RShift(x, y) -> RShift(c_find x alpha_env, c_find y alpha_env)
     | FNeg(x) -> FNeg(c_find x alpha_env)
     | FAdd(x, y) -> FAdd(c_find x alpha_env, c_find y alpha_env)
     | FSub(x, y) -> FSub(c_find x alpha_env, c_find y alpha_env)

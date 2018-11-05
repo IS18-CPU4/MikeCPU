@@ -7,6 +7,8 @@ type t = (* K正規化後の式 (caml2html: knormal_t) *)
   | Neg of Id.t
   | Add of Id.t * Id.t
   | Sub of Id.t * Id.t
+  | LShift of Id.t * Id.t
+  | RShift of Id.t * Id.t
   | FNeg of Id.t
   | FAdd of Id.t * Id.t
   | FSub of Id.t * Id.t
@@ -29,7 +31,7 @@ and fundef = { name : Id.t * Type.t; args : (Id.t * Type.t) list; body : t }
 let rec fv = function (* 式に出現する（自由な）変数 (caml2html: knormal_fv) *)
   | Unit | Int(_) | Float(_) | ExtArray(_) -> S.empty
   | Neg(x) | FNeg(x) -> S.singleton x
-  | Add(x, y) | Sub(x, y) | FAdd(x, y) | FSub(x, y) | FMul(x, y) | FDiv(x, y) | Get(x, y) -> S.of_list [x; y]
+  | Add(x, y) | Sub(x, y) | LShift(x, y) | RShift(x, y) | FAdd(x, y) | FSub(x, y) | FMul(x, y) | FDiv(x, y) | Get(x, y) -> S.of_list [x; y]
   | IfEq(x, y, e1, e2) | IfLE(x, y, e1, e2) -> S.add x (S.add y (S.union (fv e1) (fv e2)))
   | Let((x, t), e1, e2) -> S.union (fv e1) (S.remove x (fv e2))
   | Var(x) -> S.singleton x
@@ -49,6 +51,14 @@ let insert_let (e, t) k = (* letを挿入する補助関数 (caml2html: knormal_insert) *
       let e', t' = k x in
       Let((x, t), e, e'), t'
 
+let rec log2 n = (* intのlog2をとる *)
+  if n = 1 then 0
+  else 1 + log2 (n/2)
+
+let log2_e = function (* Int(n)のlog2をとる *)
+  | Syntax.Int(i) -> Syntax.Int(log2 i)
+  | e -> e
+
 let rec g env = function (* K正規化ルーチン本体 (caml2html: knormal_g) *)
   | Syntax.Unit -> Unit, Type.Unit
   | Syntax.Bool(b) -> Int(if b then 1 else 0), Type.Int (* 論理値true, falseを整数1, 0に変換 (caml2html: knormal_bool) *)
@@ -66,6 +76,14 @@ let rec g env = function (* K正規化ルーチン本体 (caml2html: knormal_g) *)
       insert_let (g env e1)
         (fun x -> insert_let (g env e2)
             (fun y -> Sub(x, y), Type.Int))
+  | Syntax.Mul(e1, e2) -> (* 掛け算（シフト）のK正規化 (caml2html: knormal_add) *)
+      insert_let (g env e1)
+        (fun x -> insert_let (g env (log2_e e2))
+            (fun y -> LShift(x, y), Type.Int))
+  | Syntax.Div(e1, e2) ->
+      insert_let (g env e1)
+        (fun x -> insert_let (g env (log2_e e2))
+            (fun y -> RShift(x, y), Type.Int))
   | Syntax.FNeg(e) ->
       insert_let (g env e)
         (fun x -> FNeg(x), Type.Float)

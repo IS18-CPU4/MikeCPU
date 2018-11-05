@@ -14,6 +14,7 @@ and exp = (* 一つ一つの命令に対応する式 (caml2html: sparcasm_exp) *)
   | Add of Id.t * id_or_imm
   | Sub of Id.t * id_or_imm
   | Slw of Id.t * id_or_imm
+  | Srw of Id.t * id_or_imm
   | Lwz of Id.t * id_or_imm
   | Stw of Id.t * Id.t * id_or_imm
   | FMr of Id.t
