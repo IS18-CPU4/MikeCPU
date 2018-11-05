@@ -312,13 +312,13 @@ module Controller(
               imm <= inst_rB;
             end
 
-            // `OP_slw: begin
-            //   command <= `A_COM_sll;
-            // end
+            `OP_slw: begin
+              command <= `A_COM_sll;
+            end
 
-            // `OP_srw: begin
-            //   command <= `A_COM_srl;
-            // end
+            `OP_srw: begin
+              command <= `A_COM_srl;
+            end
 
             `OP_fadd: begin
               fcommand <= `FA_COM_add;
