@@ -72,6 +72,7 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprim
   | NonTail(_), Nop -> ()
   | NonTail(x), Li(i) when -32768 <= i && i < 32768 -> Printf.fprintf oc "\tli\t%s, %d\n" (reg x) i
   | NonTail(x), Li(i) ->
+      (* mの *)
       let n = i lsr 16 in
       let m = i lxor (n lsl 16) in
       let r = reg x in
@@ -377,7 +378,7 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprim
       Printf.fprintf oc "\tmtlr\t%s\n" (reg reg_tmp)
 and g'_tail_if oc e1 e2 b bn = (* 本来cr7で今回cr0に変更したけど大丈夫ならそのまま *)
   let b_else = Id.genid (b ^ "_else") in
-  Printf.fprintf oc "\t%s\tcr0, %s\n" bn b_else;
+  Printf.fprintf oc "\t%s\t, %s\n" bn b_else;
   let stackset_back = !stackset in
   g oc (Tail, e1);
   Printf.fprintf oc "%s:\n" b_else;
@@ -399,8 +400,8 @@ and g'_non_tail_if oc dest e1 e2 b bn =
   stackset := S.inter stackset1 stackset2
 and g'_tail_if_le oc e1 e2 =
   let b_le = Id.genid ("le") in
-  Printf.fprintf oc "\tblt\tcr0, %s\n" b_le;
-  Printf.fprintf oc "\tbeq\tcr0, %s\n" b_le;
+  Printf.fprintf oc "\tblt\t, %s\n" b_le;
+  Printf.fprintf oc "\tbeq\t, %s\n" b_le;
   let stackset_back = !stackset in
   g oc (Tail, e2); (* leを満たさない時e2をやる *)
   Printf.fprintf oc "%s:\n" b_le;
@@ -409,8 +410,8 @@ and g'_tail_if_le oc e1 e2 =
 and g'_non_tail_if_le oc dest e1 e2 =
   let b_le = Id.genid ("le") in
   let b_cont = Id.genid ("gt_cont") in
-  Printf.fprintf oc "\tblt\tcr0, %s\n" b_le;
-  Printf.fprintf oc "\tbeq\tcr0, %s\n" b_le;
+  Printf.fprintf oc "\tblt\t, %s\n" b_le;
+  Printf.fprintf oc "\tbeq\t, %s\n" b_le;
   let stackset_back = !stackset in
   g oc (dest, e2);
   let stackset1 = !stackset in
