@@ -1,1 +1,0 @@
-PowerPC/globals.s

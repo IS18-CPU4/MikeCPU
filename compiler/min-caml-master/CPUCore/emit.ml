@@ -227,22 +227,22 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprim
       g'_tail_if oc e1 e2 "beq" "bne"
   | Tail, IfLE(x, V(y), e1, e2) ->
       Printf.fprintf oc "\tcmpw\tcr0, %s, %s\n" (reg x) (reg y);
-      g'_tail_if_le oc e1 e2 "ble" (* "bgt" *)
+      g'_tail_if_le oc e1 e2 (* "ble" "bgt" *)
   | Tail, IfLE(x, C(y), e1, e2) ->
       Printf.fprintf oc "\tcmpwi\tcr0, %s, %d\n" (reg x) y;
-      g'_tail_if_le oc e1 e2 "ble" (* "bgt" *)
+      g'_tail_if_le oc e1 e2 (* "ble" "bgt" *)
   | Tail, IfGE(x, V(y), e1, e2) ->
       Printf.fprintf oc "\tcmpw\tcr0, %s, %s\n" (reg x) (reg y);
-      g'_tail_if_le oc e1 e2 "bge" (* "blt" *)
+      g'_tail_if oc e1 e2 "bge" "blt"
   | Tail, IfGE(x, C(y), e1, e2) ->
       Printf.fprintf oc "\tcmpwi\tcr0, %s, %d\n" (reg x) y;
-      g'_tail_if_le oc e1 e2 "bge" (* "blt" *)
+      g'_tail_if oc e1 e2 "bge" "blt"
   | Tail, IfFEq(x, y, e1, e2) ->
       Printf.fprintf oc "\tfcmp\tcr0, %s, %s\n" (reg x) (reg y);
       g'_tail_if oc e1 e2 "beq" "bne"
   | Tail, IfFLE(x, y, e1, e2) ->
       Printf.fprintf oc "\tfcmp\tcr0, %s, %s\n" (reg x) (reg y);
-      g'_tail_if_le oc e1 e2 "ble" (* "bgt" *)
+      g'_tail_if_le oc e1 e2 (* "ble" "bgt" *)
 (*
   | NonTail(z), IfEq(x, V(y), e1, e2) ->
       Printf.fprintf oc "\tcmpw\tcr7, %s, %s\n" (reg x) (reg y);
@@ -398,7 +398,7 @@ and g'_non_tail_if oc dest e1 e2 b bn =
   let stackset2 = !stackset in
   stackset := S.inter stackset1 stackset2
 and g'_tail_if_le oc e1 e2 =
-  let b_le = Id.genid (le) in
+  let b_le = Id.genid ("le") in
   Printf.fprintf oc "\tblt\tcr0, %s\n" b_le;
   Printf.fprintf oc "\tbeq\tcr0, %s\n" b_le;
   let stackset_back = !stackset in

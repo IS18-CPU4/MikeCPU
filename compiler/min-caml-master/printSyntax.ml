@@ -41,14 +41,14 @@ let rec print_syntax_t syntax = (* Syntax.t型の標準出力 *)
                            let _ = print_syntax_t t1 in
                            let _ = print_syntax_t t2 in
                             tab := !tab - 1
-  | Syntax.LShift (t1, t2) -> let _ = print_tab !tab in
-                           let _ = print_endline "LSHIFT" in
+  | Syntax.Mul (t1, t2) -> let _ = print_tab !tab in
+                           let _ = print_endline "MUL" in
                            let _ = (tab := !tab + 1) in
                            let _ = print_syntax_t t1 in
                            let _ = print_syntax_t t2 in
                             tab := !tab - 1
-  | Syntax.RShift (t1, t2) -> let _ = print_tab !tab in
-                           let _ = print_endline "RSHIFT" in
+  | Syntax.Div (t1, t2) -> let _ = print_tab !tab in
+                           let _ = print_endline "DIV" in
                            let _ = (tab := !tab + 1) in
                            let _ = print_syntax_t t1 in
                            let _ = print_syntax_t t2 in
