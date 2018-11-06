@@ -6,6 +6,8 @@
 #include <stdint.h>
 #include <getopt.h>
 #include <arpa/inet.h>
+#include <algorithm>
+#include <climits>
 #include "op.h"
 
 #define INST_ADDR 0x10000
@@ -60,6 +62,7 @@ uint32_t DATA_MEM[DATA_ADDR] = {};//データを保存するメモリ
 
 uint32_t PC;
 uint32_t OP;
+uint32_t mincamlStart;
 
 int lastPC;
 //bitを取り出す
@@ -102,6 +105,9 @@ void debug();
 #define SHOWOP() cout << hex << OP << dec << endl
 
 void initialize() {
+	string index;
+	int intindex;
+	int intvalue;
 	cout << "initialization..." << endl;
 	while(1){
 		cout << "which register to set value? put char...GPR--g, FPR--f, end--e" << endl;
@@ -110,28 +116,57 @@ void initialize() {
 		switch(x) {
 		case 'g':
 			while (1) {
-				cout << "put index of GPR...put 0 to end setting" << endl;
-				int index;
+				cout << "put index of GPR...put e to end setting" << endl;
 				cin >> index;
-				if (0 == index) {break;}
-				cout << "put value of GPR[" << index << "]: ";
-				uint32_t value;
-				cin >> value;
-				GPR[index] = value;
+				if ("e" == index) {break;}
+				try {
+					intindex = stoi(index, nullptr, 0);
+					if (intindex == 0) {
+						cout << "you cannot set value in GPR[0]" << endl;
+						continue;
+					}
+					if (0 < intindex && intindex < 32) {
+						cout << "put value of GPR[" << intindex << "]: ";
+						string value;
+						cin >> value;
+						try {
+							intvalue = stoi(value, nullptr, 0);
+							GPR[intindex] = intvalue;
+						} catch (const invalid_argument &e) {
+							cout << "invalid input...try again." << endl;
+						}
+					} else {
+						cout << "put 1~31" << endl;
+					}
+				} catch (const invalid_argument& e) {
+					cout << "put 1~31" << endl;
+				}
 			}
 			cout << "end setting GPR" << endl;
 			SHOWGPR();
 			break;
 		case 'f':
 			while (1) {
-				cout << "put index of FPR...put 0 to end setting" << endl;
-				int index;
+				cout << "put index of FPR...put e to end setting" << endl;
 				cin >> index;
-				if (0 == index) {break;}
-				cout << "put value of FPR[" << index << "]: ";
-				float value;
-				cin >> value;
-				FPR[index] = value;
+				if ("e" == index) {break;}
+				try {
+					intindex = stoi(index, nullptr, 0);
+					if (0 <= intindex && intindex < 32) {
+						cout << "put value of FPR[" << intindex << "]: ";
+						float value;
+						for (cin >> value; !cin; cin >> value){
+							cin.clear();
+							cin.ignore();
+							cout << "put float!" << endl << "value: ";
+						}
+						FPR[intindex] = value;
+					} else {
+						cout << "put 0~31" << endl;
+					}
+				} catch (const invalid_argument& e) {
+					cout << "put 0~31" << endl;
+				}
 			}
 			cout << "end setting FPR" << endl;
 			SHOWFPR();
@@ -175,8 +210,8 @@ void debug() {
 }
 
 int normal() {
-	PC = 0;
-	GPR[1] = 0x8000;//stack
+	PC = mincamlStart >> 2;
+	GPR[3] = 0x8000;//stack
 	while(PC < lastPC) {
 		int result = do_op();
 		if (result) {
@@ -191,10 +226,13 @@ int normal() {
 
 int step() {
 	cout << "execute by step..." << endl;
-	PC = 0;
-	GPR[1] = 0x8000;//stack
-	uint32_t breakpoint = 0;
+	PC = mincamlStart >> 2;
+	GPR[3] = 0x8000;//stack
+	//uint32_t breakpoint = 0;
+	vector<uint32_t> breakpoint;
+	vector<uint32_t>::iterator bitr;
 	string str_pc;
+	int bi;
 	uint32_t nxtOP;
 	while(PC < lastPC) {
 		bool next = 0;
@@ -208,6 +246,10 @@ int step() {
 				break;
 			case 'b':
 				cout << "set breakpoint...current PC is " << hex << (PC << 2) <<dec << endl;
+				cout << "current breakpoint is..." << endl;
+				for (bitr = breakpoint.begin(), bi = 0; bitr != breakpoint.end(); bitr++, bi++) {
+					cout << "breakpoint " << dec << bi << ": "<< hex  << (*bitr << 2) << dec << endl;
+				}
 				cout << "put PC in hex you want to make breakpoint (put e to end): ";
 				cin >> str_pc;
 				if (str_pc== "e") {
@@ -221,7 +263,7 @@ int step() {
 								continue;
 							}
 							cout << "breakpoint PC = " << hex<< int_pc<< dec << endl;
-							breakpoint = (int_pc>> 2);
+							breakpoint.push_back(int_pc>> 2);
 							break;
 						}
 					}catch (const invalid_argument& e) {
@@ -231,7 +273,12 @@ int step() {
 				break;
 			case 'r':
 				cout << "run to breakpoint" << endl;
-				while ((PC !=  breakpoint) && (PC < lastPC)) {
+				while (PC < lastPC) {
+					bitr = find(breakpoint.begin(), breakpoint.end(), PC);
+					if (bitr != breakpoint.end()) {
+						breakpoint.erase(bitr);
+						break;
+					}
 					int result = do_op();
 					if (result) {
 						cerr << "error at PC:" << hex << (PC << 2) << dec << endl;
@@ -240,12 +287,11 @@ int step() {
 						return EXIT_FAILURE;
 					}
 				}
-				if (PC == breakpoint) {
-					cout << "reached breakpoint" << endl;
-				}
 				if (PC >= lastPC) {
 					cout << "reached end of execution" << endl;
 					return 0;
+				}else {
+					cout << "reached breakpoint" << endl;
 				}
 				break;
 			case 'g':
@@ -340,7 +386,6 @@ int main(int argc, char**argv) {
 	FILE* binary;
 
 	cout << "opening binary file..." << endl;
-	cout << optind << endl;
 	binary = fopen(argv[optind], "rb");
 	if (!binary) {
 		cerr << "cannot open file" << endl;
@@ -350,6 +395,11 @@ int main(int argc, char**argv) {
 	size_t cnt;
 	size_t pos = 0;
 	cout << "reading instruction..." << endl;
+	uint32_t codeByte;
+	fread(&codeByte, 4, 1, binary);
+	cout << "byte of code: " << hex << codeByte << dec << endl;
+	fread(&mincamlStart, 4, 1, binary);
+	cout << "_min_caml_start label address: " << hex << mincamlStart << dec << endl;
 	while ((cnt = fread(&INST_MEM[pos], 4, 2048, binary))) {
 		pos += cnt;
 	} 
@@ -369,7 +419,7 @@ int main(int argc, char**argv) {
 	}
 	if (!result) {
 		cout << "finish execution! return value: " << endl;
-		cout << "GPR[3]:" << hex << GPR[3]<< " FPR[1]:" << FPR[1] <<  hex << endl;
+		cout << "GPR[1]:" << hex << GPR[1]<< " FPR[0]:" << FPR[0] <<  hex << endl;
 		debug();
 	}
 }

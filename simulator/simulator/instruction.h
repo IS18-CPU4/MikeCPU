@@ -56,4 +56,8 @@ void int_to_float();
 void float_to_int();
 void out();
 
+//added 2
+void branch_abs();
+void branch_abs_and_link();
+
 #endif //INSTRUCTION_H_

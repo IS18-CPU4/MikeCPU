@@ -1,3 +1,3 @@
 start:
-	li r3, 0xF
-	out r3
+	li r1, 0xF
+	out r1

@@ -66,7 +66,8 @@ int main(int argc, char** argv) {
 	}
 
 	uint32_t op;
-	int linenum = 0;
+	uint32_t codeByte = 0;
+	uint32_t mincamlStart = 0;
 	cout << "reading inputfile..." << endl;
 	string line;
 	//labelのset もっとよい方法がある気がする
@@ -88,18 +89,28 @@ int main(int argc, char** argv) {
 		if (vitem[0].find_first_of("#", 0) == 0) {
 			continue;
 		}
+		if (vitem[0].find_first_of(".", 0) == 0) {
+			continue;
+		}
 		if (vitem[0].find_last_of(':') == vitem[0].length()-1) {
 			cout << "label: " << line << endl;
 			vector<string> vtmp = StringSplit(vitem[0], ':');
 			labelMap[vtmp[0]] = PC;
+			if (vtmp[0] == "_min_caml_start") {
+				mincamlStart = PC;
+			}
 			cout << "PC: "<<  hex << PC << dec << endl;
 			continue;
 		}
 		PC += 4;
 	}
+	codeByte = PC;
 	cout << "finish labeling!" << endl;
 	filein.close();
 	//labelの処理終わり
+	cout << "codeByte: " << hex << codeByte << dec << endl;
+	fileout.write((char*)&codeByte, sizeof(uint32_t));
+	fileout.write((char*)&mincamlStart, sizeof(uint32_t));
 
 	ifstream filein2(argv[1]);
 	PC = 0;
@@ -110,7 +121,6 @@ int main(int argc, char** argv) {
 			continue;
 		}
 		cout << "deal with " << line << endl;
-		linenum++;
 		op = encode(line);
 		if (op == 0xFFFFFFFF) {
 			return 1;

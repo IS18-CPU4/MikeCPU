@@ -1,22 +1,22 @@
-#pls set fr3 <- argument
+#pls set fr0 <- argument
 #				 fr1 <- 1
+#				fr5 <- 0
 init:
-	fmr fr4, fr3
-	fmr fr5, fr0
+	fmr fr4, fr0
 calc:
-	fcmp fr3, fr1
+	fcmp cr0, fr0, fr1
 	beq end
-	fst fr3, r1, 4
-	addi r1, r1, -4
-	fsub fr3, fr3, fr1
+	fst fr0, r3, 4
+	addi r3, r3, -4
+	fsub fr0, fr0, fr1
 	b calc
 end:
-	fadd fr5, fr5, fr3
+	fadd fr5, fr5, fr0
 loop:
-	addi r1, r1, 4
-	fld fr3, r1, 4
-	fadd fr5, fr5, fr3
-	fcmp fr3, fr4
+	addi r3, r3, 4
+	fld fr0, r3, 4
+	fadd fr5, fr5, fr0
+	fcmp cr0, fr0, fr4
 	blt loop
-	fmr fr1, fr5
+	fmr fr0, fr5
 

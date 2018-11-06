@@ -1,4 +1,4 @@
 sub:
-	li r3, 5
-	li r4, 4
-	sub r3, r4, r3
+	li r1, 5
+	li r2, 4
+	sub r1, r2, r1

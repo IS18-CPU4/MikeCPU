@@ -1,10 +1,10 @@
-#pls set fr3 <- some float
-#				 fr4 <- some float
+#pls set fr0 <- some float
+#				 fr1 <- some float
 test:
-	fadd fr5, fr3, fr4
-	fsub fr6, fr3, fr4
-	fmul fr7, fr3, fr4
-	fdiv fr8, fr3, fr4
-	fsqrt fr9, fr3
-	fabs fr10, fr3
-	fmr fr11, fr10
+	fadd fr2, fr0, fr1
+	fsub fr3, fr0, fr1
+	fmul fr4, fr0, fr1
+	fdiv fr5, fr0, fr1
+	fsqrt fr6, fr0
+	fabs fr7, fr0
+	fmr fr8, fr7

@@ -126,6 +126,12 @@ int do_op() {
 		case 33:
 			cout << "opname ftoi" << endl;
 			float_to_int();PC++;break;
+		case 34:
+			cout << "opname ba" << endl;
+			branch_abs();break;
+		case 35:
+			cout << "opname bal" << endl;
+			branch_abs_and_link();break;
 		case 63:
 			cout << "opname out" << endl;
 			out();PC++;break;
