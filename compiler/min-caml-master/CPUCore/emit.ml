@@ -277,22 +277,22 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprim
       g'_non_tail_if oc (NonTail(z)) e1 e2 "beq" "bne"
   | NonTail(z), IfLE(x, V(y), e1, e2) ->
       Printf.fprintf oc "\tcmpw\tcr0, %s, %s\n" (reg x) (reg y);
-      g'_non_tail_if_le oc (NonTail(z)) e1 e2 "ble" (* "bgt" *)
+      g'_non_tail_if_le oc (NonTail(z)) e1 e2 (*"ble" "bgt" *)
   | NonTail(z), IfLE(x, C(y), e1, e2) ->
       Printf.fprintf oc "\tcmpwi\tcr0, %s, %d\n" (reg x) y;
-      g'_non_tail_if_le oc (NonTail(z)) e1 e2 "ble" (* "bgt" *)
+      g'_non_tail_if_le oc (NonTail(z)) e1 e2 (* "ble" "bgt" *)
   | NonTail(z), IfGE(x, V(y), e1, e2) ->
       Printf.fprintf oc "\tcmpw\tcr0, %s, %s\n" (reg x) (reg y);
-      g'_non_tail_if_le oc (NonTail(z)) e1 e2 "bge" (* "blt" *)
+      g'_non_tail_if oc (NonTail(z)) e1 e2 "bge" "blt"
   | NonTail(z), IfGE(x, C(y), e1, e2) ->
       Printf.fprintf oc "\tcmpwi\tcr0, %s, %d\n" (reg x) y;
-      g'_non_tail_if_le oc (NonTail(z)) e1 e2 "bge" (* "blt" *)
+      g'_non_tail_if oc (NonTail(z)) e1 e2 "bge" "blt"
   | NonTail(z), IfFEq(x, y, e1, e2) ->
       Printf.fprintf oc "\tfcmp\tcr0, %s, %s\n" (reg x) (reg y);
       g'_non_tail_if oc (NonTail(z)) e1 e2 "beq" "bne"
   | NonTail(z), IfFLE(x, y, e1, e2) ->
       Printf.fprintf oc "\tfcmp\tcr0, %s, %s\n" (reg x) (reg y);
-      g'_non_tail_if_le oc (NonTail(z)) e1 e2 "ble" (* "bgt" *)
+      g'_non_tail_if_le oc (NonTail(z)) e1 e2 (* "ble" "bgt" *)
 
   (* 関数呼び出しの仮想命令の実装 (caml2html: emit_call) *)
 (*
@@ -397,51 +397,30 @@ and g'_non_tail_if oc dest e1 e2 b bn =
   Printf.fprintf oc "%s:\n" b_cont;
   let stackset2 = !stackset in
   stackset := S.inter stackset1 stackset2
-and g'_tail_if_le oc e1 e2 b = (* b="ble" or "bge" *)
-  let b_le = Id.genid (b^"_else") in
-  if b = "ble" then
-    Printf.fprintf oc "\tblt\tcr0, %s\n" b_le;
-    Printf.fprintf oc "\tbeq\tcr0, %s\n" b_le;
-    let stackset_back = !stackset in
-    g oc (Tail, e1); (* leを満たす時e1をやる *)
-    Printf.fprintf oc "%s:\n" b_le;
-    stackset := stackset_back;
-    g oc (Tail, e2)
-  else (* b = "bgt" *)
-    Printf.fprintf oc "\tblt\tcr0, %s\n" b_le
-    let stackset_back = !stackset in
-    g oc (Tail, e2); (* ltを満たさない時e2をやる *)
-    Printf.fprintf oc "%s:\n" b_le;
-    stackset := stackset_back;
-    g oc (Tail, e1)
-and g'_non_tail_if_le oc dest e1 e2 b =
-  let b_le = Id.genid (b^"_else") in
-  let b_cont = Id.genid (b^"_cont") in
-  if b = "ble" then
-    Printf.fprintf oc "\tblt\tcr0, %s\n" bn b_le;
-    Printf.fprintf oc "\tbeq\tcr0, %s\n" bn b_le;
-    let stackset_back = !stackset in
-    g oc (dest, e1); (*e2?*)
-    let stackset1 = !stackset in
-    Printf.fprintf oc "\tb\t%s\n" b_cont; (*　ジャンプ？ *)
-    Printf.fprintf oc "%s:\n" b_le;
-    stackset := stackset_back;
-    g oc (dest, e2);
-    Printf.fprintf oc "%s:\n" b_cont;
-    let stackset2 = !stackset in
-    stackset := S.inter stackset1 stackset2
-  else (* b = "bge" *)
-    Printf.fprintf oc "\tblt\tcr0, %s\n" bn b_le;
-    let stackset_back = !stackset in
-    g oc (dest, e2); (* ltのときgeでないからelseの式 *)
-    let stackset1 = !stackset in
-    Printf.fprintf oc "\tb\t%s\n" b_cont; (*　ジャンプ？ *)
-    Printf.fprintf oc "%s:\n" b_le;
-    stackset := stackset_back;
-    g oc (dest, e1);
-    Printf.fprintf oc "%s:\n" b_cont;
-    let stackset2 = !stackset in
-    stackset := S.inter stackset1 stackset2
+and g'_tail_if_le oc e1 e2 =
+  let b_le = Id.genid (le) in
+  Printf.fprintf oc "\tblt\tcr0, %s\n" b_le;
+  Printf.fprintf oc "\tbeq\tcr0, %s\n" b_le;
+  let stackset_back = !stackset in
+  g oc (Tail, e2); (* leを満たさない時e2をやる *)
+  Printf.fprintf oc "%s:\n" b_le;
+  stackset := stackset_back;
+  g oc (Tail, e1)
+and g'_non_tail_if_le oc dest e1 e2 =
+  let b_le = Id.genid ("le") in
+  let b_cont = Id.genid ("gt_cont") in
+  Printf.fprintf oc "\tblt\tcr0, %s\n" b_le;
+  Printf.fprintf oc "\tbeq\tcr0, %s\n" b_le;
+  let stackset_back = !stackset in
+  g oc (dest, e2);
+  let stackset1 = !stackset in
+  Printf.fprintf oc "\tb\t%s\n" b_cont; (*　ジャンプ？ *)
+  Printf.fprintf oc "%s:\n" b_le;
+  stackset := stackset_back;
+  g oc (dest, e1);
+  Printf.fprintf oc "%s:\n" b_cont;
+  let stackset2 = !stackset in
+  stackset := S.inter stackset1 stackset2
 and g'_args oc x_reg_cl ys zs =
   let (i, yrs) =
     List.fold_left
