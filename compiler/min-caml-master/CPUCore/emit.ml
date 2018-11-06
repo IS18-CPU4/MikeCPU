@@ -115,9 +115,13 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprim
   | NonTail(x), Lwz(y, C(z))-> raise (ASM_ERR("lwz"))
   | NonTail(_), Stw(x, y, C(z)) -> raise (ASM_ERR("stw"))
 *)
-  | NonTail(x), Lwz(y, V(z))-> raise (ASM_ERR("lwzx"))
+  | NonTail(x), Lwz(y, V(z))-> Printf.fprintf oc "\tadd\t%s, %s, %s\n" (reg y) (reg y) (reg z);
+                               Printf.fprintf oc "\tld\t%s, %s, 0\n" (reg x) (reg y);
+                               Printf.fprintf oc "\tsub\t%s, %s, %s\n" (reg y) (reg y) (reg z)
   | NonTail(x), Lwz(y, C(z)) -> Printf.fprintf oc "\tld\t%s, %s, %d\n" (reg x) (reg y) z
-  | NonTail(_), Stw(x, y, V(z)) -> raise (ASM_ERR("stwx"))
+  | NonTail(_), Stw(x, y, V(z)) -> Printf.fprintf oc "\tadd\t%s, %s, %s\n" (reg y) (reg y) (reg z);
+                                   Printf.fprintf oc "\tst\t%s, %s, 0\n" (reg x) (reg y);
+                                   Printf.fprintf oc "\tsub\t%s, %s, %s\n" (reg y) (reg y) (reg z)
   | NonTail(_), Stw(x, y, C(z)) -> Printf.fprintf oc "\tst\t%s, %s, %d\n" (reg x) (reg y) z
   | NonTail(x), FMr(y) when x = y -> ()
   | NonTail(x), FMr(y) -> Printf.fprintf oc "\tfmr\t%s, %s\n" (reg x) (reg y)
@@ -133,9 +137,13 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprim
   | NonTail(_), Stfd(x, y, V(z)) -> Printf.fprintf oc "\tstfdx\t%s, %s, %s\n" (reg x) (reg y) (reg z)
   | NonTail(_), Stfd(x, y, C(z)) -> Printf.fprintf oc "\tstfd\t%s, %d(%s)\n" (reg x) z (reg y)
 *)
-  | NonTail(x), Lfd(y, V(z))-> raise (ASM_ERR("lfdx"))
+  | NonTail(x), Lfd(y, V(z))-> Printf.fprintf oc "\tadd\t%s, %s, %s\n" (reg y) (reg y) (reg z);
+                               Printf.fprintf oc "\tfld\t%s, %s, 0\n" (reg x) (reg y);
+                               Printf.fprintf oc "\tsub\t%s, %s, %s\n" (reg y) (reg y) (reg z)
   | NonTail(x), Lfd(y, C(z)) -> Printf.fprintf oc "\tfld\t%s, %s, %d\n" (reg x) (reg y) z
-  | NonTail(_), Stfd(x, y, V(z)) -> raise (ASM_ERR("stfdx"))
+  | NonTail(_), Stfd(x, y, V(z)) -> Printf.fprintf oc "\tadd\t%s, %s, %s\n" (reg y) (reg y) (reg z);
+                                    Printf.fprintf oc "\tfst\t%s, %s, 0\n" (reg x) (reg y);
+                                    Printf.fprintf oc "\tsub\t%s, %s, %s\n" (reg y) (reg y) (reg z)
   | NonTail(_), Stfd(x, y, C(z)) -> Printf.fprintf oc "\tfst\t%s, %s, %d\n" (reg x) (reg y) z
 
   | NonTail(_), Comment(s) -> Printf.fprintf oc "#\t%s\n" s
@@ -152,7 +160,8 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprim
       save y;
       Printf.fprintf oc "\tst\t%s, %s, %d\n" (reg x) (reg reg_sp) (offset y)
   | NonTail(_), Save(x, y) when List.mem x allfregs && not (S.mem y !stackset) ->
-      raise (ASM_ERR ("stfd"))
+      save y;
+      Printf.fprintf oc "\tfst\t%s, %d(%s)\n" (reg x) (offset y) (reg reg_sp)
   | NonTail(_), Save(x, y) -> assert (S.mem y !stackset); ()
   (* 復帰の仮想命令の実装 (caml2html: emit_restore) *)
 (*
@@ -218,22 +227,22 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprim
       g'_tail_if oc e1 e2 "beq" "bne"
   | Tail, IfLE(x, V(y), e1, e2) ->
       Printf.fprintf oc "\tcmpw\tcr0, %s, %s\n" (reg x) (reg y);
-      g'_tail_if oc e1 e2 "ble" "bgt"
+      g'_tail_if_le oc e1 e2 "ble" (* "bgt" *)
   | Tail, IfLE(x, C(y), e1, e2) ->
       Printf.fprintf oc "\tcmpwi\tcr0, %s, %d\n" (reg x) y;
-      g'_tail_if oc e1 e2 "ble" "bgt"
+      g'_tail_if_le oc e1 e2 "ble" (* "bgt" *)
   | Tail, IfGE(x, V(y), e1, e2) ->
       Printf.fprintf oc "\tcmpw\tcr0, %s, %s\n" (reg x) (reg y);
-      g'_tail_if oc e1 e2 "bge" "blt"
+      g'_tail_if_le oc e1 e2 "bge" (* "blt" *)
   | Tail, IfGE(x, C(y), e1, e2) ->
       Printf.fprintf oc "\tcmpwi\tcr0, %s, %d\n" (reg x) y;
-      g'_tail_if oc e1 e2 "bge" "blt"
+      g'_tail_if_le oc e1 e2 "bge" (* "blt" *)
   | Tail, IfFEq(x, y, e1, e2) ->
       Printf.fprintf oc "\tfcmp\tcr0, %s, %s\n" (reg x) (reg y);
       g'_tail_if oc e1 e2 "beq" "bne"
   | Tail, IfFLE(x, y, e1, e2) ->
       Printf.fprintf oc "\tfcmp\tcr0, %s, %s\n" (reg x) (reg y);
-      g'_tail_if oc e1 e2 "ble" "bgt"
+      g'_tail_if_le oc e1 e2 "ble" (* "bgt" *)
 (*
   | NonTail(z), IfEq(x, V(y), e1, e2) ->
       Printf.fprintf oc "\tcmpw\tcr7, %s, %s\n" (reg x) (reg y);
@@ -268,22 +277,22 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprim
       g'_non_tail_if oc (NonTail(z)) e1 e2 "beq" "bne"
   | NonTail(z), IfLE(x, V(y), e1, e2) ->
       Printf.fprintf oc "\tcmpw\tcr0, %s, %s\n" (reg x) (reg y);
-      g'_non_tail_if oc (NonTail(z)) e1 e2 "ble" "bgt"
+      g'_non_tail_if_le oc (NonTail(z)) e1 e2 "ble" (* "bgt" *)
   | NonTail(z), IfLE(x, C(y), e1, e2) ->
       Printf.fprintf oc "\tcmpwi\tcr0, %s, %d\n" (reg x) y;
-      g'_non_tail_if oc (NonTail(z)) e1 e2 "ble" "bgt"
+      g'_non_tail_if_le oc (NonTail(z)) e1 e2 "ble" (* "bgt" *)
   | NonTail(z), IfGE(x, V(y), e1, e2) ->
       Printf.fprintf oc "\tcmpw\tcr0, %s, %s\n" (reg x) (reg y);
-      g'_non_tail_if oc (NonTail(z)) e1 e2 "bge" "blt"
+      g'_non_tail_if_le oc (NonTail(z)) e1 e2 "bge" (* "blt" *)
   | NonTail(z), IfGE(x, C(y), e1, e2) ->
       Printf.fprintf oc "\tcmpwi\tcr0, %s, %d\n" (reg x) y;
-      g'_non_tail_if oc (NonTail(z)) e1 e2 "bge" "blt"
+      g'_non_tail_if_le oc (NonTail(z)) e1 e2 "bge" (* "blt" *)
   | NonTail(z), IfFEq(x, y, e1, e2) ->
       Printf.fprintf oc "\tfcmp\tcr0, %s, %s\n" (reg x) (reg y);
       g'_non_tail_if oc (NonTail(z)) e1 e2 "beq" "bne"
   | NonTail(z), IfFLE(x, y, e1, e2) ->
       Printf.fprintf oc "\tfcmp\tcr0, %s, %s\n" (reg x) (reg y);
-      g'_non_tail_if oc (NonTail(z)) e1 e2 "ble" "bgt"
+      g'_non_tail_if_le oc (NonTail(z)) e1 e2 "ble" (* "bgt" *)
 
   (* 関数呼び出しの仮想命令の実装 (caml2html: emit_call) *)
 (*
@@ -295,7 +304,7 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprim
   | Tail, CallCls(x, ys, zs) -> (* 末尾呼び出し (caml2html: emit_tailcall) *)
       g'_args oc [(x, reg_cl)] ys zs;
       Printf.fprintf oc "\tld\t%s, %s, 0\n" (reg reg_sw) (reg reg_cl);
-      Printf.fprintf oc "\tmtctr\t%s\n\tbctr\n" (reg reg_sw);
+      Printf.fprintf oc "\tmr\tr29, %s\n\tb r29\n" (reg reg_sw);
   | Tail, CallDir(Id.L(x), ys, zs) -> (* 末尾呼び出し *)
       g'_args oc [] ys zs;
       Printf.fprintf oc "\tb\t%s\n" x
@@ -339,8 +348,8 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprim
       Printf.fprintf oc "\tst\t%s, %s, %d\n" (reg reg_tmp) (reg reg_sp) (ss - 4);
       Printf.fprintf oc "\taddi\t%s, %s, %d\n" (reg reg_sp) (reg reg_sp) ss;
       Printf.fprintf oc "\tld\t%s, %s, 0\n" (reg reg_tmp) (reg reg_cl);
-      Printf.fprintf oc "\tmtctr\t%s\n" (reg reg_tmp);
-      Printf.fprintf oc "\tbctrl\n";
+      Printf.fprintf oc "\tmr\tr29, %s\n" (reg reg_tmp);
+      Printf.fprintf oc "\tbal\tr29\n";
       Printf.fprintf oc "\tsubi\t%s, %s, %d\n" (reg reg_sp) (reg reg_sp) ss;
       Printf.fprintf oc "\tld\t%s, %s, %d\n" (reg reg_tmp) (reg reg_sp) (ss - 4);
       if List.mem a allregs && a <> regs.(0) then
@@ -366,9 +375,9 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprim
       else if List.mem a allfregs && a <> fregs.(0) then
         Printf.fprintf oc "\tfmr\t%s, %s\n" (reg a) (reg fregs.(0));
       Printf.fprintf oc "\tmtlr\t%s\n" (reg reg_tmp)
-and g'_tail_if oc e1 e2 b bn =
+and g'_tail_if oc e1 e2 b bn = (* 本来cr7で今回cr0に変更したけど大丈夫ならそのまま *)
   let b_else = Id.genid (b ^ "_else") in
-  Printf.fprintf oc "\t%s\tcr7, %s\n" bn b_else;
+  Printf.fprintf oc "\t%s\tcr0, %s\n" bn b_else;
   let stackset_back = !stackset in
   g oc (Tail, e1);
   Printf.fprintf oc "%s:\n" b_else;
@@ -377,7 +386,7 @@ and g'_tail_if oc e1 e2 b bn =
 and g'_non_tail_if oc dest e1 e2 b bn =
   let b_else = Id.genid (b ^ "_else") in
   let b_cont = Id.genid (b ^ "_cont") in
-  Printf.fprintf oc "\t%s\tcr7, %s\n" bn b_else;
+  Printf.fprintf oc "\t%s\tcr0, %s\n" bn b_else;
   let stackset_back = !stackset in
   g oc (dest, e1);
   let stackset1 = !stackset in
@@ -388,6 +397,51 @@ and g'_non_tail_if oc dest e1 e2 b bn =
   Printf.fprintf oc "%s:\n" b_cont;
   let stackset2 = !stackset in
   stackset := S.inter stackset1 stackset2
+and g'_tail_if_le oc e1 e2 b = (* b="ble" or "bge" *)
+  let b_le = Id.genid (b^"_else") in
+  if b = "ble" then
+    Printf.fprintf oc "\tblt\tcr0, %s\n" b_le;
+    Printf.fprintf oc "\tbeq\tcr0, %s\n" b_le;
+    let stackset_back = !stackset in
+    g oc (Tail, e1); (* leを満たす時e1をやる *)
+    Printf.fprintf oc "%s:\n" b_le;
+    stackset := stackset_back;
+    g oc (Tail, e2)
+  else (* b = "bgt" *)
+    Printf.fprintf oc "\tblt\tcr0, %s\n" b_le
+    let stackset_back = !stackset in
+    g oc (Tail, e2); (* ltを満たさない時e2をやる *)
+    Printf.fprintf oc "%s:\n" b_le;
+    stackset := stackset_back;
+    g oc (Tail, e1)
+and g'_non_tail_if_le oc dest e1 e2 b =
+  let b_le = Id.genid (b^"_else") in
+  let b_cont = Id.genid (b^"_cont") in
+  if b = "ble" then
+    Printf.fprintf oc "\tblt\tcr0, %s\n" bn b_le;
+    Printf.fprintf oc "\tbeq\tcr0, %s\n" bn b_le;
+    let stackset_back = !stackset in
+    g oc (dest, e1); (*e2?*)
+    let stackset1 = !stackset in
+    Printf.fprintf oc "\tb\t%s\n" b_cont; (*　ジャンプ？ *)
+    Printf.fprintf oc "%s:\n" b_le;
+    stackset := stackset_back;
+    g oc (dest, e2);
+    Printf.fprintf oc "%s:\n" b_cont;
+    let stackset2 = !stackset in
+    stackset := S.inter stackset1 stackset2
+  else (* b = "bge" *)
+    Printf.fprintf oc "\tblt\tcr0, %s\n" bn b_le;
+    let stackset_back = !stackset in
+    g oc (dest, e2); (* ltのときgeでないからelseの式 *)
+    let stackset1 = !stackset in
+    Printf.fprintf oc "\tb\t%s\n" b_cont; (*　ジャンプ？ *)
+    Printf.fprintf oc "%s:\n" b_le;
+    stackset := stackset_back;
+    g oc (dest, e1);
+    Printf.fprintf oc "%s:\n" b_cont;
+    let stackset2 = !stackset in
+    stackset := S.inter stackset1 stackset2
 and g'_args oc x_reg_cl ys zs =
   let (i, yrs) =
     List.fold_left
@@ -429,31 +483,37 @@ let f oc (Prog(data, fundefs, e)) =
   Printf.fprintf oc "\t.align 2\n";
   List.iter (fun fundef -> h oc fundef) fundefs;
 (*  Printf.fprintf oc "_min_caml_start: # main entry point\n"; *)
+  Printf.fprintf oc "_min_caml_start:\n";
+(* (* エントリーポイントはいらない *)
   Printf.fprintf oc "_min_caml_start:\n # main entry point\n";
   Printf.fprintf oc "\tmflr\tr0\n";
-(*
+  (*
   Printf.fprintf oc "\tstmw\tr30, -8(r1)\n";
   Printf.fprintf oc "\tstw\tr0, 8(r1)\n";
   Printf.fprintf oc "\tstwu\tr1, -96(r1)\n";
-*)
+  *)
   Printf.fprintf oc "\tstmw\tr30, r1, -8\n";
   Printf.fprintf oc "\tst\tr0, r1, 8\n";
   Printf.fprintf oc "\tst\tr1, r1, -96\n"; (* stwuなんてstwと同じだよね(フラグ) *)
+*)
   Printf.fprintf oc "#\tmain program starts\n";
   stackset := S.empty;
   stackmap := [];
   g oc (NonTail("_R_0"), e);
   Printf.fprintf oc "#\tmain program ends\n";
   (* Printf.fprintf oc "\tmr\tr3, %s\n" regs.(0); (* なんかコメントアウトしてる *)*)
-(*
+(* 以下終了処理 *)
+(* (* ppc *)
   Printf.fprintf oc "\tlwz\tr1, 0(r1)\n";
   Printf.fprintf oc "\tlwz\tr0, 8(r1)\n";
   Printf.fprintf oc "\tmtlr\tr0\n";
   Printf.fprintf oc "\tlmw\tr30, -8(r1)\n";
   Printf.fprintf oc "\tblr\n"
 *)
+(* (* CPUCore*)
   Printf.fprintf oc "\tld\tr1, r1, 0\n";
   Printf.fprintf oc "\tld\tr0, r1, 8\n";
   Printf.fprintf oc "\tmtlr\tr0\n";
   Printf.fprintf oc "\tlmw\tr30, r1, -8\n";
   Printf.fprintf oc "\tblr\n"
+*)
