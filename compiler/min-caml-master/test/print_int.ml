@@ -1,5 +1,5 @@
 let rec mul_10 n =
-  n + n + n + n + n + n + n + n + n + n
+  n * 2 + n * 8
 in
 
 let rec div_10_loop n left right =
@@ -31,6 +31,5 @@ in
 let rec a_print_int n =
   if n = 0 then (print_byte 48; print_byte 10)
   else
-    let m = mod_10 n in
-    (print_int_rec (div_10 m); print_byte 10)
+    (print_int_rec n; print_byte 10)
 in ()
