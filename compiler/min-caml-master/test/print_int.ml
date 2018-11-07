@@ -32,4 +32,4 @@ let rec a_print_int n =
   if n = 0 then (print_byte 48; print_byte 10)
   else
     (print_int_rec n; print_byte 10)
-in ()
+in a_print_int 555
