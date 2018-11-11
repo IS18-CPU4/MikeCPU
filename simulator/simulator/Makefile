@@ -15,5 +15,5 @@ instruction.o: instruction.cpp instruction.h
 
 
 clean:
-	rm -rf *.o sim
+	rm -rf *.o out.bin sim
 

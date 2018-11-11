@@ -15,36 +15,36 @@
 
 using namespace std;
 void PrintHelp() {
-	cout << "--step:   execute by step\n"
-					"--help:	 show help\n"
-					"put 1 input file name...\n";
-	exit(1);
+cout << "--step:   execute by step\n"
+				"--help:	 show help\n"
+				"put 1 input file name...\n";
+exit(1);
 }
 int step();
 int normal();
 bool stepflag = 0;
 void ProcessArgs(int argc, char** argv) {
-	const char* const short_opts = "h:";
-	const option long_opts[] = {
-		{"step", no_argument, nullptr, 's'},
-		{"help", no_argument, nullptr, 'h'},
-		{nullptr, no_argument, nullptr, 0}
-	};
-	while (1) {
-		int opt = getopt_long(argc, argv, short_opts, long_opts, nullptr);
-		if (-1 == opt) {break;}
-		switch (opt) {
-		case 's':
-			stepflag = 1;
-			break;
-		case 'h':
-		case '?':
-			PrintHelp();
-			break;
-		default:
-			break;
-		}
+const char* const short_opts = "h:";
+const option long_opts[] = {
+	{"step", no_argument, nullptr, 's'},
+	{"help", no_argument, nullptr, 'h'},
+	{nullptr, no_argument, nullptr, 0}
+};
+while (1) {
+	int opt = getopt_long(argc, argv, short_opts, long_opts, nullptr);
+	if (-1 == opt) {break;}
+	switch (opt) {
+	case 's':
+		stepflag = 1;
+		break;
+	case 'h':
+	case '?':
+		PrintHelp();
+		break;
+	default:
+		break;
 	}
+}
 }
 
 
@@ -55,7 +55,6 @@ uint32_t CR = 0;//コンディションレジスタ
 //CR0~CR7の8個の4bitフィールド
 
 uint32_t LR = 0;//リンクレジスタ
-uint32_t CTR = 0;//カウントレジスタ
 uint32_t INST_MEM[INST_ADDR] = {};//命令のバイナリを読み込むエンディアンに注意!
 
 uint32_t DATA_MEM[DATA_ADDR] = {};//データを保存するメモリ
@@ -67,164 +66,170 @@ uint32_t mincamlStart;
 int lastPC;
 //bitを取り出す
 /*static inline uint32_t bits(uint32_t inst, unsigned int i, unsigned int j) {
-	return (inst & ((1 << (i+1)) - (1 << j))) >> j;
+return (inst & ((1 << (i+1)) - (1 << j))) >> j;
 }*/
-	
+
 // レジスタに値を設定　引数などに使用
 void initialize();
 //debug用に各レジスタを出力する関数をつくる
 
 void debug();
 
+int instNum;//何番目の命令か
+
 #define SHOWGPR()\
-	do { \
-		int num = 0;\
-		vector<uint32_t>::iterator itr;\
-		for (itr = GPR.begin(); itr != GPR.end(); itr++) {\
-			cout << "GPR[" << hex <<  num << "]: " << dec;\
-			num++;\
-			cout << hex << *itr << dec <<  ", ";}\
-		cout << endl;}\
-	while (0)
+do { \
+	int num = 0;\
+	vector<uint32_t>::iterator itr;\
+	for (itr = GPR.begin(); itr != GPR.end(); itr++) {\
+		cout << "GPR[" << hex <<  num << "]: " << dec;\
+		num++;\
+		cout << hex << *itr << dec <<  ", ";}\
+	cout << endl;}\
+while (0)
 
 #define SHOWFPR()\
-	do { \
-		int numf = 0;\
-		vector<float>::iterator itr;\
-		for (itr = FPR.begin(); itr != FPR.end(); itr++) {\
-			cout << "FPR[" <<  hex <<  numf  << dec << "]: ";\
-			numf++;\
-			cout << *itr << ", ";}\
-		cout << endl;}\
-	while (0)
+do { \
+	int numf = 0;\
+	vector<float>::iterator itr;\
+	for (itr = FPR.begin(); itr != FPR.end(); itr++) {\
+		cout << "FPR[" <<  hex <<  numf  << dec << "]: ";\
+		numf++;\
+		cout << *itr << ", ";}\
+	cout << endl;}\
+while (0)
 
 #define SHOWCR() cout << hex << CR << dec << endl
 #define SHOWLR() cout << hex << LR << dec << endl
-#define SHOWCTR() cout << hex << CTR << dec << endl
+//#define SHOWCTR() cout << hex << CTR << dec << endl
 #define SHOWPC() cout << hex << (PC<<2) << dec << endl
 #define SHOWOP() cout << hex << OP << dec << endl
 
-void initialize() {
-	string index;
-	int intindex;
-	int intvalue;
-	cout << "initialization..." << endl;
-	while(1){
-		cout << "which register to set value? put char...GPR--g, FPR--f, end--e" << endl;
-		char x;
-		cin >> x;
-		switch(x) {
-		case 'g':
-			while (1) {
-				cout << "put index of GPR...put e to end setting" << endl;
-				cin >> index;
-				if ("e" == index) {break;}
-				try {
-					intindex = stoi(index, nullptr, 0);
-					if (intindex == 0) {
-						cout << "you cannot set value in GPR[0]" << endl;
-						continue;
+void initialize() {//手動での初期化　後に消すかも
+string index;
+int intindex;
+int intvalue;
+cout << "initialization..." << endl;
+while(1){
+	cout << "which register to set value? put char...GPR--g, FPR--f, end--e" << endl;
+	char x;
+	cin >> x;
+	switch(x) {
+	case 'g':
+		while (1) {
+			cout << "put index of GPR...put e to end setting" << endl;
+			cin >> index;
+			if ("e" == index) {break;}
+			try {
+				intindex = stoi(index, nullptr, 0);
+				if (intindex == 0) {
+					cout << "you cannot set value in GPR[0]" << endl;
+					continue;
+				}
+				if (0 < intindex && intindex < 32) {
+					cout << "put value of GPR[" << intindex << "]: ";
+					string value;
+					cin >> value;
+					try {
+						intvalue = stoi(value, nullptr, 0);
+						GPR[intindex] = intvalue;
+					} catch (const invalid_argument &e) {
+						cout << "invalid input...try again." << endl;
 					}
-					if (0 < intindex && intindex < 32) {
-						cout << "put value of GPR[" << intindex << "]: ";
-						string value;
-						cin >> value;
-						try {
-							intvalue = stoi(value, nullptr, 0);
-							GPR[intindex] = intvalue;
-						} catch (const invalid_argument &e) {
-							cout << "invalid input...try again." << endl;
-						}
-					} else {
-						cout << "put 1~31" << endl;
-					}
-				} catch (const invalid_argument& e) {
+				} else {
 					cout << "put 1~31" << endl;
 				}
+			} catch (const invalid_argument& e) {
+				cout << "put 1~31" << endl;
 			}
-			cout << "end setting GPR" << endl;
-			SHOWGPR();
-			break;
-		case 'f':
-			while (1) {
-				cout << "put index of FPR...put e to end setting" << endl;
-				cin >> index;
-				if ("e" == index) {break;}
-				try {
-					intindex = stoi(index, nullptr, 0);
-					if (0 <= intindex && intindex < 32) {
-						cout << "put value of FPR[" << intindex << "]: ";
-						float value;
-						for (cin >> value; !cin; cin >> value){
-							cin.clear();
-							cin.ignore();
-							cout << "put float!" << endl << "value: ";
-						}
-						FPR[intindex] = value;
-					} else {
-						cout << "put 0~31" << endl;
+		}
+		cout << "end setting GPR" << endl;
+		SHOWGPR();
+		break;
+	case 'f':
+		while (1) {
+			cout << "put index of FPR...put e to end setting" << endl;
+			cin >> index;
+			if ("e" == index) {break;}
+			try {
+				intindex = stoi(index, nullptr, 0);
+				if (0 <= intindex && intindex < 32) {
+					cout << "put value of FPR[" << intindex << "]: ";
+					float value;
+					for (cin >> value; !cin; cin >> value){
+						cin.clear();
+						cin.ignore();
+						cout << "put float!" << endl << "value: ";
 					}
-				} catch (const invalid_argument& e) {
+					FPR[intindex] = value;
+				} else {
 					cout << "put 0~31" << endl;
 				}
+			} catch (const invalid_argument& e) {
+				cout << "put 0~31" << endl;
 			}
-			cout << "end setting FPR" << endl;
-			SHOWFPR();
-			break;
-		case 'e':
-			cout << "end initialization..." << endl;
-			return;
-		default:
-			cout << "undefined...try again." << endl;break;
 		}
+		cout << "end setting FPR" << endl;
+		SHOWFPR();
+		break;
+	case 'e':
+		cout << "end initialization..." << endl;
+		return;
+	default:
+		cout << "undefined...try again." << endl;break;
 	}
 }
-
-void debug() {
-	cout << "which to show? put char..." << endl;
-	while (1) {
-		cout << "GPR 'g', FPR 'f', CondR 'c', LinkR 'l', PC 'p', operation 'o', end 'e'" << endl;
-		char x;
-		cin >> x;
-		switch(x) {
-		case 'g':
-			SHOWGPR();break;
-		case 'f':
-			SHOWFPR();break;
-		case 'c':
-			SHOWCR();break;
-		case 'l':
-			SHOWLR();break;
-		//case 4:
-		//	SHOWCTR();break;
-		case 'p':
-			SHOWPC();break;
-		case 'o':
-			SHOWOP();break;
-		case 'e':
-			return;
-		default:
-			cout << "undefined...try again" << endl;break;
-		}
-	}
 }
 
-int normal() {
+void debug() {//レジスタの中身を見る
+cout << "which to show? put char..." << endl;
+while (1) {
+	cout << "GPR 'g', FPR 'f', CondR 'c', LinkR 'l', PC 'p', operation 'o', end 'e'" << endl;
+	char x;
+	cin >> x;
+	switch(x) {
+	case 'g':
+		SHOWGPR();break;
+	case 'f':
+		SHOWFPR();break;
+	case 'c':
+		SHOWCR();break;
+	case 'l':
+		SHOWLR();break;
+	//case 4:
+	//	SHOWCTR();break;
+	case 'p':
+		SHOWPC();break;
+	case 'o':
+		SHOWOP();break;
+	case 'e':
+		return;
+	default:
+		cout << "undefined...try again" << endl;break;
+	}
+}
+}
+
+int normal() {//通常実行
+	instNum = 0;
 	PC = mincamlStart >> 2;
 	GPR[3] = 0x8000;//stack
 	while(PC < lastPC) {
 		int result = do_op();
 		if (result) {
 			cerr << "error at PC:" << hex << (PC << 2) << dec << endl;
+			cerr << "the number of executed instructions: " << dec << instNum << endl;
 			cerr << "move to debug mode" << endl;
 			debug();
 			return EXIT_FAILURE;
 		}
+		instNum++;
 	}
 	return 0;
 }
 
-int step() {
+int step() {//step実行
+	instNum = 0;
 	cout << "execute by step..." << endl;
 	PC = mincamlStart >> 2;
 	GPR[3] = 0x8000;//stack
@@ -236,42 +241,50 @@ int step() {
 	uint32_t nxtOP;
 	while(PC < lastPC) {
 		bool next = 0;
-		while (!next) {
+		while (!next) {//次のステップに進むかどうかをnextフラグで判断
+			cout << "the number of executed instructions (dec): " << dec << instNum << endl;
 			cout << "(step) put 'h' for help...";
 			char x;
 			cin >> x;
 			switch (x) {
-			case 'n':
+			case 'n'://次に進む
 				next = 1;
 				break;
-			case 'b':
+			case 'b'://breakpointの設定
 				cout << "set breakpoint...current PC is " << hex << (PC << 2) <<dec << endl;
 				cout << "current breakpoint is..." << endl;
 				for (bitr = breakpoint.begin(), bi = 0; bitr != breakpoint.end(); bitr++, bi++) {
 					cout << "breakpoint " << dec << bi << ": "<< hex  << (*bitr << 2) << dec << endl;
 				}
 				cout << "put PC in hex you want to make breakpoint (put e to end): ";
-				cin >> str_pc;
-				if (str_pc== "e") {
-					break;
-				} else {
-					try {
-						while (1) {
+				while (1) {
+					cin >> str_pc;
+					if (str_pc== "e") {
+						break;
+					} else {
+						try {
 							int int_pc= stoi(str_pc, nullptr, 0);
 							if (int_pc % 4 != 0) {
 								cout << "address is aligned by 4...try again" << endl;
+								cin.clear();
+								cin.ignore();
+								cout << "put PC in hex you want to make breakpoint (put e to end): ";
 								continue;
 							}
 							cout << "breakpoint PC = " << hex<< int_pc<< dec << endl;
-							breakpoint.push_back(int_pc>> 2);
-							break;
+								breakpoint.push_back(int_pc>> 2);
+								break;
+						}catch (const invalid_argument& e) {
+							cin.clear();
+							cin.ignore();
+							cout << "invalid_argument...try again." << endl;
+							cout << "put PC in hex you want to make breakpoint (put e to end): ";
+							continue;
 						}
-					}catch (const invalid_argument& e) {
-						cout << "invalid_argument...try again." << endl;
 					}
 				}
 				break;
-			case 'r':
+			case 'r'://breakpointまで走る
 				cout << "run to breakpoint" << endl;
 				while (PC < lastPC) {
 					bitr = find(breakpoint.begin(), breakpoint.end(), PC);
@@ -286,6 +299,7 @@ int step() {
 						debug();
 						return EXIT_FAILURE;
 					}
+					instNum++;
 				}
 				if (PC >= lastPC) {
 					cout << "reached end of execution" << endl;
@@ -308,7 +322,7 @@ int step() {
 				nxtOP = htonl(INST_MEM[PC]);
 				cout << "next OP: " << hex << nxtOP << dec << endl;
 				break;
-			case 'm':
+			case 'm'://メモリを見る
 				while (1) {
 					cout << "check data mem...put address of mem in hex (put e to end): ";
 					string address;
@@ -319,14 +333,14 @@ int step() {
 						try {
 							int int_add = stoi(address, nullptr, 0);
 							cout << "DATA_MEM[" << hex<< address << "] = " << DATA_MEM[int_add] << dec << endl;
-						}catch (const invalid_argument& e) {
+					}catch (const invalid_argument& e) {
 							cout << "try again." << endl;
 						}
 					}
 				}
 				break;
-			case 's':
-				cout << "stack pointer (GPR1) is: " << hex << GPR[1] << dec << endl;
+			case 's'://stackを見る
+				cout << "stack pointer (GPR3) is: " << hex << GPR[3] << dec << endl;
 				while (1) {
 					cout << "check stack...put address of mem in hex (put e to end): ";
 					string address;
@@ -338,14 +352,14 @@ int step() {
 							int int_add = stoi(address, nullptr, 0);
 							cout << "DATA_MEM[" << hex << address << "] = " << DATA_MEM[int_add] << dec<< endl;
 						}catch (const invalid_argument& e) {
-							cout << "try again." << endl;
+								cout << "try again." << endl;
 						}
 					}
 				}
 				break;
-			case 'q':
+			case 'q'://強制終了
 				return EXIT_FAILURE;
-			case 'h':
+			case 'h'://help
 				cout << "'n'			next step" << endl
 						<< "'b'			set breakpoint" << endl
 						<< "'r'			run to breakpoint" << endl
@@ -362,8 +376,8 @@ int step() {
 			default:
 				cout << "undefined...look help.";
 				break;
-			}
-		}
+			}//switch end
+		}//end while(!next)
 
 		int result = do_op();
 		if (result) {
@@ -372,9 +386,11 @@ int step() {
 			debug();
 			return EXIT_FAILURE;
 		}
+		instNum++;
 	}
 	return 0;
 }
+
 int main(int argc, char**argv) {
 	/*if (argc != 2) {
 		cerr << "invailed argument: did you specified input file?" << endl;
@@ -392,6 +408,7 @@ int main(int argc, char**argv) {
 		return EXIT_FAILURE;
 	} 
 
+	//機械語の読み取り
 	size_t cnt;
 	size_t pos = 0;
 	cout << "reading instruction..." << endl;
@@ -405,8 +422,9 @@ int main(int argc, char**argv) {
 	} 
 	lastPC = pos;
 	fclose(binary);
-	cout << "end reading!" << endl;
+	cout << "end reading!" << endl;//読み取り終わり
 	
+	GPR[3] = 0x8000;
 	initialize();
 
 	cout << "start execution..." << endl;
@@ -418,8 +436,9 @@ int main(int argc, char**argv) {
 		result = normal();
 	}
 	if (!result) {
-		cout << "finish execution! return value: " << endl;
-		cout << "GPR[1]:" << hex << GPR[1]<< " FPR[0]:" << FPR[0] <<  hex << endl;
+		cout << "finish execution!" << endl;
+		cout << "return value is... GPR[1]:" << hex << GPR[1]<< dec << " FPR[0]:" << FPR[0] << endl;
+		cout << "the number of total instruction is (dec) : " << dec << instNum << endl;
 		debug();
 	}
 }

@@ -13,7 +13,6 @@ extern vector<uint32_t> GPR;
 extern vector<float> FPR;
 extern uint32_t CR;
 extern uint32_t LR;
-extern uint32_t CTR;
 extern uint32_t DATA_MEM[DATA_ADDR];
 extern uint32_t PC;
 extern uint32_t OP;
