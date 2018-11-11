@@ -3,8 +3,9 @@ simulator
 -----------------------------基本情報----------------------------------------
 
 powerpcの命令セットを参考にしたオリジナルの命令セットをシミュレートする
-
 /simulatorにおいてsimulatorとassemblerを一括でmake, cleanできる。
+
+
 
 simulator: 
 /simulator/simulatorでmake 実行方法 ./sim --option [inputfile]    (optionなしで普通の実行。現状optionはstepとhelpのみ)
@@ -17,12 +18,16 @@ _min_caml_start ラベルの位置から実行を開始する。
 
 simulatorのinitializationのステップで手動でレジスタの値を初期化できる。(この機能は消すかも)
 
+
+
 assembler: /simulator/assemblerでmake 実行方法 ./asm [inputfile] [outputfile]
 
 .sファイルのコメント #開始で、1行に渡ってことが可能。
 出力の先頭２行はバイト数、_min_caml_startの位置
 
 tabを読めないのでコンパイラからの出力ファイルをつかうときはsed -E 's/\t+/ /g' [inputfile] > [outputfile]
+
+
 
 共通:
 どちらのディレクトリでもout.binという名前のファイルはmake cleanで消える。
@@ -56,6 +61,8 @@ assembler の出力の1行目に実行する機械語列のバイト数
 2行目に_min_caml_startラベルの示すアドレスを追加　ラベルがない場合0になる
 
 simulatorでは_min_caml_startラベルのアドレスから命令を実行する
+
+
 
 11/9
 breakpoint(PC)のバグを直した。
