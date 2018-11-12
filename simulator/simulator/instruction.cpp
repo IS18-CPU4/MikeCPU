@@ -16,6 +16,7 @@ extern uint32_t LR;
 extern uint32_t DATA_MEM[DATA_ADDR];
 extern uint32_t PC;
 extern uint32_t OP;
+extern vector<char> outChar;
 
 int rD;
 int rA;
@@ -368,8 +369,9 @@ void float_to_int() {
 
 void out() {
 	rD = get_rD(OP);
-	uint32_t result = 0x0000FFFF & GPR[rD];
-	cout << "operation out..." << hex << result << dec << endl;
+	uint32_t result = 0x000000FF & GPR[rD];
+	cout << "operation out..." << static_cast<char>(result)  << endl;
+	outChar.push_back(static_cast<char>(result));
 }
 
 void branch_abs() {

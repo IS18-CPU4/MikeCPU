@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <fstream>
 #include <vector>
 #include <stdio.h>
 #include <cstdlib>
@@ -79,12 +80,14 @@ void debug();
 
 int instNum;//何番目の命令か
 
+vector<char> outChar;//outによる出力を保存しておく
+
 #define SHOWGPR()\
 do { \
 	int num = 0;\
 	vector<uint32_t>::iterator itr;\
 	for (itr = GPR.begin(); itr != GPR.end(); itr++) {\
-		cout << "GPR[" << hex <<  num << "]: " << dec;\
+		cout << "GPR[" <<  num << "]: ";\
 		num++;\
 		cout << hex << *itr << dec <<  ", ";}\
 	cout << endl;}\
@@ -95,7 +98,7 @@ do { \
 	int numf = 0;\
 	vector<float>::iterator itr;\
 	for (itr = FPR.begin(); itr != FPR.end(); itr++) {\
-		cout << "FPR[" <<  hex <<  numf  << dec << "]: ";\
+		cout << "FPR[" << numf << "]: ";\
 		numf++;\
 		cout << *itr << ", ";}\
 	cout << endl;}\
@@ -182,8 +185,8 @@ void initialize() {//手動での初期化　後に消すかも
 void debug() {//レジスタの中身を見る
 	cout << "------------debug----------" << endl;
 	while (1) {
-	cout << "which register to show? put char..." << endl
-			<< "GPR 'g', FPR 'f', CondR 'c', LinkR 'l', PC 'p', operation 'o', end 'e': ";
+	cout << "which to show? put char..." << endl
+			<< "GPR 'g', FPR 'f', CondR 'c', LinkR 'l', PC&operation 'i', out 'o',  'end 'e': ";
 		char x;
 		cin >> x;
 		switch(x) {
@@ -195,11 +198,17 @@ void debug() {//レジスタの中身を見る
 			cout << hex << CR << dec << endl;break;
 		case 'l':
 			cout << hex << LR << dec << endl;break;
-		case 'p':
-			cout << hex << (PC<<2) << dec << endl;break;
-		case 'o':
+		case 'i':
+			cout << hex << (PC<<2) << dec << endl;
 			cout << hex << OP << dec << endl;
 			cout << "in mnemonic: "; rev_asm(OP);break;
+		case 'o':
+			if (!outChar.empty()) {
+				cout << outChar.back() << endl;
+			} else {
+				cout << "no out" << endl;
+			}
+			break;
 		case 'e':
 			return;
 		default:
@@ -403,6 +412,13 @@ int step() {//step実行
 				}
 				cout << endl;
 				break;
+			case 'o'://out命令で最後に出力されたものを表示
+				if (!outChar.empty()) {
+					cout << outChar.back() << endl;
+				} else {
+					cout << "no out" << endl;
+				}
+				break;
 			case 'q'://強制終了
 				return EXIT_FAILURE;
 			case 'h'://help
@@ -416,6 +432,7 @@ int step() {//step実行
 						<< "'i'			show next PC and next operation" << endl
 						<< "'m'			check data memory" << endl
 						<< "'s'			check stack" << endl
+						<< "'o'			show last out" << endl
 						<< "'h'			show help" << endl
 						<< "'q'			exit" << endl;
 				cout << endl;
@@ -447,14 +464,27 @@ int main(int argc, char**argv) {
 
 	ProcessArgs(argc, argv);
 
-	FILE* binary;
 
-	cout << "opening binary file..." << endl;
+	FILE* binary;
+	cout << "open input file..." << endl;
 	binary = fopen(argv[optind], "rb");
 	if (!binary) {
 		cerr << "cannot open file" << endl;
 		return EXIT_FAILURE;
-	} 
+	}
+
+	cout << "open output file..." << endl;
+	ofstream fileout;
+	if (optind + 1 == argc) {
+		fileout.open("a.out", ios::out|ios::trunc);
+	} else if (optind + 2 == argc) {
+		fileout.open(argv[optind+1], ios::out|ios::trunc);
+	}
+	if (!fileout) {
+		cerr << "cannot open outputfile" << endl;
+		return 1;
+	}
+
 
 	//機械語の読み取り
 	size_t cnt;
@@ -477,6 +507,8 @@ int main(int argc, char**argv) {
 	cout << endl;
 
 	cout << "-----------start execution----------" << endl << endl;
+	vector<char>::iterator citr;
+	int cindex = 0;
 
 	int result;
 	if (stepflag == 1) {
@@ -486,6 +518,12 @@ int main(int argc, char**argv) {
 			cout << "return value is... GPR[1]:" << hex << GPR[1]<< dec << " FPR[0]:" << FPR[0] << endl;
 			cout << "the total number of instructions is (dec) : " << dec << instNum << endl;
 			cout << endl;
+			if (!outChar.empty()) {
+				for (citr = outChar.begin(); citr != outChar.end(); citr++) {
+					fileout << "out[" << cindex << "]: " << *citr << endl;
+					cindex++;
+				}
+			}
 			debug();
 		}
 	} else {
@@ -500,6 +538,12 @@ int main(int argc, char**argv) {
 			cout << "return value is... GPR[1]:" << hex << GPR[1]<< dec << " FPR[0]:" << FPR[0] << endl;
 			cout << "the total number of instructions is (dec) : " << dec << instNum << endl;
 			cout << endl;
+			if (!outChar.empty()) {
+				for (citr = outChar.begin(); citr != outChar.end(); citr++) {
+					fileout << "out[" << cindex << "]: " << *citr << endl;
+					cindex++;
+				}
+			}
 			debug();
 		}
 	}

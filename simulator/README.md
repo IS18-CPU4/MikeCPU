@@ -6,11 +6,17 @@ powerpcの命令セットを参考にしたオリジナルの命令セットを�
 /simulatorにおいてsimulatorとassemblerを一括でmake, cleanできる。
 
 
+simulator: 下のassemblerの出力であるバイナリファイルを読み込み命令をシミュレートする。
 
-simulator: 
-/simulator/simulatorでmake 実行方法 ./sim --option [inputfile]    (optionなしで普通の実行。現状optionはstepとhelpのみ)
+/simulator/simulatorでmake 
+実行方法 ./sim --option [inputfile] [outputfile]
+
+optionなしで普通の実行。現状optionはstepとhelpのみ。
 --stepでstep実行
 -h, --helpでhelp
+
+out命令の出力がoutputfileに出力される。アスキーコードで変換済み。
+上のoutputfileを指定しない場合a.outに出力される。
 
 step実行時のコマンドはhで確認できる。
 (step 累計命令数)という表示。
@@ -19,14 +25,22 @@ _min_caml_start ラベルの位置から実行を開始する。
 
 simulatorのinitializationのステップで手動でレジスタの値を初期化できる。(この機能は消すかも)
 
+make clean でa.outというファイルは消される。
 
 
-assembler: /simulator/assemblerでmake 実行方法 ./asm [inputfile] [outputfile]
+
+assembler:コンパイラが出力する.sファイルを読み込んで,対応する機械語をバイナリファイルに出力する。
+
+/simulator/assemblerでmake
+実行方法 ./asm [inputfile] [outputfile]
+
+outputfileを指定しない場合out.binに出力される。
 
 .sファイルのコメント #開始で、1行に渡ってことが可能。
 出力の先頭２行はバイト数、_min_caml_startの位置
 
-tabを読めないのでコンパイラからの出力ファイルをつかうときはsed -E 's/\t+/ /g' [inputfile] > [outputfile]
+
+tabを読めないのでコンパイラからの出力ファイルをつかうときはsed -E 's/\t+/ /g' [タブありfile名] > [タブなしfile名]
 
 
 
@@ -63,6 +77,12 @@ breakpointを命令数でも設定できるようにした。累計実行命令�
 
 普通に実行した場合、実行時間が出るようにした。単位はマイクロ秒。
 
+assemblerの実行時出力先を指定しなければout.binに出力するようにした。
+
+out命令の出力をファイルに書き込むことにした。シミュレータの実行時に入力ファイル名、出力ファイル名の順で引数を渡す。
+出力ファイル名の指定がない場合はa.outに出力される。
+実行終了時、最後にoutで出力されたものはコマンドライン上で見れる。step実行の場合その時点で一番新しいoutによる出力が見れる。
+
 ---------------------------------------タスク------------------------------------------------------
 
 .txt .align .globlなどの調整
@@ -73,5 +93,3 @@ breakpointを命令数でも設定できるようにした。累計実行命令�
 	ループの条件を調整
 
 bcの修正
-
-out命令の出力をどうするか(現在は実行した瞬間のみ表示されるので、step実行じゃないと追えない。)
