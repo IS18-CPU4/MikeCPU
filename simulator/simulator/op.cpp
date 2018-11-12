@@ -12,11 +12,6 @@ extern uint32_t INST_MEM[INST_ADDR];
 extern uint32_t PC;
 extern uint32_t OP;
 
-inline uint32_t get_opname(const uint32_t ui) {
-	uint32_t opname = ui>>26;
-	return opname;
-}
-
 int do_op() {
 	cout << "PC: " << hex << (PC << 2) << endl;
 	OP = htonl(INST_MEM[PC]);

@@ -8,6 +8,7 @@
 #include <arpa/inet.h>
 #include <algorithm>
 #include <climits>
+#include "revAsm.h"
 #include "op.h"
 
 #define INST_ADDR 0x10000
@@ -99,115 +100,112 @@ do { \
 	cout << endl;}\
 while (0)
 
-#define SHOWCR() cout << hex << CR << dec << endl
-#define SHOWLR() cout << hex << LR << dec << endl
-//#define SHOWCTR() cout << hex << CTR << dec << endl
-#define SHOWPC() cout << hex << (PC<<2) << dec << endl
-#define SHOWOP() cout << hex << OP << dec << endl
-
 void initialize() {//手動での初期化　後に消すかも
-string index;
-int intindex;
-int intvalue;
-cout << "initialization..." << endl;
-while(1){
-	cout << "which register to set value? put char...GPR--g, FPR--f, end--e" << endl;
-	char x;
-	cin >> x;
-	switch(x) {
-	case 'g':
-		while (1) {
-			cout << "put index of GPR...put e to end setting" << endl;
-			cin >> index;
-			if ("e" == index) {break;}
-			try {
-				intindex = stoi(index, nullptr, 0);
-				if (intindex == 0) {
-					cout << "you cannot set value in GPR[0]" << endl;
-					continue;
-				}
-				if (0 < intindex && intindex < 32) {
-					cout << "put value of GPR[" << intindex << "]: ";
-					string value;
-					cin >> value;
-					try {
-						intvalue = stoi(value, nullptr, 0);
-						GPR[intindex] = intvalue;
-					} catch (const invalid_argument &e) {
-						cout << "invalid input...try again." << endl;
+	string index;
+	int intindex;
+	int intvalue;
+	cout << "------------initialization of registers-----------" << endl << endl;
+	while(1){
+		cout << "which register to set value? put char...GPR--g, FPR--f, end--e: ";
+		char x;
+		cin >> x;
+		switch(x) {
+		case 'g':
+			while (1) {
+				cout << "put index of GPR...put e to end setting: ";
+				cin >> index;
+				if ("e" == index) {break;}
+				try {
+					intindex = stoi(index, nullptr, 0);
+					if (intindex == 0) {
+						cout << "you cannot set value in GPR[0]" << endl;
+						continue;
 					}
-				} else {
+					if (0 < intindex && intindex < 32) {
+						cout << "put value of GPR[" << intindex << "]: ";
+						string value;
+						cin >> value;
+						try {
+							intvalue = stoi(value, nullptr, 0);
+							GPR[intindex] = intvalue;
+						} catch (const invalid_argument &e) {
+							cout << "invalid input...try again." << endl;
+						}
+					} else {
+						cout << "put 1~31" << endl;
+					}
+				} catch (const invalid_argument& e) {
 					cout << "put 1~31" << endl;
 				}
-			} catch (const invalid_argument& e) {
-				cout << "put 1~31" << endl;
 			}
-		}
-		cout << "end setting GPR" << endl;
-		SHOWGPR();
-		break;
-	case 'f':
-		while (1) {
-			cout << "put index of FPR...put e to end setting" << endl;
-			cin >> index;
-			if ("e" == index) {break;}
-			try {
-				intindex = stoi(index, nullptr, 0);
-				if (0 <= intindex && intindex < 32) {
-					cout << "put value of FPR[" << intindex << "]: ";
-					float value;
-					for (cin >> value; !cin; cin >> value){
-						cin.clear();
-						cin.ignore();
-						cout << "put float!" << endl << "value: ";
+			cout << "end setting GPR" << endl << endl;
+			SHOWGPR();
+			cout << endl;
+			break;
+		case 'f':
+			while (1) {
+				cout << "put index of FPR...put e to end setting: ";
+				cin >> index;
+				if ("e" == index) {break;}
+				try {
+					intindex = stoi(index, nullptr, 0);
+					if (0 <= intindex && intindex < 32) {
+						cout << "put value of FPR[" << intindex << "]: ";
+						float value;
+						for (cin >> value; !cin; cin >> value){
+							cin.clear();
+							cin.ignore();
+							cout << "put float!" << endl << "value: ";
+						}
+						FPR[intindex] = value;
+					} else {
+						cout << "put 0~31" << endl;
 					}
-					FPR[intindex] = value;
-				} else {
+				} catch (const invalid_argument& e) {
 					cout << "put 0~31" << endl;
 				}
-			} catch (const invalid_argument& e) {
-				cout << "put 0~31" << endl;
 			}
+			cout << "end setting FPR" << endl << endl;
+			SHOWFPR();
+			cout << endl;
+			break;
+		case 'e':
+			cout << "end initialization..." << endl;
+			return;
+		default:
+			cout << "undefined...try again." << endl;break;
 		}
-		cout << "end setting FPR" << endl;
-		SHOWFPR();
-		break;
-	case 'e':
-		cout << "end initialization..." << endl;
-		return;
-	default:
-		cout << "undefined...try again." << endl;break;
 	}
-}
 }
 
 void debug() {//レジスタの中身を見る
-cout << "which to show? put char..." << endl;
-while (1) {
-	cout << "GPR 'g', FPR 'f', CondR 'c', LinkR 'l', PC 'p', operation 'o', end 'e'" << endl;
-	char x;
-	cin >> x;
-	switch(x) {
-	case 'g':
-		SHOWGPR();break;
-	case 'f':
-		SHOWFPR();break;
-	case 'c':
-		SHOWCR();break;
-	case 'l':
-		SHOWLR();break;
-	//case 4:
-	//	SHOWCTR();break;
-	case 'p':
-		SHOWPC();break;
-	case 'o':
-		SHOWOP();break;
-	case 'e':
-		return;
-	default:
-		cout << "undefined...try again" << endl;break;
+
+	cout << "------------debug----------" << endl;
+	while (1) {
+	cout << "which register to show? put char..." << endl
+			<< "GPR 'g', FPR 'f', CondR 'c', LinkR 'l', PC 'p', operation 'o', end 'e': ";
+		char x;
+		cin >> x;
+		switch(x) {
+		case 'g':
+			cout << endl;SHOWGPR();cout << endl;break;
+		case 'f':
+			cout << endl;SHOWFPR();cout << endl;break;
+		case 'c':
+			cout << hex << CR << dec << endl;break;
+		case 'l':
+			cout << hex << LR << dec << endl;break;
+		case 'p':
+			cout << hex << (PC<<2) << dec << endl;break;
+		case 'o':
+			cout << hex << OP << dec << endl;
+			cout << "in mnemonic: "; rev_asm(OP);break;
+		case 'e':
+			return;
+		default:
+			cout << "undefined...try again" << endl;break;
+		}
 	}
-}
 }
 
 int normal() {//通常実行
@@ -219,7 +217,7 @@ int normal() {//通常実行
 		if (result) {
 			cerr << "error at PC:" << hex << (PC << 2) << dec << endl;
 			cerr << "the number of executed instructions: " << dec << instNum << endl;
-			cerr << "move to debug mode" << endl;
+			cerr << "move to debug mode..." << endl;
 			debug();
 			return EXIT_FAILURE;
 		}
@@ -242,8 +240,7 @@ int step() {//step実行
 	while(PC < lastPC) {
 		bool next = 0;
 		while (!next) {//次のステップに進むかどうかをnextフラグで判断
-			cout << "the number of executed instructions (dec): " << dec << instNum << endl;
-			cout << "(step) put 'h' for help...";
+			cout << "(step " << dec << instNum << ") put 'h' for help...";
 			char x;
 			cin >> x;
 			switch (x) {
@@ -283,6 +280,7 @@ int step() {//step実行
 						}
 					}
 				}
+				cout << endl;
 				break;
 			case 'r'://breakpointまで走る
 				cout << "run to breakpoint" << endl;
@@ -302,25 +300,27 @@ int step() {//step実行
 					instNum++;
 				}
 				if (PC >= lastPC) {
-					cout << "reached end of execution" << endl;
+					cout << "reached end of execution" << endl << endl;
 					return 0;
 				}else {
-					cout << "reached breakpoint" << endl;
+					cout << "reached breakpoint" << endl << endl;
 				}
 				break;
 			case 'g':
-				SHOWGPR();break;
+				SHOWGPR(); cout << endl;break;
 			case 'f':
-				SHOWFPR();break;
+				SHOWFPR();cout << endl;break;
 			case 'c':
-				SHOWCR();break;
+				cout << hex << CR << dec << endl;break;
 			case 'l':
-				SHOWLR();break;
+				cout << hex << LR << dec << endl;break;
 			case 'i':
 				cout << "next PC: ";
-				SHOWPC();
+				cout << hex << (PC<<2) << dec << endl;
 				nxtOP = htonl(INST_MEM[PC]);
-				cout << "next OP: " << hex << nxtOP << dec << endl;
+				cout << "next operation is...: " << hex << nxtOP << dec << endl
+						 << "in mnemonic...: "; rev_asm(nxtOP);
+				cout << endl;
 				break;
 			case 'm'://メモリを見る
 				while (1) {
@@ -338,6 +338,7 @@ int step() {//step実行
 						}
 					}
 				}
+				cout << endl;
 				break;
 			case 's'://stackを見る
 				cout << "stack pointer (GPR3) is: " << hex << GPR[3] << dec << endl;
@@ -356,6 +357,7 @@ int step() {//step実行
 						}
 					}
 				}
+				cout << endl;
 				break;
 			case 'q'://強制終了
 				return EXIT_FAILURE;
@@ -372,6 +374,7 @@ int step() {//step実行
 						<< "'s'			check stack" << endl
 						<< "'h'			show help" << endl
 						<< "'q'			exit" << endl;
+				cout << endl;
 				break;
 			default:
 				cout << "undefined...look help.";
@@ -387,6 +390,7 @@ int step() {//step実行
 			return EXIT_FAILURE;
 		}
 		instNum++;
+		cout << endl;
 	}
 	return 0;
 }
@@ -422,12 +426,13 @@ int main(int argc, char**argv) {
 	} 
 	lastPC = pos;
 	fclose(binary);
-	cout << "end reading!" << endl;//読み取り終わり
+	cout << "end reading!" << endl << endl;//読み取り終わり
 	
 	GPR[3] = 0x8000;
 	initialize();
+	cout << endl;
 
-	cout << "start execution..." << endl;
+	cout << "-----------start execution----------" << endl << endl;
 
 	int result;
 	if (stepflag == 1) {
@@ -436,9 +441,10 @@ int main(int argc, char**argv) {
 		result = normal();
 	}
 	if (!result) {
-		cout << "finish execution!" << endl;
+		cout << "finish execution successfully!" << endl << endl;
 		cout << "return value is... GPR[1]:" << hex << GPR[1]<< dec << " FPR[0]:" << FPR[0] << endl;
-		cout << "the number of total instruction is (dec) : " << dec << instNum << endl;
+		cout << "the total number of instructions is (dec) : " << dec << instNum << endl;
+		cout << endl;
 		debug();
 	}
 }
