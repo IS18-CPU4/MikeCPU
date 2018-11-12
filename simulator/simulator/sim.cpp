@@ -8,6 +8,7 @@
 #include <arpa/inet.h>
 #include <algorithm>
 #include <climits>
+#include <chrono>
 #include "revAsm.h"
 #include "op.h"
 
@@ -179,7 +180,6 @@ void initialize() {//手動での初期化　後に消すかも
 }
 
 void debug() {//レジスタの中身を見る
-
 	cout << "------------debug----------" << endl;
 	while (1) {
 	cout << "which register to show? put char..." << endl
@@ -232,16 +232,17 @@ int step() {//step実行
 	PC = mincamlStart >> 2;
 	GPR[3] = 0x8000;//stack
 	//uint32_t breakpoint = 0;
-	vector<uint32_t> breakpoint;
+	vector<uint32_t> breakpoint_PC;
+	vector<uint32_t> breakpoint_Inst;
 	vector<uint32_t>::iterator bitr;
-	string str_pc;
+	string str_pc,str_inst;
 	int bi;
 	uint32_t nxtOP;
 	while(PC < lastPC) {
 		bool next = 0;
 		while (!next) {//次のステップに進むかどうかをnextフラグで判断
 			cout << "(step " << dec << instNum << ") put 'h' for help...";
-			char x;
+			char x, y;
 			cin >> x;
 			switch (x) {
 			case 'n'://次に進む
@@ -250,44 +251,89 @@ int step() {//step実行
 			case 'b'://breakpointの設定
 				cout << "set breakpoint...current PC is " << hex << (PC << 2) <<dec << endl;
 				cout << "current breakpoint is..." << endl;
-				for (bitr = breakpoint.begin(), bi = 0; bitr != breakpoint.end(); bitr++, bi++) {
-					cout << "breakpoint " << dec << bi << ": "<< hex  << (*bitr << 2) << dec << endl;
+				for (bitr = breakpoint_PC.begin(), bi = 0; bitr != breakpoint_PC.end(); bitr++, bi++) {
+					cout << "breakpoint PC" << dec << bi << " (hex): "<< hex  << (*bitr << 2) << dec << endl;
 				}
-				cout << "put PC in hex you want to make breakpoint (put e to end): ";
-				while (1) {
-					cin >> str_pc;
-					if (str_pc== "e") {
-						break;
-					} else {
-						try {
-							int int_pc= stoi(str_pc, nullptr, 0);
-							if (int_pc % 4 != 0) {
-								cout << "address is aligned by 4...try again" << endl;
-								cin.clear();
-								cin.ignore();
-								cout << "put PC in hex you want to make breakpoint (put e to end): ";
-								continue;
-							}
-							cout << "breakpoint PC = " << hex<< int_pc<< dec << endl;
-								breakpoint.push_back(int_pc>> 2);
+				for (bitr = breakpoint_Inst.begin(), bi = 0; bitr != breakpoint_Inst.end(); bitr++, bi++) {
+					cout << "breakpoint Inst" << dec << bi << " (dec): "<<  *bitr  << endl;
+				}
+				while(1) {
+				cout << "choose which to set breakpoint by...PC 'p', number of instructions 'i' (put e to end): ";
+				cin >> y;
+				if (y == 'e') {
+					break;
+				} else if (y == 'p') {
+					cout << "set breakpoint by PC..." << endl;
+					cout << "put PC in hex you want to make breakpoint (put e to end): ";
+						while (1) {
+							cin >> str_pc;
+							if (str_pc== "e") {
 								break;
-						}catch (const invalid_argument& e) {
-							cin.clear();
-							cin.ignore();
-							cout << "invalid_argument...try again." << endl;
-							cout << "put PC in hex you want to make breakpoint (put e to end): ";
-							continue;
-						}
+							} else {
+								try {
+									int int_pc= stoi(str_pc, nullptr, 0);
+									if (int_pc % 4 != 0) {
+										cout << "address is aligned by 4...try again" << endl;
+										cin.clear();
+										cin.ignore();
+										cout << "put PC in hex you want to make breakpoint (put e to end): ";
+										continue;
+									}
+									cout << "breakpoint PC = " << hex<< int_pc<< dec << endl;
+										breakpoint_PC.push_back(int_pc>> 2);
+										break;
+								}catch (const invalid_argument& e) {
+									cin.clear();
+									cin.ignore();
+									cout << "invalid_argument...try again." << endl;
+									cout << "put PC in hex you want to make breakpoint (put e to end): ";
+									continue;
+								}
+							}
+						}//end while of PC breakpoint
+						continue;
+					} else if (y == 'i') {
+						cout << "set breakpoint by the number of instructions..." << endl;
+						cout << "put the number in dec you want to make breakpoint (put e to end): ";
+						while (1) {
+							cin >> str_inst;
+							if (str_inst == "e") {
+								break;
+							} else {
+								try {
+									int int_inst= stoi(str_inst, nullptr, 0);
+									cout << "breakpoint INST = " << int_inst << endl;
+										breakpoint_Inst.push_back(int_inst);
+										break;
+								}catch (const invalid_argument& e) {
+									cin.clear();
+									cin.ignore();
+									cout << "invalid_argument...try again." << endl;
+									cout << "put the number in dec you want to make breakpoint (put e to end): ";
+									continue;
+								}
+							}
+						}//end while of Inst breakpoint
+					} else {
+						cout << "put e to end" << endl;
+						continue;
 					}
-				}
+				}//end while of breakpoint
 				cout << endl;
 				break;
 			case 'r'://breakpointまで走る
 				cout << "run to breakpoint" << endl;
 				while (PC < lastPC) {
-					bitr = find(breakpoint.begin(), breakpoint.end(), PC);
-					if (bitr != breakpoint.end()) {
-						breakpoint.erase(bitr);
+					bitr = find(breakpoint_PC.begin(), breakpoint_PC.end(), PC);
+					if (bitr != breakpoint_PC.end()) {
+						breakpoint_PC.erase(bitr);
+						cout << "reached breakpoint PC" << endl;
+						break;
+					}
+					bitr = find(breakpoint_Inst.begin(), breakpoint_Inst.end(), instNum);
+					if (bitr != breakpoint_Inst.end()) {
+						breakpoint_Inst.erase(bitr);
+						cout << "reached breakpoint Inst" << endl;
 						break;
 					}
 					int result = do_op();
@@ -302,8 +348,6 @@ int step() {//step実行
 				if (PC >= lastPC) {
 					cout << "reached end of execution" << endl << endl;
 					return 0;
-				}else {
-					cout << "reached breakpoint" << endl << endl;
 				}
 				break;
 			case 'g':
@@ -437,14 +481,26 @@ int main(int argc, char**argv) {
 	int result;
 	if (stepflag == 1) {
 		result = step();
+		if (!result) {
+			cout << "finish execution successfully!" << endl << endl;
+			cout << "return value is... GPR[1]:" << hex << GPR[1]<< dec << " FPR[0]:" << FPR[0] << endl;
+			cout << "the total number of instructions is (dec) : " << dec << instNum << endl;
+			cout << endl;
+			debug();
+		}
 	} else {
+		chrono::system_clock::time_point start, end;
+		start = chrono::system_clock::now();
 		result = normal();
-	}
-	if (!result) {
-		cout << "finish execution successfully!" << endl << endl;
-		cout << "return value is... GPR[1]:" << hex << GPR[1]<< dec << " FPR[0]:" << FPR[0] << endl;
-		cout << "the total number of instructions is (dec) : " << dec << instNum << endl;
-		cout << endl;
-		debug();
+		if (!result) {
+			end = chrono::system_clock::now();
+			double elapsed = chrono::duration_cast<chrono::microseconds>(end-start).count();
+			cout << "finish execution successfully!" << endl << endl;
+			cout << "execution time: " << elapsed << " microseconds" << endl;
+			cout << "return value is... GPR[1]:" << hex << GPR[1]<< dec << " FPR[0]:" << FPR[0] << endl;
+			cout << "the total number of instructions is (dec) : " << dec << instNum << endl;
+			cout << endl;
+			debug();
+		}
 	}
 }
