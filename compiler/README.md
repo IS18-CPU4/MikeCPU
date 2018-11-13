@@ -33,10 +33,23 @@ $ ./min-caml hoge
 ・・ たとえば、-dump kc とすればk,cに対応したものがそれぞれ出力される。
 (※Cse.fがうまく動作してないので、-dumpオプションは使わないで)
 
+--トラブルシューティング--
+case1: make 通したのに コンパイルエラー吐いた
+・コンパイル係を殴る
+・行エラー（Error: no such instruction:）とかが出た場合は何も問題ありません
+
+case2: CPUCore以下の中身を変更したのにmakeされない
+・to_cpucore時のリンカの変更はmakeが何故か変更と認識しない（意味不明）
+・・つまりCPUCore以下のhoge.mlをmin-caml-master以下のhoge.mlは同期され、
+　CPUCore/hoge.mlを変更したらmin-caml-master以下のhoge.mlも変更されるけど、makeするときは変更前のhoge.mlが使われる
+・要は $ make clean しましょう。
+
+case3: pullしたはずなのにmakeが更新済みとかなった
+・case2と同じ
 
 
 
-
+--以下個人用--
 libmincaml.Sの作り方（個人用、置換はatomでの機能）
 ①ライブラリを書くmlで書く
 ②コンパイルする
