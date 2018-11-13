@@ -1,9 +1,10 @@
-FILE = finv
+FILE = fsqrt
+SRCS = fmul.v
 
 all: run
 
 run:
-	xvlog --sv test_$(FILE).sv $(FILE).v
+	xvlog --sv test_$(FILE).sv $(FILE).vi $(SRCS)
 	xelab -debug typical test_$(FILE) -s test_$(FILE).sim
 	xsim --runall test_$(FILE).sim
 
