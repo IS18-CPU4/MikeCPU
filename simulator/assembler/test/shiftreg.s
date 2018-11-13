@@ -1,0 +1,9 @@
+#comment test....
+start:
+	li r1, 0x4000
+	li r2, 2
+	li r5, 1
+	#shift left...
+	slw r6, r1, r2
+#shift right...
+	srw r7, r1, r5

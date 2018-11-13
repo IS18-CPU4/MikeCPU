@@ -15,6 +15,7 @@ uint32_t get_rB(const string);
 uint32_t get_simm16(const string);
 uint32_t get_imm5(const string);
 uint32_t get_simm26(const string);
+uint32_t get_simm14_AA_LK(const string);
 
 uint32_t op_li(const vector<string>&);
 uint32_t op_mr(const vector<string>&);
@@ -45,6 +46,16 @@ uint32_t op_ld(const vector<string>&);
 uint32_t op_st(const vector<string>&);
 uint32_t op_fld(const vector<string>&);
 uint32_t op_fst(const vector<string>&);
+
+uint32_t op_slw(const vector<string>&);
+uint32_t op_srw(const vector<string>&);
+uint32_t op_bc(const vector<string>&);
+uint32_t op_itof(const vector<string>&);
+uint32_t op_ftoi(const vector<string>&);
+uint32_t op_out(const vector<string>&);
+
+uint32_t op_ba(const vector<string>&);
+uint32_t op_bal(const vector<string>&);
 
 uint32_t set_txt(const vector<string>&);
 uint32_t set_align(const vector<string>&);
