@@ -28,6 +28,8 @@ let rec print_int_rec n =
   else let m = mod_10 n in (print_int_rec (div_10 n); print_byte (m + 48))
 in
 
+
+
 let rec a_print_int n =
   if n = 0 then (print_byte 48; print_byte 10)
   else
@@ -35,4 +37,4 @@ let rec a_print_int n =
       (print_byte 45;print_int_rec (-n); print_byte 10)
     else
       (print_int_rec n; print_byte 10)
-in a_print_int 555
+in a_print_int (3*16+8)

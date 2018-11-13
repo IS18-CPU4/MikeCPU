@@ -1,1 +1,1 @@
-PowerPC/globals.s
+CPUCore/globals.s

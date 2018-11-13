@@ -1,1 +1,1 @@
-PowerPC/toomanyargs.ml
+CPUCore/toomanyargs.ml
