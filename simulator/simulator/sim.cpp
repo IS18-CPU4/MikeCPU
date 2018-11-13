@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <fstream>
 #include <vector>
 #include <stdio.h>
 #include <cstdlib>
@@ -8,6 +9,8 @@
 #include <arpa/inet.h>
 #include <algorithm>
 #include <climits>
+#include <chrono>
+#include "revAsm.h"
 #include "op.h"
 
 #define INST_ADDR 0x10000
@@ -15,36 +18,36 @@
 
 using namespace std;
 void PrintHelp() {
-	cout << "--step:   execute by step\n"
-					"--help:	 show help\n"
-					"put 1 input file name...\n";
-	exit(1);
+cout << "--step:   execute by step\n"
+				"--help:	 show help\n"
+				"put 1 input file name...\n";
+exit(1);
 }
 int step();
 int normal();
 bool stepflag = 0;
 void ProcessArgs(int argc, char** argv) {
-	const char* const short_opts = "h:";
-	const option long_opts[] = {
-		{"step", no_argument, nullptr, 's'},
-		{"help", no_argument, nullptr, 'h'},
-		{nullptr, no_argument, nullptr, 0}
-	};
-	while (1) {
-		int opt = getopt_long(argc, argv, short_opts, long_opts, nullptr);
-		if (-1 == opt) {break;}
-		switch (opt) {
-		case 's':
-			stepflag = 1;
-			break;
-		case 'h':
-		case '?':
-			PrintHelp();
-			break;
-		default:
-			break;
-		}
+const char* const short_opts = "h:";
+const option long_opts[] = {
+	{"step", no_argument, nullptr, 's'},
+	{"help", no_argument, nullptr, 'h'},
+	{nullptr, no_argument, nullptr, 0}
+};
+while (1) {
+	int opt = getopt_long(argc, argv, short_opts, long_opts, nullptr);
+	if (-1 == opt) {break;}
+	switch (opt) {
+	case 's':
+		stepflag = 1;
+		break;
+	case 'h':
+	case '?':
+		PrintHelp();
+		break;
+	default:
+		break;
 	}
+}
 }
 
 
@@ -55,7 +58,6 @@ uint32_t CR = 0;//コンディションレジスタ
 //CR0~CR7の8個の4bitフィールド
 
 uint32_t LR = 0;//リンクレジスタ
-uint32_t CTR = 0;//カウントレジスタ
 uint32_t INST_MEM[INST_ADDR] = {};//命令のバイナリを読み込むエンディアンに注意!
 
 uint32_t DATA_MEM[DATA_ADDR] = {};//データを保存するメモリ
@@ -67,56 +69,54 @@ uint32_t mincamlStart;
 int lastPC;
 //bitを取り出す
 /*static inline uint32_t bits(uint32_t inst, unsigned int i, unsigned int j) {
-	return (inst & ((1 << (i+1)) - (1 << j))) >> j;
+return (inst & ((1 << (i+1)) - (1 << j))) >> j;
 }*/
-	
+
 // レジスタに値を設定　引数などに使用
 void initialize();
 //debug用に各レジスタを出力する関数をつくる
 
 void debug();
 
+int instNum;//何番目の命令か
+
+vector<char> outChar;//outによる出力を保存しておく
+
 #define SHOWGPR()\
-	do { \
-		int num = 0;\
-		vector<uint32_t>::iterator itr;\
-		for (itr = GPR.begin(); itr != GPR.end(); itr++) {\
-			cout << "GPR[" << hex <<  num << "]: " << dec;\
-			num++;\
-			cout << hex << *itr << dec <<  ", ";}\
-		cout << endl;}\
-	while (0)
+do { \
+	int num = 0;\
+	vector<uint32_t>::iterator itr;\
+	for (itr = GPR.begin(); itr != GPR.end(); itr++) {\
+		cout << "GPR[" <<  num << "]: ";\
+		num++;\
+		cout << hex << *itr << dec <<  ", ";}\
+	cout << endl;}\
+while (0)
 
 #define SHOWFPR()\
-	do { \
-		int numf = 0;\
-		vector<float>::iterator itr;\
-		for (itr = FPR.begin(); itr != FPR.end(); itr++) {\
-			cout << "FPR[" <<  hex <<  numf  << dec << "]: ";\
-			numf++;\
-			cout << *itr << ", ";}\
-		cout << endl;}\
-	while (0)
+do { \
+	int numf = 0;\
+	vector<float>::iterator itr;\
+	for (itr = FPR.begin(); itr != FPR.end(); itr++) {\
+		cout << "FPR[" << numf << "]: ";\
+		numf++;\
+		cout << *itr << ", ";}\
+	cout << endl;}\
+while (0)
 
-#define SHOWCR() cout << hex << CR << dec << endl
-#define SHOWLR() cout << hex << LR << dec << endl
-#define SHOWCTR() cout << hex << CTR << dec << endl
-#define SHOWPC() cout << hex << (PC<<2) << dec << endl
-#define SHOWOP() cout << hex << OP << dec << endl
-
-void initialize() {
+void initialize() {//手動での初期化　後に消すかも
 	string index;
 	int intindex;
 	int intvalue;
-	cout << "initialization..." << endl;
+	cout << "------------initialization of registers-----------" << endl << endl;
 	while(1){
-		cout << "which register to set value? put char...GPR--g, FPR--f, end--e" << endl;
+		cout << "which register to set value? put char...GPR--g, FPR--f, end--e: ";
 		char x;
 		cin >> x;
 		switch(x) {
 		case 'g':
 			while (1) {
-				cout << "put index of GPR...put e to end setting" << endl;
+				cout << "put index of GPR...put e to end setting: ";
 				cin >> index;
 				if ("e" == index) {break;}
 				try {
@@ -142,12 +142,13 @@ void initialize() {
 					cout << "put 1~31" << endl;
 				}
 			}
-			cout << "end setting GPR" << endl;
+			cout << "end setting GPR" << endl << endl;
 			SHOWGPR();
+			cout << endl;
 			break;
 		case 'f':
 			while (1) {
-				cout << "put index of FPR...put e to end setting" << endl;
+				cout << "put index of FPR...put e to end setting: ";
 				cin >> index;
 				if ("e" == index) {break;}
 				try {
@@ -168,8 +169,9 @@ void initialize() {
 					cout << "put 0~31" << endl;
 				}
 			}
-			cout << "end setting FPR" << endl;
+			cout << "end setting FPR" << endl << endl;
 			SHOWFPR();
+			cout << endl;
 			break;
 		case 'e':
 			cout << "end initialization..." << endl;
@@ -180,27 +182,33 @@ void initialize() {
 	}
 }
 
-void debug() {
-	cout << "which to show? put char..." << endl;
+void debug() {//レジスタの中身を見る
+	cout << "------------debug----------" << endl;
 	while (1) {
-		cout << "GPR 'g', FPR 'f', CondR 'c', LinkR 'l', PC 'p', operation 'o', end 'e'" << endl;
+	cout << "which to show? put char..." << endl
+			<< "GPR 'g', FPR 'f', CondR 'c', LinkR 'l', PC&operation 'i', out 'o',  'end 'e': ";
 		char x;
 		cin >> x;
 		switch(x) {
 		case 'g':
-			SHOWGPR();break;
+			cout << endl;SHOWGPR();cout << endl;break;
 		case 'f':
-			SHOWFPR();break;
+			cout << endl;SHOWFPR();cout << endl;break;
 		case 'c':
-			SHOWCR();break;
+			cout << hex << CR << dec << endl;break;
 		case 'l':
-			SHOWLR();break;
-		//case 4:
-		//	SHOWCTR();break;
-		case 'p':
-			SHOWPC();break;
+			cout << hex << LR << dec << endl;break;
+		case 'i':
+			cout << hex << (PC<<2) << dec << endl;
+			cout << hex << OP << dec << endl;
+			cout << "in mnemonic: "; rev_asm(OP);break;
 		case 'o':
-			SHOWOP();break;
+			if (!outChar.empty()) {
+				cout << outChar.back() << endl;
+			} else {
+				cout << "no out" << endl;
+			}
+			break;
 		case 'e':
 			return;
 		default:
@@ -209,74 +217,132 @@ void debug() {
 	}
 }
 
-int normal() {
+int normal() {//通常実行
+	instNum = 0;
 	PC = mincamlStart >> 2;
 	GPR[3] = 0x8000;//stack
 	while(PC < lastPC) {
 		int result = do_op();
 		if (result) {
 			cerr << "error at PC:" << hex << (PC << 2) << dec << endl;
-			cerr << "move to debug mode" << endl;
+			cerr << "the number of executed instructions: " << dec << instNum << endl;
+			cerr << "move to debug mode..." << endl;
 			debug();
 			return EXIT_FAILURE;
 		}
+		instNum++;
 	}
 	return 0;
 }
 
-int step() {
+int step() {//step実行
+	instNum = 0;
 	cout << "execute by step..." << endl;
 	PC = mincamlStart >> 2;
 	GPR[3] = 0x8000;//stack
 	//uint32_t breakpoint = 0;
-	vector<uint32_t> breakpoint;
+	vector<uint32_t> breakpoint_PC;
+	vector<uint32_t> breakpoint_Inst;
 	vector<uint32_t>::iterator bitr;
-	string str_pc;
+	string str_pc,str_inst;
 	int bi;
 	uint32_t nxtOP;
 	while(PC < lastPC) {
 		bool next = 0;
-		while (!next) {
-			cout << "(step) put 'h' for help...";
-			char x;
+		while (!next) {//次のステップに進むかどうかをnextフラグで判断
+			cout << "(step " << dec << instNum << ") put 'h' for help...";
+			char x, y;
 			cin >> x;
 			switch (x) {
-			case 'n':
+			case 'n'://次に進む
 				next = 1;
 				break;
-			case 'b':
+			case 'b'://breakpointの設定
 				cout << "set breakpoint...current PC is " << hex << (PC << 2) <<dec << endl;
 				cout << "current breakpoint is..." << endl;
-				for (bitr = breakpoint.begin(), bi = 0; bitr != breakpoint.end(); bitr++, bi++) {
-					cout << "breakpoint " << dec << bi << ": "<< hex  << (*bitr << 2) << dec << endl;
+				for (bitr = breakpoint_PC.begin(), bi = 0; bitr != breakpoint_PC.end(); bitr++, bi++) {
+					cout << "breakpoint PC" << dec << bi << " (hex): "<< hex  << (*bitr << 2) << dec << endl;
 				}
-				cout << "put PC in hex you want to make breakpoint (put e to end): ";
-				cin >> str_pc;
-				if (str_pc== "e") {
+				for (bitr = breakpoint_Inst.begin(), bi = 0; bitr != breakpoint_Inst.end(); bitr++, bi++) {
+					cout << "breakpoint Inst" << dec << bi << " (dec): "<<  *bitr  << endl;
+				}
+				while(1) {
+				cout << "choose which to set breakpoint by...PC 'p', number of instructions 'i' (put e to end): ";
+				cin >> y;
+				if (y == 'e') {
 					break;
-				} else {
-					try {
+				} else if (y == 'p') {
+					cout << "set breakpoint by PC..." << endl;
+					cout << "put PC in hex you want to make breakpoint (put e to end): ";
 						while (1) {
-							int int_pc= stoi(str_pc, nullptr, 0);
-							if (int_pc % 4 != 0) {
-								cout << "address is aligned by 4...try again" << endl;
-								continue;
+							cin >> str_pc;
+							if (str_pc== "e") {
+								break;
+							} else {
+								try {
+									int int_pc= stoi(str_pc, nullptr, 0);
+									if (int_pc % 4 != 0) {
+										cout << "address is aligned by 4...try again" << endl;
+										cin.clear();
+										cin.ignore();
+										cout << "put PC in hex you want to make breakpoint (put e to end): ";
+										continue;
+									}
+									cout << "breakpoint PC = " << hex<< int_pc<< dec << endl;
+										breakpoint_PC.push_back(int_pc>> 2);
+										break;
+								}catch (const invalid_argument& e) {
+									cin.clear();
+									cin.ignore();
+									cout << "invalid_argument...try again." << endl;
+									cout << "put PC in hex you want to make breakpoint (put e to end): ";
+									continue;
+								}
 							}
-							cout << "breakpoint PC = " << hex<< int_pc<< dec << endl;
-							breakpoint.push_back(int_pc>> 2);
-							break;
-						}
-					}catch (const invalid_argument& e) {
-						cout << "invalid_argument...try again." << endl;
+						}//end while of PC breakpoint
+						continue;
+					} else if (y == 'i') {
+						cout << "set breakpoint by the number of instructions..." << endl;
+						cout << "put the number in dec you want to make breakpoint (put e to end): ";
+						while (1) {
+							cin >> str_inst;
+							if (str_inst == "e") {
+								break;
+							} else {
+								try {
+									int int_inst= stoi(str_inst, nullptr, 0);
+									cout << "breakpoint INST = " << int_inst << endl;
+										breakpoint_Inst.push_back(int_inst);
+										break;
+								}catch (const invalid_argument& e) {
+									cin.clear();
+									cin.ignore();
+									cout << "invalid_argument...try again." << endl;
+									cout << "put the number in dec you want to make breakpoint (put e to end): ";
+									continue;
+								}
+							}
+						}//end while of Inst breakpoint
+					} else {
+						cout << "put e to end" << endl;
+						continue;
 					}
-				}
+				}//end while of breakpoint
+				cout << endl;
 				break;
-			case 'r':
+			case 'r'://breakpointまで走る
 				cout << "run to breakpoint" << endl;
 				while (PC < lastPC) {
-					bitr = find(breakpoint.begin(), breakpoint.end(), PC);
-					if (bitr != breakpoint.end()) {
-						breakpoint.erase(bitr);
+					bitr = find(breakpoint_PC.begin(), breakpoint_PC.end(), PC);
+					if (bitr != breakpoint_PC.end()) {
+						breakpoint_PC.erase(bitr);
+						cout << "reached breakpoint PC" << endl;
+						break;
+					}
+					bitr = find(breakpoint_Inst.begin(), breakpoint_Inst.end(), instNum);
+					if (bitr != breakpoint_Inst.end()) {
+						breakpoint_Inst.erase(bitr);
+						cout << "reached breakpoint Inst" << endl;
 						break;
 					}
 					int result = do_op();
@@ -286,29 +352,30 @@ int step() {
 						debug();
 						return EXIT_FAILURE;
 					}
+					instNum++;
 				}
 				if (PC >= lastPC) {
-					cout << "reached end of execution" << endl;
+					cout << "reached end of execution" << endl << endl;
 					return 0;
-				}else {
-					cout << "reached breakpoint" << endl;
 				}
 				break;
 			case 'g':
-				SHOWGPR();break;
+				SHOWGPR(); cout << endl;break;
 			case 'f':
-				SHOWFPR();break;
+				SHOWFPR();cout << endl;break;
 			case 'c':
-				SHOWCR();break;
+				cout << hex << CR << dec << endl;break;
 			case 'l':
-				SHOWLR();break;
+				cout << hex << LR << dec << endl;break;
 			case 'i':
 				cout << "next PC: ";
-				SHOWPC();
+				cout << hex << (PC<<2) << dec << endl;
 				nxtOP = htonl(INST_MEM[PC]);
-				cout << "next OP: " << hex << nxtOP << dec << endl;
+				cout << "next operation is...: " << hex << nxtOP << dec << endl
+						 << "in mnemonic...: "; rev_asm(nxtOP);
+				cout << endl;
 				break;
-			case 'm':
+			case 'm'://メモリを見る
 				while (1) {
 					cout << "check data mem...put address of mem in hex (put e to end): ";
 					string address;
@@ -319,14 +386,15 @@ int step() {
 						try {
 							int int_add = stoi(address, nullptr, 0);
 							cout << "DATA_MEM[" << hex<< address << "] = " << DATA_MEM[int_add] << dec << endl;
-						}catch (const invalid_argument& e) {
+					}catch (const invalid_argument& e) {
 							cout << "try again." << endl;
 						}
 					}
 				}
+				cout << endl;
 				break;
-			case 's':
-				cout << "stack pointer (GPR1) is: " << hex << GPR[1] << dec << endl;
+			case 's'://stackを見る
+				cout << "stack pointer (GPR3) is: " << hex << GPR[3] << dec << endl;
 				while (1) {
 					cout << "check stack...put address of mem in hex (put e to end): ";
 					string address;
@@ -338,14 +406,22 @@ int step() {
 							int int_add = stoi(address, nullptr, 0);
 							cout << "DATA_MEM[" << hex << address << "] = " << DATA_MEM[int_add] << dec<< endl;
 						}catch (const invalid_argument& e) {
-							cout << "try again." << endl;
+								cout << "try again." << endl;
 						}
 					}
 				}
+				cout << endl;
 				break;
-			case 'q':
+			case 'o'://out命令で最後に出力されたものを表示
+				if (!outChar.empty()) {
+					cout << outChar.back() << endl;
+				} else {
+					cout << "no out" << endl;
+				}
+				break;
+			case 'q'://強制終了
 				return EXIT_FAILURE;
-			case 'h':
+			case 'h'://help
 				cout << "'n'			next step" << endl
 						<< "'b'			set breakpoint" << endl
 						<< "'r'			run to breakpoint" << endl
@@ -356,14 +432,16 @@ int step() {
 						<< "'i'			show next PC and next operation" << endl
 						<< "'m'			check data memory" << endl
 						<< "'s'			check stack" << endl
+						<< "'o'			show last out" << endl
 						<< "'h'			show help" << endl
 						<< "'q'			exit" << endl;
+				cout << endl;
 				break;
 			default:
 				cout << "undefined...look help.";
 				break;
-			}
-		}
+			}//switch end
+		}//end while(!next)
 
 		int result = do_op();
 		if (result) {
@@ -372,9 +450,12 @@ int step() {
 			debug();
 			return EXIT_FAILURE;
 		}
+		instNum++;
+		cout << endl;
 	}
 	return 0;
 }
+
 int main(int argc, char**argv) {
 	/*if (argc != 2) {
 		cerr << "invailed argument: did you specified input file?" << endl;
@@ -383,15 +464,29 @@ int main(int argc, char**argv) {
 
 	ProcessArgs(argc, argv);
 
-	FILE* binary;
 
-	cout << "opening binary file..." << endl;
+	FILE* binary;
+	cout << "open input file..." << endl;
 	binary = fopen(argv[optind], "rb");
 	if (!binary) {
 		cerr << "cannot open file" << endl;
 		return EXIT_FAILURE;
-	} 
+	}
 
+	cout << "open output file..." << endl;
+	ofstream fileout;
+	if (optind + 1 == argc) {
+		fileout.open("a.out", ios::out|ios::trunc);
+	} else if (optind + 2 == argc) {
+		fileout.open(argv[optind+1], ios::out|ios::trunc);
+	}
+	if (!fileout) {
+		cerr << "cannot open outputfile" << endl;
+		return 1;
+	}
+
+
+	//機械語の読み取り
 	size_t cnt;
 	size_t pos = 0;
 	cout << "reading instruction..." << endl;
@@ -405,21 +500,51 @@ int main(int argc, char**argv) {
 	} 
 	lastPC = pos;
 	fclose(binary);
-	cout << "end reading!" << endl;
+	cout << "end reading!" << endl << endl;//読み取り終わり
 	
+	GPR[3] = 0x8000;
 	initialize();
+	cout << endl;
 
-	cout << "start execution..." << endl;
+	cout << "-----------start execution----------" << endl << endl;
+	vector<char>::iterator citr;
+	int cindex = 0;
 
 	int result;
 	if (stepflag == 1) {
 		result = step();
+		if (!result) {
+			cout << "finish execution successfully!" << endl << endl;
+			cout << "return value is... GPR[1]:" << hex << GPR[1]<< dec << " FPR[0]:" << FPR[0] << endl;
+			cout << "the total number of instructions is (dec) : " << dec << instNum << endl;
+			cout << endl;
+			if (!outChar.empty()) {
+				for (citr = outChar.begin(); citr != outChar.end(); citr++) {
+					fileout << "out[" << cindex << "]: " << *citr << endl;
+					cindex++;
+				}
+			}
+			debug();
+		}
 	} else {
+		chrono::system_clock::time_point start, end;
+		start = chrono::system_clock::now();
 		result = normal();
-	}
-	if (!result) {
-		cout << "finish execution! return value: " << endl;
-		cout << "GPR[1]:" << hex << GPR[1]<< " FPR[0]:" << FPR[0] <<  hex << endl;
-		debug();
+		if (!result) {
+			end = chrono::system_clock::now();
+			double elapsed = chrono::duration_cast<chrono::microseconds>(end-start).count();
+			cout << "finish execution successfully!" << endl << endl;
+			cout << "execution time: " << elapsed << " microseconds" << endl;
+			cout << "return value is... GPR[1]:" << hex << GPR[1]<< dec << " FPR[0]:" << FPR[0] << endl;
+			cout << "the total number of instructions is (dec) : " << dec << instNum << endl;
+			cout << endl;
+			if (!outChar.empty()) {
+				for (citr = outChar.begin(); citr != outChar.end(); citr++) {
+					fileout << "out[" << cindex << "]: " << *citr << endl;
+					cindex++;
+				}
+			}
+			debug();
+		}
 	}
 }

@@ -13,10 +13,10 @@ extern vector<uint32_t> GPR;
 extern vector<float> FPR;
 extern uint32_t CR;
 extern uint32_t LR;
-extern uint32_t CTR;
 extern uint32_t DATA_MEM[DATA_ADDR];
 extern uint32_t PC;
 extern uint32_t OP;
+extern vector<char> outChar;
 
 int rD;
 int rA;
@@ -25,84 +25,31 @@ int32_t simm16;
 int imm5;
 int32_t simm26;
 
-inline int get_rD(const uint32_t ui) {
-	uint32_t tmp = ui << 6;
-	tmp = tmp >> 27;
-	return int(tmp);
-}
-inline int get_rA(const uint32_t ui) {
-	uint32_t tmp = ui << 11;
-	tmp = tmp >> 27;
-	return int(tmp);
-}
-inline int get_rB(const uint32_t ui) {
-	uint32_t tmp = ui << 16;
-	tmp = tmp >> 27;
-	return int(tmp);
-}
-inline int32_t get_simm16(const uint32_t ui) {
-	if (ui & (1 << 15)) {
-		return (ui | 0xFFFF0000);
-	} else {
-		return (ui & 0x0000FFFF);
-	}
-}
-inline int get_imm5(const uint32_t ui){
-	uint32_t tmp = ui << 16;
-	tmp = tmp >> 27;
-	return int (tmp);
-}
-inline int32_t get_simm26(const uint32_t ui) {
-	if (ui & (1 << 25)) {
-		return (ui | 0xFC000000);
-	} else {
-		return (ui & 0x03FFFFFF);
-	}
-}
 
-inline void cr0_set0(uint32_t cr) {
+void cr0_set0(uint32_t cr) {
 	int bit = (8 - cr) * 4 - 1;
 	uint32_t tmp = (1 << bit) | (1 << (bit-1)) | (1 << (bit-2))| (1 << (bit-3));
 	CR = CR & ~tmp;
 	CR = CR | (1 << bit);
 }
-inline void cr0_set1(uint32_t cr) {
+void cr0_set1(uint32_t cr) {
 	int bit = (8 - cr) * 4 - 2;
 	uint32_t tmp = (1 << (bit+1)) | (1 << (bit)) | (1 << (bit-1))| (1 << (bit-2));
 	CR = CR & ~tmp;
 	CR = CR | (1 << bit);
 }
-inline void cr0_set2(uint32_t cr) {
+void cr0_set2(uint32_t cr) {
 	int bit = (8 - cr) * 4 - 3;
 	uint32_t tmp = (1 << (bit+2)) | (1 << (bit+1)) | (1 << bit)| (1 << (bit-1));
 	CR = CR & ~tmp;
 	CR = CR | (1 << bit);
 }
-inline void cr0_set3(uint32_t cr){
+void cr0_set3(uint32_t cr){
 	int bit = (8 -cr) * 4 - 4;
-	uint32_t tmp = (1 << (bit+3)) | (1 << (bit+2)) | (1 << bit+1)| (1 << bit);
+	uint32_t tmp = (1 << (bit+3)) | (1 << (bit+2)) | (1 << (bit+1))| (1 << bit);
 	CR = CR & ~tmp;
 	CR = CR | (1 << bit);
 }
-
-inline void initReg() {
-	rD = get_rD(OP);
-	rA = get_rA(OP);
-	rB = get_rB(OP);
-}
-inline void initSimm16() {
-	rD = get_rD(OP);
-	rA = get_rA(OP);
-	simm16 = get_simm16(OP);
-}
-
-inline void initImm5() {
-	rD = get_rD(OP);
-	rA = get_rA(OP);
-	imm5 = get_imm5(OP);
-}
-
-
 
 
 //int
@@ -126,7 +73,9 @@ void move_reg() {
 }
 
 void add_imm() {
-	initSimm16();
+	rD = get_rD(OP);
+	rA = get_rA(OP);
+	simm16 = get_simm16(OP);
 	if (rD == 0) {
 		cerr << "cannot write in GPR[0] : addi" << endl;
 		exit(1);
@@ -138,7 +87,9 @@ void add_imm() {
 	}
 }
 void add_reg() {
-	initReg();
+	rD = get_rD(OP);
+	rA = get_rA(OP);
+	rB = get_rB(OP);
 	if (rD == 0) {
 		cerr << "cannot write in GPR[0] : add" << endl;
 		exit(1);
@@ -146,7 +97,9 @@ void add_reg() {
 	GPR[rD] = GPR[rA] + GPR[rB];
 }
 void sub_reg() {
-	initReg();
+	rD = get_rD(OP);
+	rA = get_rA(OP);
+	rB = get_rB(OP);
 	if (rD == 0) {
 		cerr << "cannot write in GPR[0] : sub" << endl;
 		exit(1);
@@ -158,7 +111,9 @@ void sub_reg() {
 
 //logical shift
 void l_shift_lg_imm() {
-	initImm5();
+	rD = get_rD(OP);
+	rA = get_rA(OP);
+	imm5 = get_imm5(OP);
 	if (rD == 0) {
 		cerr << "cannot write in GPR[0] : slwi" << endl;
 		exit(1);
@@ -166,7 +121,9 @@ void l_shift_lg_imm() {
 	GPR[rD] = (GPR[rA] << imm5);
 }
 void r_shift_lg_imm() {
-	initImm5();
+	rD = get_rD(OP);
+	rA = get_rA(OP);
+	imm5 = get_imm5(OP);
 	if (rD == 0) {
 		cerr << "cannot write in GPR[0] : srwi" << endl;
 		exit(1);
@@ -176,19 +133,27 @@ void r_shift_lg_imm() {
 
 //float
 void fadd() {
-	initReg();
+	rD = get_rD(OP);
+	rA = get_rA(OP);
+	rB = get_rB(OP);
 	FPR[rD] = FPR[rA] + FPR[rB];
 }
 void fsub() {
-	initReg();
+	rD = get_rD(OP);
+	rA = get_rA(OP);
+	rB = get_rB(OP);
 	FPR[rD] = FPR[rA] - FPR[rB];
 }
 void fdiv() {
-	initReg();
+	rD = get_rD(OP);
+	rA = get_rA(OP);
+	rB = get_rB(OP);
 	FPR[rD] = FPR[rA] / FPR[rB];
 }
 void fmul() {
-	initReg();
+	rD = get_rD(OP);
+	rA = get_rA(OP);
+	rB = get_rB(OP);
 	FPR[rD] = FPR[rA] * FPR[rB];
 }
 void fsqrt() {
@@ -265,7 +230,9 @@ void move_to_link() {
 
 //compare
 void cmp_imm(){
-	initSimm16();
+	rD = get_rD(OP);
+	rA = get_rA(OP);
+	simm16 = get_simm16(OP);
 	if (GPR[rA] < simm16) {
 		cr0_set0(rD);
 	} else if (GPR[rA] == simm16) {
@@ -275,7 +242,9 @@ void cmp_imm(){
 	}
 }
 void cmp_reg() {
-	initReg();
+	rD = get_rD(OP);
+	rA = get_rA(OP);
+	rB = get_rB(OP);
 	if (GPR[rA] < GPR[rB]) {
 		cr0_set0(rD);
 	} else if (GPR[rA] == GPR[rB]) {
@@ -285,7 +254,9 @@ void cmp_reg() {
 	}
 }
 void fcmp_reg() {
-	initReg();
+	rD = get_rD(OP);
+	rA = get_rA(OP);
+	rB = get_rB(OP);
 	if (FPR[rA] < FPR[rB]) {
 		cr0_set0(rD);
 	} else if (FPR[rA] == FPR[rB]) {
@@ -299,7 +270,9 @@ void fcmp_reg() {
 
 //memory
 void load() {
-	initSimm16();
+	rD = get_rD(OP);
+	rA = get_rA(OP);
+	simm16 = get_simm16(OP);
 	if (rD == 0) {
 		cerr << "cannot write in GPR[0] : ld" << endl;
 		exit(1);
@@ -313,7 +286,9 @@ void load() {
 	GPR[rD] = DATA_MEM[addr];
 }
 void store() {
-	initSimm16();
+	rD = get_rD(OP);
+	rA = get_rA(OP);
+	simm16 = get_simm16(OP);
 	uint32_t addr = GPR[rA] + simm16;
 	if (!(0 <= addr && addr < 0x10000)) {
 		cerr << "cannot store: memory overflow" << " " << hex << addr << endl;
@@ -323,7 +298,9 @@ void store() {
 	DATA_MEM[addr] = GPR[rD];
 }
 void fload() {
-	initSimm16();
+	rD = get_rD(OP);
+	rA = get_rA(OP);
+	simm16 = get_simm16(OP);
 	uint32_t addr = GPR[rA] + simm16;
 	if (!(0 <= addr && addr < 0x10000)) {
 		cerr << "cannot load: memory overflow" << " " << hex << addr << endl;
@@ -332,7 +309,9 @@ void fload() {
 	FPR[rD] = *((float*)&DATA_MEM[addr]);//怪しい
 }
 void fstore() {
-	initSimm16();
+	rD = get_rD(OP);
+	rA = get_rA(OP);
+	simm16 = get_simm16(OP);
 	uint32_t addr = GPR[rA] + simm16;
 	if (!(0 <= addr && addr < 0x10000)) {
 		cerr << "cannot store: memory overflow" << " " << hex << addr << endl;
@@ -344,7 +323,9 @@ void fstore() {
 //added
 
 void l_shift_lg() {
-	initReg();
+	rD = get_rD(OP);
+	rA = get_rA(OP);
+	rB = get_rB(OP);
 	if (rD == 0) {
 		cerr << "cannot write in GPR[0] : slw" << endl;
 		exit(1);
@@ -352,7 +333,9 @@ void l_shift_lg() {
 	GPR[rD] = (GPR[rA] << GPR[rB]);
 }
 void r_shift_lg() {
-	initReg();
+	rD = get_rD(OP);
+	rA = get_rA(OP);
+	rB = get_rB(OP);
 	if (rD == 0) {
 		cerr << "cannot write in GPR[0] : srw" << endl;
 		exit(1);
@@ -386,8 +369,9 @@ void float_to_int() {
 
 void out() {
 	rD = get_rD(OP);
-	uint32_t result = 0x0000FFFF & GPR[rD];
-	cout << "operation out..." << hex << result << dec << endl;
+	uint32_t result = 0x000000FF & GPR[rD];
+	cout << "operation out..." << static_cast<char>(result)  << endl;
+	outChar.push_back(static_cast<char>(result));
 }
 
 void branch_abs() {

@@ -15,6 +15,7 @@ uint32_t get_rB(const string);
 uint32_t get_simm16(const string);
 uint32_t get_imm5(const string);
 uint32_t get_simm26(const string);
+uint32_t get_simm14_AA_LK(const string);
 
 uint32_t op_li(const vector<string>&);
 uint32_t op_mr(const vector<string>&);
