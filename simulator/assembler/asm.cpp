@@ -49,8 +49,8 @@ uint32_t encode(string str) {
 
 int main(int argc, char** argv) {
 
-	if (argc < 3) {
-		cerr << "too few arguments put as follows: ./asm [inputfile] [outputfile]" << endl;
+	if (argc < 2) {
+		cerr << "too few arguments put as follows: ./asm [inputfile] ([outputfile])" << endl;
 		return 1;
 	}
 	
@@ -59,9 +59,14 @@ int main(int argc, char** argv) {
 	cout << "open outputfile..." << endl;
 	/*ofstream fileout(argv[2]);*/
 	ofstream fileout;
-	fileout.open(argv[2], ios::out|ios::binary|ios::trunc);
+	if (argc == 2) {
+		fileout.open("out.bin", ios::out|ios::binary|ios::trunc);
+	}
+	if (argc == 3) {
+		fileout.open(argv[2], ios::out|ios::binary|ios::trunc);
+	}
 	if (!fileout) {
-		cerr << "cannnot open " << argv[2] << endl;
+		cerr << "cannnot open outputfile"  << endl;
 		return 1;
 	}
 
