@@ -103,7 +103,7 @@ let rec g env e = (* 型推論ルーチン (caml2html: typing_g) *)
     | Mul(e1, e2) | Div(e1, e2) ->
         unify Type.Int (g env e1);
         unify Type.Int (g env e2);
-        if e2 = Int(2) || e2 = Int(4) || e2 = Int(8) then (* 必要になれば追加 *)
+        if e2 = Int(2) || e2 = Int(4) || e2 = Int(8) || e2 = Int(16) then (* 必要になれば追加 *)
           Type.Int
         else
           raise (ShiftError(deref_term e))
