@@ -85,7 +85,7 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprim
       (* mの *)
       let n = i lsr 16 in
       let m = i lxor (n lsl 16) in
-      let m_top = m lsr 16 in
+      let m_top = m lsr 15 in
       let r = reg x in
       Printf.fprintf oc "\tli\t%s, %d\n" r ((n+m_top) mod 65536);
       Printf.fprintf oc "\tslwi\t%s, %s, 16\n" r r;
