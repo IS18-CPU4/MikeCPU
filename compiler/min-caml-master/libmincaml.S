@@ -1,1 +1,1 @@
-CPUCore/libmincaml.S
+PowerPC/libmincaml.S

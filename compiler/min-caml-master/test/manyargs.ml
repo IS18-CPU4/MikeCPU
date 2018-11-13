@@ -1,1 +1,1 @@
-CPUCore/manyargs.ml
+PowerPC/manyargs.ml

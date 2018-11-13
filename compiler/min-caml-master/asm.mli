@@ -1,1 +1,1 @@
-CPUCore/asm.mli
+PowerPC/asm.mli

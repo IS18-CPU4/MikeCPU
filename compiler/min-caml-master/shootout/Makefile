@@ -1,1 +1,1 @@
-CPUCore/Makefile
+PowerPC/Makefile
