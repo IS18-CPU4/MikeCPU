@@ -44,8 +44,18 @@ let load_label r label =
 *)
   let r' = reg r in
   Printf.sprintf
-    "\tlis\t%s, ha16(%s)\n\taddi\t%s, %s, lo16(%s)\n"
-    r' label r' r' label
+    "\tli\t%s, lo16(%s)\n\
+     \tslwi\t%s, %s, 16\n\
+     \tsrwi\t%s, %s, 31\n\
+     \taddi\t%s, %s, ha16(%s)\n\
+     \tslwi\t%s, %s, 16\n\
+     \taddi\t%s, %s, lo16(%s)\n"
+    r' label
+    r' r'
+    r' r'
+    r' r' label
+    r' r'
+    r' r' label
 (* 関数呼び出しのために引数を並べ替える(register shuffling) (caml2html: emit_shuffle) *)
 let rec shuffle sw xys =
   (* remove identical moves *)
@@ -75,9 +85,10 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprim
       (* mの *)
       let n = i lsr 16 in
       let m = i lxor (n lsl 16) in
+      let m_top = m lsr 16 in
       let r = reg x in
-      Printf.fprintf oc "\tli\t%s, %d\n" r n;
-      Printf.fprintf oc "\tslwi\t%s, %s, %d\n" r r n;
+      Printf.fprintf oc "\tli\t%s, %d\n" r ((n+m_top) mod 65536);
+      Printf.fprintf oc "\tslwi\t%s, %s, 16\n" r r;
       Printf.fprintf oc "\taddi\t%s, %s, %d\n" r r m
 (*
       Printf.fprintf oc "\tlis\t%s, %d\n" r n;
