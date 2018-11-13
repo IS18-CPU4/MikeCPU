@@ -35,7 +35,7 @@
 
 `define OP_slw      6'b011101
 `define OP_srw      6'b011110
-`define OP_bc       6'b011111
+`define OP_bc       6'b011111 // not implemented
 `define OP_itof     6'b100000
 `define OP_ftoi     6'b100001
 `define OP_ba       6'b100010
@@ -184,6 +184,12 @@ module Controller(
   wire [31:0] frD;
   RegisterFile fregister(inst_rD, inst_rA, inst_rB, frD, frA, frB, 
     freg_we, freg_wdata, CLK);
+
+  // ftoi, itof
+  wire [31:0] ftoi_out, itof_out;
+  wire ftoi_ovf;
+  ftoi inst_ftoi (frA, ftoi_out, ftoi_ovf);
+  itof inst_itof (rA, itof_out);
 
   // condition register
   reg [0:3] condreg;
@@ -402,7 +408,19 @@ module Controller(
               mem_enable <= 1'b1;
               mem_wenable <= 4'b1111;
             end
-
+            `OP_itof: begin
+            end
+            `OP_ftoi: begin
+            end
+            `OP_ba: begin
+              jump_pc <= rD;
+              will_jump <= 1'b1;
+            end
+            `OP_bal: begin
+              jump_pc <= rD;
+              will_jump <= 1'b1;
+              linkreg <= pc + 1;
+            end
             `OP_out: begin
               io_wdata <= rD[7:0];
               state <= s_o;
@@ -454,22 +472,24 @@ module Controller(
             reg_wdata <= rA;
             reg_we <= 1'b1;
           end
-          if (inst_op == `OP_fmr) begin
-            freg_wdata <= rA;
-            freg_we <= 1'b1;
-          end
           if ((inst_op >= `OP_addi) && (inst_op <= `OP_srwi)) begin
             reg_wdata <= alu_out;
             reg_we <= 1'b1;
           end
-          if ((inst_op >= `OP_fadd) && (inst_op <= `OP_fsqrt)) begin
+          if ((inst_op >= `OP_fadd) && (inst_op <= `OP_fabs)) begin
             freg_wdata <= falu_out;
             freg_we <= 1'b1;
           end
+          if (inst_op == `OP_fmr) begin
+            freg_wdata <= rA;
+            freg_we <= 1'b1;
+          end
+
           if (inst_op == `OP_mflr) begin
             reg_wdata <= linkreg;
             reg_we <= 1'b1;
           end
+
           if (inst_op == `OP_cmpwi) begin
             condreg <= {alu_out[31], ~(alu_out[31]), ~(|alu_out), 1'b0};
           end
@@ -479,13 +499,28 @@ module Controller(
           if (inst_op == `OP_fcmpw) begin
             condreg <= {falu_out[31], ~(falu_out[31]), ~(falu_out[30:23]==0), 1'b0};
           end
+
           if (inst_op == `OP_ld) begin
             reg_wdata <= mem_rdata;
             reg_we <= 1'b1;
           end
+
           if (inst_op == `OP_fld) begin
             freg_wdata <= mem_rdata;
             freg_we <= 1'b1;
+          end
+
+          if (inst_op == `OP_slw || inst_op == `OP_srw) begin
+            reg_wdata <= alu_out:
+            reg_we <= 1'b1;
+          end
+          if (inst_op == `OP_itof) begin
+            freg_wdata <= itof_out;
+            freg_we <= 1'b1;
+          end
+          if (inst_op == `OP_ftoi) begin
+            reg_wdata <= ftoi_out;
+            reg_we <= 1'b1;
           end
 
           state <= s_fetch;
