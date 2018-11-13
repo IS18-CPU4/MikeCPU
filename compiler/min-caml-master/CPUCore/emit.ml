@@ -96,7 +96,7 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprim
 *)
   | NonTail(x), FLi(Id.L(l)) ->
       let s = load_label (reg reg_tmp) l in
-      Printf.fprintf oc "%s\tfld\t%s, 0(%s)\n" s (reg x) (reg reg_tmp)
+      Printf.fprintf oc "%s\tfld\t%s, %s, 0\n" s (reg x) (reg reg_tmp)
 (*      Printf.fprintf oc "%s\tlfd\t%s, 0(%s)\n" s (reg x) (reg reg_tmp) *)
   | NonTail(x), SetL(Id.L(y)) ->
       let s = load_label x y in
