@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+ln -sf CPUCore/{*.ml{,i},libmincaml.S} .
+cd test; ln -sf CPUCore/{,too}manyargs.ml .; cd ..
+cd shootout; ln -sf CPUCore/Makefile .; cd ..
+cd bytemark; ln -sf CPUCore/Makefile .; cd ..
+cd min-rt; ln -sf CPUCore

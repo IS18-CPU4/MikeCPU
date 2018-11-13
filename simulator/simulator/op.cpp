@@ -12,7 +12,7 @@ extern uint32_t INST_MEM[INST_ADDR];
 extern uint32_t PC;
 extern uint32_t OP;
 
-uint32_t get_opname(const uint32_t ui) {
+inline uint32_t get_opname(const uint32_t ui) {
 	uint32_t opname = ui>>26;
 	return opname;
 }
@@ -111,6 +111,30 @@ int do_op() {
 		case 28:
 			cout << "opname fst" << endl;
 			fstore();PC++;break;
+		case 29:
+			cout << "opname slw" << endl;
+			l_shift_lg();PC++;break;
+		case 30:
+			cout << "opname srw" << endl;
+			r_shift_lg();PC++;break;
+		case 31:
+			cout << "opname bc" << endl;
+			branch_cond();break;
+		case 32:
+			cout << "opname itof" << endl;
+			int_to_float();PC++;break;
+		case 33:
+			cout << "opname ftoi" << endl;
+			float_to_int();PC++;break;
+		case 34:
+			cout << "opname ba" << endl;
+			branch_abs();break;
+		case 35:
+			cout << "opname bal" << endl;
+			branch_abs_and_link();break;
+		case 63:
+			cout << "opname out" << endl;
+			out();PC++;break;
 		default:
 			cerr << "undefined instruction" << endl;
 			return 1;
