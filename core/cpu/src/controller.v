@@ -511,7 +511,7 @@ module Controller(
           end
 
           if (inst_op == `OP_slw || inst_op == `OP_srw) begin
-            reg_wdata <= alu_out:
+            reg_wdata <= alu_out;
             reg_we <= 1'b1;
           end
           if (inst_op == `OP_itof) begin
