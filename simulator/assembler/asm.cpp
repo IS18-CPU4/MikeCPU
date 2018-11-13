@@ -114,8 +114,10 @@ int main(int argc, char** argv) {
 	filein.close();
 	//labelの処理終わり
 	cout << "codeByte: " << hex << codeByte << dec << endl;
-	fileout.write((char*)&codeByte, sizeof(uint32_t));
-	fileout.write((char*)&mincamlStart, sizeof(uint32_t));
+	uint32_t codeByteout = ntohl(codeByte);
+	uint32_t mincamlStartout = ntohl(mincamlStart);
+	fileout.write((char*)&codeByteout, sizeof(uint32_t));
+	fileout.write((char*)&mincamlStartout, sizeof(uint32_t));
 
 	ifstream filein2(argv[1]);
 	PC = 0;

@@ -490,10 +490,13 @@ int main(int argc, char**argv) {
 	size_t cnt;
 	size_t pos = 0;
 	cout << "reading instruction..." << endl;
-	uint32_t codeByte;
-	fread(&codeByte, 4, 1, binary);
+	uint32_t codeBytein, codeByte;
+	uint32_t mincamlStartin;
+	fread(&codeBytein, 4, 1, binary);
+	codeByte = htonl(codeBytein);
 	cout << "byte of code: " << hex << codeByte << dec << endl;
-	fread(&mincamlStart, 4, 1, binary);
+	fread(&mincamlStartin, 4, 1, binary);
+	mincamlStart = htonl(mincamlStartin);
 	cout << "_min_caml_start label address: " << hex << mincamlStart << dec << endl;
 	while ((cnt = fread(&INST_MEM[pos], 4, 2048, binary))) {
 		pos += cnt;
