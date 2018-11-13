@@ -39,6 +39,7 @@ module Processor(
   wire [7:0] boot_err;
 
   wire boot;
+  wire [31:0] entry_point;
   assign boot_ready = boot;
   assign inst_addr = boot ? cont_inst_addr : boot_inst_addr;
   assign inst_en   = boot ? cont_inst_enable : boot_inst_enable;
@@ -52,11 +53,11 @@ module Processor(
     mem_rdata, mem_wdata, mem_addr, mem_wenable, mem_enable,
     inst_rdata, cont_inst_addr, cont_inst_enable,
     cont_io_read_req, cont_io_write_req, io_ready, io_done, cont_io_wdata, io_rdata,
-    boot, cont_err, CLK, RSTN);
+    boot, entry_point, cont_err, CLK, RSTN);
 
   Bootloader_IO bootloader(
     boot_inst_addr, inst_wdata, inst_we, boot_inst_enable,
     boot_io_read_req, io_ready, io_done, io_rdata,
-    boot, boot_err, CLK, RSTN);
+    boot, boot_err, entry_point, CLK, RSTN);
 
 endmodule

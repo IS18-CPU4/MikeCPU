@@ -68,8 +68,8 @@
 `define FA_COM_sub 4'd2
 `define FA_COM_mul 4'd3
 
-`define ERR_C_INVALID_STATE 8'b1000_0000
-`define ERR_C_INVALID_OP    8'b0100_0000
+`define ERR_C_INVALID_STATE 8'b0000_1000
+`define ERR_C_INVALID_OP    8'b0000_0100
 `define ERR_C_HALT          8'b0000_0001
 
 
@@ -142,6 +142,7 @@ module Controller(
   input wire [7:0] io_rdata,
 
   input wire boot,
+  input wire [31:0] entry_point,
   output reg [7:0] err,
   
   input wire CLK,
@@ -263,6 +264,7 @@ module Controller(
 
       state <= s_init;
       pc <= 0;
+      err <= 0;
       will_jump <= 0;
     end else begin
       case (state)
@@ -270,7 +272,7 @@ module Controller(
 ///////////////////////////////////////////////////
         s_init: begin
           if (boot) begin
-            pc <= 0;
+            pc <= entry_point;
             state <= s_fetch;
           end
         end

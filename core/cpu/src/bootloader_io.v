@@ -2,6 +2,7 @@
 
 `define B_ERR_InvalidFormat 8'd1
 `define B_ERR_RunOverIterator 8'd2
+`define B_ERR_NONE 8'h0F
 
 module Bootloader_IO(
   // for memory
@@ -18,6 +19,7 @@ module Bootloader_IO(
 
   output wire boot_ready,
   output reg [7:0] err,
+  output wire [31:0] entry_point,
   input wire CLK,
   input wire RSTN
 );
@@ -44,11 +46,14 @@ module Bootloader_IO(
 
   // format
   // you can read 1 byte in 1 axi-uart iteration
-  reg [2:0] length_iterator; // length 2byte (16bit) counter.
-  reg [31:0] data_iterator;  // data counter. 
-  reg [31:0] data_length;
+  reg [2:0] readstate; // 0: length, 1: entry point, 2: data
+  reg [2:0] int32_iterator; // 4byte (32bit) counter.
+  reg [31:0] data_iterator;  // data counter. per byte
+  reg [31:0] data_length; // length of inst bytes
   wire [1:0] data_step;
   assign data_step = data_iterator[1:0];
+  reg [31:0] entry_point_2b00;
+  assign entry_point = entry_point_2b00 >> 2;
 
   // task
   always @(posedge CLK) begin
@@ -63,7 +68,9 @@ module Bootloader_IO(
 
       data_iterator <= 32'd0;
       data_length <= 32'd0;
-      length_iterator <= 3'd0;
+      int32_iterator <= 3'd0;
+      readstate <= 0;
+      entry_point_2b00 <= 32'd0;
       err <= 8'd0;
     end else begin
       case (state)
@@ -79,35 +86,52 @@ module Bootloader_IO(
           if (io_read_req) io_read_req <= 1'b0;
           if (io_done) begin
             // state move
-            if (length_iterator < 3'd2) begin
-              data_length <= {data_length[23:0], io_rdata[7:0]};
-              state <= s_ext_chkRx;
-              length_iterator <= length_iterator + 3'b1;
-            end else if (data_iterator < data_length) begin
-              mem_addr <= {data_iterator[31:2], 2'b00};
-              mem_enable <= 1'b1;
-              if (data_step == 2'd0) begin
-                mem_wdata[31:24] <= io_rdata[7:0];
-                mem_wenable <= 4'b1000;
+            case (readstate)
+              3'd0: begin
+                data_length <= {data_length[23:0], io_rdata[7:0]};
+                if (int32_iterator == 3'd3) begin
+                  int32_iterator <= 0;
+                  readstate <= 3'd1;
+                end else int32_iterator <= int32_iterator + 3'b1;
+                state <= s_ext_chkRx;
               end
-              if (data_step == 2'd1) begin
-                mem_wdata[23:16] <= io_rdata[7:0];
-                mem_wenable <= 4'b0100;
+              3'd1: begin
+                entry_point_2b00 <= {entry_point_2b00[23:0], io_rdata[7:0]};
+                if (int32_iterator == 3'd3) begin
+                  int32_iterator <= 0;
+                  readstate <= 3'd2;
+                end else int32_iterator <= int32_iterator + 3'b1;
+                state <= s_ext_chkRx;
               end
-              if (data_step == 2'd2) begin
-                mem_wdata[15:8] <= io_rdata[7:0];
-                mem_wenable <= 4'b0010;
+              3'd2: begin
+                if (data_iterator < data_length) begin
+                  mem_addr <= {data_iterator[31:2], 2'b00};
+                  mem_enable <= 1'b1;
+                   
+                  if (data_step == 2'd0) begin
+                    mem_wdata[31:24] <= io_rdata[7:0];
+                    mem_wenable <= 4'b1000;
+                  end
+                  if (data_step == 2'd1) begin
+                    mem_wdata[23:16] <= io_rdata[7:0];
+                    mem_wenable <= 4'b0100;
+                  end
+                  if (data_step == 2'd2) begin
+                    mem_wdata[15:8] <= io_rdata[7:0];
+                    mem_wenable <= 4'b0010;
+                  end
+                  if (data_step == 2'd3) begin
+                    mem_wdata[7:0] <= io_rdata[7:0];
+                    mem_wenable <= 4'b0001;
+                  end
+                  state <= s_mem_write;
+                  data_iterator <= data_iterator + 32'd1;
+                end else begin
+                  err <= `B_ERR_RunOverIterator;
+                  state <= s_halt;
+                end
               end
-              if (data_step == 2'd3) begin
-                mem_wdata[7:0] <= io_rdata[7:0];
-                mem_wenable <= 4'b0001;
-              end
-              state <= s_mem_write;
-              data_iterator <= data_iterator + 32'd1;
-            end else begin
-              err <= `B_ERR_RunOverIterator;
-              state <= s_halt;
-            end
+            endcase
           end
         end
 
@@ -116,6 +140,7 @@ module Bootloader_IO(
           mem_wenable <= 4'b0000;
           if (data_iterator == data_length) begin
             // EOF, start booting
+            err <= `B_ERR_NONE;
             state <= s_run;
           end else begin
             state <= s_ext_chkRx;
