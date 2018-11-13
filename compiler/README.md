@@ -8,7 +8,7 @@ min-camlの作者のテロのせいで"EUC-JP"が文字コードです、、、
 $ git pull origin compiler
 (compilerディレクトリに移動)
 $ cd min-caml-master
-$ ./to_ppc
+$ ./to_cpucore
 
 --コンパイルの仕方--
 $ make
