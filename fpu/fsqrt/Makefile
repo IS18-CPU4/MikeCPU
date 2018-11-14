@@ -4,7 +4,7 @@ SRCS = fmul.v
 all: run
 
 run:
-	xvlog --sv test_$(FILE).sv $(FILE).vi $(SRCS)
+	xvlog --sv test_$(FILE).sv $(FILE).v $(SRCS)
 	xelab -debug typical test_$(FILE) -s test_$(FILE).sim
 	xsim --runall test_$(FILE).sim
 
