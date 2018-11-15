@@ -176,6 +176,8 @@ min_caml_abs_float:
 min_caml_sqrt:
 min_caml_floor:
 min_caml_int_of_float:
+  ftoi r2, fr1
+  blr
 min_caml_truncate:
 min_caml_float_of_int:
   itof fr1, r2
