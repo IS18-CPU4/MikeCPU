@@ -252,6 +252,7 @@ int step() {//step実行
 	vector<uint32_t>::iterator bitr;
 	vector<char>::iterator citr;
 	string str_pc,str_inst;
+	uint32_t opname;
 	int bi;
 	int charcount;
 	uint32_t nxtOP;
@@ -454,6 +455,11 @@ int step() {//step実行
 				break;
 			}//switch end
 		}//end while(!next)
+		cout << "PC: " << hex << (PC << 2) << endl;
+		opname = htonl(INST_MEM[PC]);
+		cout << "operation " << hex << opname  << dec << endl
+				 << "in mnemonic...: "; rev_asm(opname);
+		cout << endl;
 
 		int result = do_op();
 		if (result) {
@@ -463,7 +469,6 @@ int step() {//step実行
 			return EXIT_FAILURE;
 		}
 		instNum++;
-		cout << endl;
 	}
 	return 0;
 }
