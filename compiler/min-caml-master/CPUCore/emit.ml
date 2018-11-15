@@ -37,7 +37,7 @@ let rec write_library oc ic =
       output_string oc (s^"\n");
     write_library oc ic
   with
-    e -> ()
+    e -> output_string oc "#End Library\n"
 
 let load_label r label =
 (*
@@ -90,7 +90,6 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprim
   | NonTail(_), Nop -> ()
   | NonTail(x), Li(i) when -32768 <= i && i < 32768 -> Printf.fprintf oc "\tli\t%s, %d\n" (reg x) i
   | NonTail(x), Li(i) ->
-      (* mの *)
       let n = i lsr 16 in
       let m = i lxor (n lsl 16) in
       let m_top = m lsr 15 in
@@ -481,6 +480,7 @@ let f oc (Prog(data, fundefs, e)) =
   Printf.fprintf oc "\t.globl _min_caml_start\n";
   Printf.fprintf oc "\t.align 2\n";
   (* libmincaml.S埋め込み *)
+  Printf.fprintf oc "#Library\n";
   let inchan = open_in ("libmincaml.S") in
     write_library oc inchan;
   close_in inchan;
