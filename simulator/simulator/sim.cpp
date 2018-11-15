@@ -66,7 +66,7 @@ uint32_t PC;
 uint32_t OP;
 uint32_t mincamlStart;
 
-int lastPC;
+uint32_t lastPC;
 //bitを取り出す
 /*static inline uint32_t bits(uint32_t inst, unsigned int i, unsigned int j) {
 return (inst & ((1 << (i+1)) - (1 << j))) >> j;
@@ -184,6 +184,8 @@ void initialize() {//手動での初期化　後に消すかも
 
 void debug() {//レジスタの中身を見る
 	cout << "------------debug----------" << endl;
+	vector<char>::iterator citr;
+	int charcount;
 	while (1) {
 	cout << "which to show? put char..." << endl
 			<< "GPR 'g', FPR 'f', CondR 'c', LinkR 'l', PC&operation 'i', out 'o',  'end 'e': ";
@@ -204,7 +206,11 @@ void debug() {//レジスタの中身を見る
 			cout << "in mnemonic: "; rev_asm(OP);break;
 		case 'o':
 			if (!outChar.empty()) {
-				cout << outChar.back() << endl;
+				charcount = 0;
+				for (citr = outChar.begin();citr != outChar.end();citr++) {
+					cout << "out[" << charcount << "]: " << *citr << endl;
+					charcount++;
+				} 
 			} else {
 				cout << "no out" << endl;
 			}
@@ -244,8 +250,10 @@ int step() {//step実行
 	vector<uint32_t> breakpoint_PC;
 	vector<uint32_t> breakpoint_Inst;
 	vector<uint32_t>::iterator bitr;
+	vector<char>::iterator citr;
 	string str_pc,str_inst;
 	int bi;
+	int charcount;
 	uint32_t nxtOP;
 	while(PC < lastPC) {
 		bool next = 0;
@@ -412,9 +420,13 @@ int step() {//step実行
 				}
 				cout << endl;
 				break;
-			case 'o'://out命令で最後に出力されたものを表示
+			case 'o'://out命令で出力されたものを表示
 				if (!outChar.empty()) {
-					cout << outChar.back() << endl;
+					charcount = 0;
+					for (citr = outChar.begin();citr != outChar.end();citr++) {
+						cout << "out[" << charcount << "]: " << *citr << endl;
+						charcount++;
+					} 
 				} else {
 					cout << "no out" << endl;
 				}
