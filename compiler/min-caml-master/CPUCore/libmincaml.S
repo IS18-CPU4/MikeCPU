@@ -178,6 +178,8 @@ min_caml_floor:
 min_caml_int_of_float:
 min_caml_truncate:
 min_caml_float_of_int:
+  itof fr1, r2
+  blr
 min_caml_cos:
 min_caml_sin:
 min_caml_atan:
