@@ -2,8 +2,8 @@ open Asm
 
 exception ASM_ERR of string
 
-external gethi : float -> int32 = "gethi"
-external getlo : float -> int32 = "getlo"
+external get32 : float -> int32 = "get32"
+let floatmap = ref [] (* ref of label * float list *)
 
 let stackset = ref S.empty (* すでにSaveされた変数の集合 (caml2html: emit_stackset) *)
 let stackmap = ref [] (* Saveされた変数の、スタックにおける位置 (caml2html: emit_stackmap) *)
@@ -95,9 +95,18 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprim
       Printf.fprintf oc "\tori\t%s, %s, %d\n" r r m
 *)
   | NonTail(x), FLi(Id.L(l)) ->
-      let s = load_label (reg reg_tmp) l in
-      Printf.fprintf oc "%s\tfld\t%s, 0(%s)\n" s (reg x) (reg reg_tmp)
-(*      Printf.fprintf oc "%s\tlfd\t%s, 0(%s)\n" s (reg x) (reg reg_tmp) *)
+      let ss = stacksize () in
+      let labeled_float = List.assoc (Id.L(l)) !floatmap in
+      let i = Int32.to_int (get32 labeled_float) in
+      let n = i lsr 16 in
+      let m = i lxor (n lsl 16) in
+      let m_top = m lsr 15 in
+      let r = reg x in
+      Printf.fprintf oc "\tli\t%s, %d\n" (reg reg_tmp) ((n+m_top) mod 65536);
+      Printf.fprintf oc "\tslwi\t%s, %s, 16\n" (reg reg_tmp) (reg reg_tmp);
+      Printf.fprintf oc "\taddi\t%s, %s, %d\n" (reg reg_tmp) (reg reg_tmp) m;
+      Printf.fprintf oc "\tst\t%s, %s, %d\n" (reg reg_tmp) (reg reg_sp) (ss);
+      Printf.fprintf oc "\tfld\t%s, %s, %d\n" (reg x) (reg reg_sp) (ss)
   | NonTail(x), SetL(Id.L(y)) ->
       let s = load_label x y in
       Printf.fprintf oc "%s" s
@@ -173,7 +182,7 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprim
       Printf.fprintf oc "\tst\t%s, %s, %d\n" (reg x) (reg reg_sp) (offset y)
   | NonTail(_), Save(x, y) when List.mem x allfregs && not (S.mem y !stackset) ->
       save y;
-      Printf.fprintf oc "\tfst\t%s, %d(%s)\n" (reg x) (offset y) (reg reg_sp)
+      Printf.fprintf oc "\tfst\t%s, %s, %d\n" (reg x) (reg reg_sp) (offset y)
   | NonTail(_), Save(x, y) -> assert (S.mem y !stackset); ()
   (* 復帰の仮想命令の実装 (caml2html: emit_restore) *)
 (*
@@ -458,17 +467,8 @@ let h oc { name = Id.L(x); args = _; fargs = _; body = e; ret = _ } =
   g oc (Tail, e)
 
 let f oc (Prog(data, fundefs, e)) =
+  floatmap := data;
   Format.eprintf "generating assembly...@.";
-  if data <> [] then
-    (Printf.fprintf oc "\t.data\n\t.literal8\n";
-     List.iter
-       (fun (Id.L(x), d) ->
-         Printf.fprintf oc "\t.align 3\n";
-(*         Printf.fprintf oc "%s:\t # %f\n" x d; *)
-         Printf.fprintf oc "%s:\n# %f\n" x d;
-         Printf.fprintf oc "\t.long\t%ld\n" (gethi d);
-         Printf.fprintf oc "\t.long\t%ld\n" (getlo d))
-       data);
   Printf.fprintf oc "\t.text\n";
   Printf.fprintf oc "\t.globl _min_caml_start\n";
   Printf.fprintf oc "\t.align 2\n";
