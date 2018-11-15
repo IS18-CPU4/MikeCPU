@@ -220,7 +220,7 @@ le.24:
  blr
 _min_caml_start:
 # main program starts
- li r2, 30
+ li r2, 10
  mflr r31
  st r31, r3, 4
  addi r3, r3, 8
