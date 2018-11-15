@@ -93,6 +93,13 @@ let rec g env alpha_env = function (* cseルーチン本体 *)
   | Sub(x, y) -> let parsed = parse (Sub(x, y)) alpha_env in
                  let found = c_find parsed env in
                    if (parsed = found) then Sub(x, y) else found
+  | LShift(x, y) -> let parsed = parse (LShift(x, y)) alpha_env in
+                 let found = c_find parsed env in
+                   if (parsed = found) then LShift(x, y) else found
+  | RShift(x, y) -> let parsed = parse (RShift(x, y)) alpha_env in
+                 let found = c_find parsed env in
+                   if (parsed = found) then RShift(x, y) else found
+
   | FNeg(x) -> let parsed = parse (FNeg(x)) alpha_env in
                let found = c_find parsed env in
                  if (parsed = found) then FNeg(x) else found

@@ -31,6 +31,14 @@ let reg r =
   then String.sub r 1 (String.length r - 1)
   else r
 
+let rec write_library oc ic =
+  try
+    let s = input_line ic in
+      output_string oc (s^"\n");
+    write_library oc ic
+  with
+    e -> ()
+
 let load_label r label =
 (*
   let r' = reg r in
@@ -202,7 +210,7 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprim
   | Tail, (Nop | Stw _ | Stfd _ | Comment _ | Save _ as exp) ->
       g' oc (NonTail(Id.gentmp Type.Unit), exp);
       Printf.fprintf oc "\tblr\n";
-  | Tail, (Li _ | SetL _ | Mr _ | Neg _ | Add _ | Sub _ | Slw _ | Lwz _ as exp) ->
+  | Tail, (Li _ | SetL _ | Mr _ | Neg _ | Add _ | Sub _ | Slw _ | Srw _ | Lwz _ as exp) ->
       g' oc (NonTail(regs.(0)), exp);
       Printf.fprintf oc "\tblr\n";
   | Tail, (FLi _ | FMr _ | FNeg _ | FAdd _ | FSub _ | FMul _ | FDiv _ | Lfd _ as exp) ->
@@ -472,6 +480,10 @@ let f oc (Prog(data, fundefs, e)) =
   Printf.fprintf oc "\t.text\n";
   Printf.fprintf oc "\t.globl _min_caml_start\n";
   Printf.fprintf oc "\t.align 2\n";
+  (* libmincaml.S埋め込み *)
+  let inchan = open_in ("libmincaml.S") in
+    write_library oc inchan;
+  close_in inchan;
   List.iter (fun fundef -> h oc fundef) fundefs;
 (*  Printf.fprintf oc "_min_caml_start: # main entry point\n"; *)
   Printf.fprintf oc "_min_caml_start:\n";
