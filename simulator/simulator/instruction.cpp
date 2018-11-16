@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <cmath>
 #include <stdlib.h>
@@ -17,6 +18,7 @@ extern uint32_t DATA_MEM[DATA_ADDR];
 extern uint32_t PC;
 extern uint32_t OP;
 extern vector<char> outChar;
+extern ofstream fileout;
 
 int rD;
 int rA;
@@ -368,6 +370,12 @@ void float_to_int() {
 }
 
 void out() {
+	rD = get_rD(OP);
+	uint32_t result = 0x000000FF & GPR[rD];
+	char resultc = static_cast<char>(result);
+	fileout << resultc;
+}
+void outstep() {
 	rD = get_rD(OP);
 	uint32_t result = 0x000000FF & GPR[rD];
 	cout << "operation out..." << static_cast<char>(result)  << endl;

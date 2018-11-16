@@ -11,6 +11,7 @@ using namespace std;
 extern uint32_t INST_MEM[INST_ADDR];
 extern uint32_t PC;
 extern uint32_t OP;
+extern bool stepflag;
 
 int do_op() {
 	//cout << "PC: " << hex << (PC << 2) << endl;
@@ -129,7 +130,12 @@ int do_op() {
 			branch_abs_and_link();break;
 		case 63:
 			//cout << "opname out" << endl;
-			out();PC++;break;
+			if (stepflag == 0) {
+				out();PC++;
+			} else {
+				outstep(); PC++;
+			}
+			break;
 		default:
 			cerr << "undefined instruction" << endl;
 			return 1;
