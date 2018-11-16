@@ -2,8 +2,8 @@ open Asm
 
 exception ASM_ERR of string
 
-external gethi : float -> int32 = "gethi"
-external getlo : float -> int32 = "getlo"
+external get32 : float -> int32 = "get32"
+let floatmap = ref [] (* ref of label * float list *)
 
 let stackset = ref S.empty (* すでにSaveされた変数の集合 (caml2html: emit_stackset) *)
 let stackmap = ref [] (* Saveされた変数の、スタックにおける位置 (caml2html: emit_stackmap) *)
@@ -30,6 +30,14 @@ let reg r =
   if is_reg r
   then String.sub r 1 (String.length r - 1)
   else r
+
+let rec write_library oc ic =
+  try
+    let s = input_line ic in
+      output_string oc (s^"\n");
+    write_library oc ic
+  with
+    e -> output_string oc "#End Library\n"
 
 let load_label r label =
 (*
@@ -82,7 +90,6 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprim
   | NonTail(_), Nop -> ()
   | NonTail(x), Li(i) when -32768 <= i && i < 32768 -> Printf.fprintf oc "\tli\t%s, %d\n" (reg x) i
   | NonTail(x), Li(i) ->
-      (* mの *)
       let n = i lsr 16 in
       let m = i lxor (n lsl 16) in
       let m_top = m lsr 15 in
@@ -95,9 +102,18 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprim
       Printf.fprintf oc "\tori\t%s, %s, %d\n" r r m
 *)
   | NonTail(x), FLi(Id.L(l)) ->
-      let s = load_label (reg reg_tmp) l in
-      Printf.fprintf oc "%s\tfld\t%s, %s, 0\n" s (reg x) (reg reg_tmp)
-(*      Printf.fprintf oc "%s\tlfd\t%s, 0(%s)\n" s (reg x) (reg reg_tmp) *)
+      let ss = stacksize () in
+      let labeled_float = List.assoc (Id.L(l)) !floatmap in
+      let i = Int32.to_int (get32 labeled_float) in
+      let n = i lsr 16 in
+      let m = i lxor (n lsl 16) in
+      let m_top = m lsr 15 in
+      let r = reg x in
+      Printf.fprintf oc "\tli\t%s, %d\n" (reg reg_tmp) ((n+m_top) mod 65536);
+      Printf.fprintf oc "\tslwi\t%s, %s, 16\n" (reg reg_tmp) (reg reg_tmp);
+      Printf.fprintf oc "\taddi\t%s, %s, %d\n" (reg reg_tmp) (reg reg_tmp) m;
+      Printf.fprintf oc "\tst\t%s, %s, %d\n" (reg reg_tmp) (reg reg_sp) (ss);
+      Printf.fprintf oc "\tfld\t%s, %s, %d\n" (reg x) (reg reg_sp) (ss)
   | NonTail(x), SetL(Id.L(y)) ->
       let s = load_label x y in
       Printf.fprintf oc "%s" s
@@ -173,7 +189,7 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprim
       Printf.fprintf oc "\tst\t%s, %s, %d\n" (reg x) (reg reg_sp) (offset y)
   | NonTail(_), Save(x, y) when List.mem x allfregs && not (S.mem y !stackset) ->
       save y;
-      Printf.fprintf oc "\tfst\t%s, %d(%s)\n" (reg x) (offset y) (reg reg_sp)
+      Printf.fprintf oc "\tfst\t%s, %s, %d\n" (reg x) (reg reg_sp) (offset y)
   | NonTail(_), Save(x, y) -> assert (S.mem y !stackset); ()
   (* 復帰の仮想命令の実装 (caml2html: emit_restore) *)
 (*
@@ -193,7 +209,7 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprim
   | Tail, (Nop | Stw _ | Stfd _ | Comment _ | Save _ as exp) ->
       g' oc (NonTail(Id.gentmp Type.Unit), exp);
       Printf.fprintf oc "\tblr\n";
-  | Tail, (Li _ | SetL _ | Mr _ | Neg _ | Add _ | Sub _ | Slw _ | Lwz _ as exp) ->
+  | Tail, (Li _ | SetL _ | Mr _ | Neg _ | Add _ | Sub _ | Slw _ | Srw _ | Lwz _ as exp) ->
       g' oc (NonTail(regs.(0)), exp);
       Printf.fprintf oc "\tblr\n";
   | Tail, (FLi _ | FMr _ | FNeg _ | FAdd _ | FSub _ | FMul _ | FDiv _ | Lfd _ as exp) ->
@@ -458,20 +474,16 @@ let h oc { name = Id.L(x); args = _; fargs = _; body = e; ret = _ } =
   g oc (Tail, e)
 
 let f oc (Prog(data, fundefs, e)) =
+  floatmap := data;
   Format.eprintf "generating assembly...@.";
-  if data <> [] then
-    (Printf.fprintf oc "\t.data\n\t.literal8\n";
-     List.iter
-       (fun (Id.L(x), d) ->
-         Printf.fprintf oc "\t.align 3\n";
-(*         Printf.fprintf oc "%s:\t # %f\n" x d; *)
-         Printf.fprintf oc "%s:\n# %f\n" x d;
-         Printf.fprintf oc "\t.long\t%ld\n" (gethi d);
-         Printf.fprintf oc "\t.long\t%ld\n" (getlo d))
-       data);
   Printf.fprintf oc "\t.text\n";
   Printf.fprintf oc "\t.globl _min_caml_start\n";
   Printf.fprintf oc "\t.align 2\n";
+  (* libmincaml.S埋め込み *)
+  Printf.fprintf oc "#Library\n";
+  let inchan = open_in ("libmincaml.S") in
+    write_library oc inchan;
+  close_in inchan;
   List.iter (fun fundef -> h oc fundef) fundefs;
 (*  Printf.fprintf oc "_min_caml_start: # main entry point\n"; *)
   Printf.fprintf oc "_min_caml_start:\n";
