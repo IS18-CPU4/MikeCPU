@@ -560,9 +560,9 @@ int main(int argc, char**argv) {
 		result = normal();
 		if (!result) {
 			end = chrono::system_clock::now();
-			double elapsed = chrono::duration_cast<chrono::microseconds>(end-start).count();
+			double elapsed = chrono::duration_cast<chrono::milliseconds>(end-start).count();
 			cout << "finish execution successfully!" << endl << endl;
-			cout << "execution time: " << elapsed << " microseconds" << endl;
+			cout << "execution time: " << elapsed << " milliseconds" << endl;
 			cout << "return value is... GPR[1]:" << hex << GPR[1]<< dec << " FPR[0]:" << FPR[0] << endl;
 			cout << "the total number of instructions is (dec) : " << dec << instNum << endl;
 			cout << endl;

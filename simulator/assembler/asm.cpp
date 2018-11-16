@@ -34,13 +34,22 @@ string trim(const string& str, const char* trimCharacterList = "\t\v\r\n") {
 uint32_t encode(string str) {
 	string trimmedStr = trim(str);
 	vector<string> vitem;
-	vector<string> vitem1 = StringSplit(trimmedStr, ' ');
+	vector<string> vitemtmp;
+	vector<string> vitem1 = StringSplit(trimmedStr, '\t');
 	vector<string>::iterator itr;
 	for (itr = vitem1.begin(); itr != vitem1.end(); itr++) {
-		vector<string> vitem2 = StringSplit(*itr, ',');
+		vector<string> vitem2 = StringSplit(*itr, ' ');
 		vector<string>::iterator itr2;
 		for (itr2 = vitem2.begin(); itr2 != vitem2.end(); itr2++) {
-			vitem.push_back(*itr2);
+				vitemtmp.push_back(*itr2);
+		}
+	}
+	vector<string>::iterator itrtmp;
+	for (itrtmp = vitemtmp.begin(); itrtmp != vitemtmp.end(); itrtmp++) {
+		vector<string> vitem3 = StringSplit(*itrtmp, ',');
+		vector<string>::iterator itr3;
+		for (itr3 = vitem3.begin(); itr3 != vitem3.end(); itr3++) {
+				vitem.push_back(*itr3);
 		}
 	}
 	uint32_t op = encode_to_op(vitem);
@@ -82,13 +91,22 @@ int main(int argc, char** argv) {
 		}
 		string trimmedStr = trim(line);
 		vector<string> vitem;
-		vector<string> vitem1 = StringSplit(trimmedStr, ' ');
+		vector<string> vitemtmp;
+		vector<string> vitem1 = StringSplit(trimmedStr, '\t');
 		vector<string>::iterator itr;
 		for (itr = vitem1.begin(); itr != vitem1.end(); itr++) {
-			vector<string> vitem2 = StringSplit(*itr, ',');
+			vector<string> vitem2 = StringSplit(*itr, ' ');
 			vector<string>::iterator itr2;
 			for (itr2 = vitem2.begin(); itr2 != vitem2.end(); itr2++) {
-				vitem.push_back(*itr2);
+					vitemtmp.push_back(*itr2);
+			}
+		}
+		vector<string>::iterator itrtmp;
+		for (itrtmp = vitemtmp.begin(); itrtmp != vitemtmp.end(); itrtmp++) {
+			vector<string> vitem3 = StringSplit(*itrtmp, ',');
+			vector<string>::iterator itr3;
+			for (itr3 = vitem3.begin(); itr3 != vitem3.end(); itr3++) {
+					vitem.push_back(*itr3);
 			}
 		}
 		if (vitem[0].find_first_of("#", 0) == 0) {
