@@ -3,16 +3,16 @@ min_caml_print_newline:
   out r2
   blr
 #min_caml_print_int:
-min_caml_print_int_mul_10.33:
+min_caml_print_int_mul_10.27:
 	slwi	r5, r2, 1
 	slwi	r2, r2, 3
 	add	r2, r5, r2
 	blr
-min_caml_print_int_div_10_loop.35:
+min_caml_print_int_div_10_loop.29:
 	sub	r7, r6, r5
 	cmpwi	cr0, r7, 1
-	blt	min_caml_print_int_le.97
-	beq	min_caml_print_int_le.97
+	blt	min_caml_print_int_le.85
+	beq	min_caml_print_int_le.85
 	add	r7, r5, r6
 	srwi	r7, r7, 1
 	st	r5, r3, 0
@@ -23,41 +23,41 @@ min_caml_print_int_div_10_loop.35:
 	mr	r2, r7
 	st	r31, r3, 20
 	addi	r3, r3, 24
-	bl	min_caml_print_int_mul_10.33
+	bl	min_caml_print_int_mul_10.27
 	li	r31, 24
 	sub	r3, r3, r31
 	ld	r31, r3, 20
 	mtlr	r31
 	ld	r5, r3, 12
 	cmpw	cr0, r2, r5
-	blt	min_caml_print_int_le.98
-	beq	min_caml_print_int_le.98
+	blt	min_caml_print_int_le.86
+	beq	min_caml_print_int_le.86
 	ld	r2, r3, 0
 	ld	r6, r3, 8
 	mr	r29, r5
 	mr	r5, r2
 	mr	r2, r29
-	b	min_caml_print_int_div_10_loop.35
-min_caml_print_int_le.98:
+	b	min_caml_print_int_div_10_loop.29
+min_caml_print_int_le.86:
 	ld	r2, r3, 8
 	ld	r6, r3, 4
 	mr	r29, r5
 	mr	r5, r2
 	mr	r2, r29
-	b	min_caml_print_int_div_10_loop.35
-min_caml_print_int_le.97:
+	b	min_caml_print_int_div_10_loop.29
+min_caml_print_int_le.85:
 	mr	r2, r5
 	blr
-min_caml_print_int_div_10.39:
+min_caml_print_int_div_10.33:
 	srwi	r5, r2, 4
 	srwi	r6, r2, 3
-	b	min_caml_print_int_div_10_loop.35
-min_caml_print_int_mod_10.41:
+	b	min_caml_print_int_div_10_loop.29
+min_caml_print_int_mod_10.35:
 	st	r2, r3, 0
 	mflr	r31
 	st	r31, r3, 4
 	addi	r3, r3, 8
-	bl	min_caml_print_int_div_10.39
+	bl	min_caml_print_int_div_10.33
 	li	r31, 8
 	sub	r3, r3, r31
 	ld	r31, r3, 4
@@ -65,7 +65,7 @@ min_caml_print_int_mod_10.41:
 	mflr	r31
 	st	r31, r3, 4
 	addi	r3, r3, 8
-	bl	min_caml_print_int_mul_10.33
+	bl	min_caml_print_int_mul_10.27
 	li	r31, 8
 	sub	r3, r3, r31
 	ld	r31, r3, 4
@@ -73,16 +73,15 @@ min_caml_print_int_mod_10.41:
 	ld	r5, r3, 0
 	sub	r2, r5, r2
 	blr
-min_caml_print_int_print_int_rec.43:
+min_caml_print_int_print_int_rec.37:
 	cmpwi	cr0, r2, 0
-	bne	min_caml_print_int_beq_else.99
+	bne	min_caml_print_int_beq_else.87
 	blr
-min_caml_print_int_beq_else.99:
+min_caml_print_int_beq_else.87:
 	st	r2, r3, 0
 	mflr	r31
-	st	r31, r3, 4
-	addi	r3, r3, 8
-	bl	min_caml_print_int_mod_10.41
+	st	r31,, r3, 8
+	bl	min_caml_print_int_mod_10.35
 	li	r31, 8
 	sub	r3, r3, r31
 	ld	r31, r3, 4
@@ -93,7 +92,7 @@ min_caml_print_int_beq_else.99:
 	mr	r2, r5
 	st	r31, r3, 12
 	addi	r3, r3, 16
-	bl	min_caml_print_int_div_10.39
+	bl	min_caml_print_int_div_10.33
 	li	r31, 16
 	sub	r3, r3, r31
 	ld	r31, r3, 12
@@ -101,7 +100,7 @@ min_caml_print_int_beq_else.99:
 	mflr	r31
 	st	r31, r3, 12
 	addi	r3, r3, 16
-	bl	min_caml_print_int_print_int_rec.43
+	bl	min_caml_print_int_print_int_rec.37
 	li	r31, 16
 	sub	r3, r3, r31
 	ld	r31, r3, 12
@@ -111,32 +110,14 @@ min_caml_print_int_beq_else.99:
 	b	min_caml_print_byte
 min_caml_print_int:
 	cmpwi	cr0, r2, 0
-	bne	min_caml_print_int_beq_else.101
+	bne	min_caml_print_int_beq_else.89
 	li	r2, 48
-	mflr	r31
-	st	r31, r3, 4
-	addi	r3, r3, 8
-	bl	min_caml_print_byte
-	li	r31, 8
-	sub	r3, r3, r31
-	ld	r31, r3, 4
-	mtlr	r31
-	li	r2, 10
 	b	min_caml_print_byte
-min_caml_print_int_beq_else.101:
+min_caml_print_int_beq_else.89:
 	cmpwi	cr0, r2, 0
-	blt	min_caml_print_int_bge_else.102
-	mflr	r31
-	st	r31, r3, 4
-	addi	r3, r3, 8
-	bl	min_caml_print_int_print_int_rec.43
-	li	r31, 8
-	sub	r3, r3, r31
-	ld	r31, r3, 4
-	mtlr	r31
-	li	r2, 10
-	b	min_caml_print_byte
-min_caml_print_int_bge_else.102:
+	blt	min_caml_print_int_bge_else.90
+	b	min_caml_print_int_print_int_rec.37
+min_caml_print_int_bge_else.90:
 	li	r5, 45
 	st	r2, r3, 0
 	mflr	r31
@@ -150,16 +131,7 @@ min_caml_print_int_bge_else.102:
 	mtlr	r31
 	ld	r2, r3, 0
 	sub	r2, r0, r2
-	mflr	r31
-	st	r31, r3, 4
-	addi	r3, r3, 8
-	bl	min_caml_print_int_print_int_rec.43
-	li	r31, 8
-	sub	r3, r3, r31
-	ld	r31, r3, 4
-	mtlr	r31
-	li	r2, 10
-	b	min_caml_print_byte
+	b	min_caml_print_int_print_int_rec.37
 min_caml_print_byte:
   out r2
   blr
