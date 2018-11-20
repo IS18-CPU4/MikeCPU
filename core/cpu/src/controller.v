@@ -67,6 +67,7 @@
 `define FA_COM_add 4'd1
 `define FA_COM_sub 4'd2
 `define FA_COM_mul 4'd3
+`define FA_COM_div 4'd4
 
 `define ERR_C_INVALID_STATE 8'b0000_1000
 `define ERR_C_INVALID_OP    8'b0000_0100
@@ -105,21 +106,24 @@ module FAlu (
   input wire clk,
   input wire rstn);
 
-  wire [31:0] ya, ys, ym;
-  wire ovfa, ovfs, ovfm;
+  wire [31:0] ya, ys, ym, yd;
+  wire ovfa, ovfs, ovfm, ovfd;
   fadd_p2 adder (x1, x2, ya, ovfa, clk, rstn);
   fsub_p2 subber(x1, x2, ys, ovfs, clk, rstn);
   fmul    muller(x1, x2, ym, ovfm);
+  fdiv    diver (x1, x2, yd, ovfd);
 
   assign y = (
     (command == `FA_COM_add) ? ya :
     (command == `FA_COM_sub) ? ys :
-    (command == `FA_COM_mul) ? ym : 32'b0);
+    (command == `FA_COM_mul) ? ym :
+    (command == `FA_COM_div) ? yd : 32'b0);
 
   assign ovf = (
     ((command == `FA_COM_add) & ovfa) |
     ((command == `FA_COM_sub) & ovfs) |
-    ((command == `FA_COM_mul) & ovfm));
+    ((command == `FA_COM_mul) & ovfm) |
+    ((command == `FA_COM_div) & ovfd) );
 
 endmodule
 
@@ -334,10 +338,14 @@ module Controller(
             `OP_fsub: begin
               fcommand <= `FA_COM_sub;
             end
+            `OP_fdiv: begin
+              fcommand <= `FA_COM_div;
+            end
             `OP_fmul: begin
               fcommand <= `FA_COM_mul;
             end
-
+            // fsqrt
+            // fabs
             `OP_fmr: begin
             end
 
