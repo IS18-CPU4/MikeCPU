@@ -184,47 +184,51 @@ min_caml_float_of_int:
 min_caml_cos:
 min_caml_sin:
 min_caml_atan:
-fib.10:
- cmpwi cr0, r2, 1
- blt le.24
- beq le.24
- li r5, 1
- sub r5, r2, r5
- st r2, r3, 0
- mflr r31
+gcd.7:
+ cmpwi cr0, r2, 0
+ bne beq_else.17
  mr r2, r5
- st r31, r3, 4
- addi r3, r3, 8
- bl fib.10
- li r31, 8
- sub r3, r3, r31
- ld r31, r3, 4
- mtlr r31
- li r5, 2
- ld r6, r3, 0
- sub r5, r6, r5
- st r2, r3, 4
- mflr r31
- mr r2, r5
- st r31, r3, 12
- addi r3, r3, 16
- bl fib.10
- li r31, 16
- sub r3, r3, r31
- ld r31, r3, 12
- mtlr r31
- ld r5, r3, 4
- add r2, r5, r2
  blr
-le.24:
+beq_else.17:
+ cmpw cr0, r2, r5
+ blt le.18
+ beq le.18
+ sub r2, r2, r5
+ mr r29, r5
+ mr r5, r2
+ mr r2, r29
+# b gcd.7
+ mflr r31
+ st r31, r3, 0
+ addi r3, r3, 4
+ bl gcd.7
+ li r31, 4
+ sub r3, r3, r31
+ ld r31, r3, 0
+ mtlr r31
+ blr
+le.18:
+ sub r5, r5, r2
+# b gcd.7
+ mflr r31
+ st r31, r3, 0
+ addi r3, r3, 4
+ bl gcd.7
+ li r31, 4
+ sub r3, r3, r31
+ ld r31, r3, 0
+ mtlr r31
  blr
 _min_caml_start:
 # main program starts
- li r2, 30
+ li r2, 21600
+ li r5, 5
+ slwi r5, r5, 16
+ addi r5, r5, 9820
  mflr r31
  st r31, r3, 4
  addi r3, r3, 8
- bl fib.10
+ bl gcd.7
  li r31, 8
  sub r3, r3, r31
  ld r31, r3, 4

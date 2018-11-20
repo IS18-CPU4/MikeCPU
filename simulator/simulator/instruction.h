@@ -78,6 +78,7 @@ void branch_cond();
 void int_to_float();
 void float_to_int();
 void out();
+void outstep();
 
 //added 2
 void branch_abs();

@@ -66,7 +66,7 @@ uint32_t PC;
 uint32_t OP;
 uint32_t mincamlStart;
 
-int lastPC;
+uint32_t lastPC;
 //bitを取り出す
 /*static inline uint32_t bits(uint32_t inst, unsigned int i, unsigned int j) {
 return (inst & ((1 << (i+1)) - (1 << j))) >> j;
@@ -78,7 +78,7 @@ void initialize();
 
 void debug();
 
-int instNum;//何番目の命令か
+long long int instNum;//何番目の命令か
 
 vector<char> outChar;//outによる出力を保存しておく
 
@@ -184,9 +184,16 @@ void initialize() {//手動での初期化　後に消すかも
 
 void debug() {//レジスタの中身を見る
 	cout << "------------debug----------" << endl;
+	vector<char>::iterator citr;
+	int charcount;
 	while (1) {
-	cout << "which to show? put char..." << endl
-			<< "GPR 'g', FPR 'f', CondR 'c', LinkR 'l', PC&operation 'i', out 'o',  'end 'e': ";
+		if (stepflag == 1) {
+			cout << "which to show? put char..." << endl
+						<< "GPR 'g', FPR 'f', CondR 'c', LinkR 'l', PC&operation 'i', out 'o',  'end 'e': ";
+		} else {
+			cout << "which to show? put char..." << endl
+						<< "GPR 'g', FPR 'f', CondR 'c', LinkR 'l', PC&operation 'i',  'end 'e': ";
+		}
 		char x;
 		cin >> x;
 		switch(x) {
@@ -203,10 +210,18 @@ void debug() {//レジスタの中身を見る
 			cout << hex << OP << dec << endl;
 			cout << "in mnemonic: "; rev_asm(OP);break;
 		case 'o':
-			if (!outChar.empty()) {
-				cout << outChar.back() << endl;
+			if (stepflag == 1) {
+				if (!outChar.empty()) {
+					charcount = 0;
+					for (citr = outChar.begin();citr != outChar.end();citr++) {
+						cout << "out[" << charcount << "]: " << *citr << endl;
+						charcount++;
+					} 
+				} else {
+					cout << "no out" << endl;
+				}
 			} else {
-				cout << "no out" << endl;
+				cout << "undefined...try again" << endl;
 			}
 			break;
 		case 'e':
@@ -244,8 +259,11 @@ int step() {//step実行
 	vector<uint32_t> breakpoint_PC;
 	vector<uint32_t> breakpoint_Inst;
 	vector<uint32_t>::iterator bitr;
+	vector<char>::iterator citr;
 	string str_pc,str_inst;
+	uint32_t opname;
 	int bi;
+	int charcount;
 	uint32_t nxtOP;
 	while(PC < lastPC) {
 		bool next = 0;
@@ -412,9 +430,13 @@ int step() {//step実行
 				}
 				cout << endl;
 				break;
-			case 'o'://out命令で最後に出力されたものを表示
+			case 'o'://out命令で出力されたものを表示
 				if (!outChar.empty()) {
-					cout << outChar.back() << endl;
+					charcount = 0;
+					for (citr = outChar.begin();citr != outChar.end();citr++) {
+						cout << "out[" << charcount << "]: " << *citr << endl;
+						charcount++;
+					} 
 				} else {
 					cout << "no out" << endl;
 				}
@@ -442,6 +464,11 @@ int step() {//step実行
 				break;
 			}//switch end
 		}//end while(!next)
+		cout << "PC: " << hex << (PC << 2) << endl;
+		opname = htonl(INST_MEM[PC]);
+		cout << "operation " << hex << opname  << dec << endl
+				 << "in mnemonic...: "; rev_asm(opname);
+		cout << endl;
 
 		int result = do_op();
 		if (result) {
@@ -451,10 +478,11 @@ int step() {//step実行
 			return EXIT_FAILURE;
 		}
 		instNum++;
-		cout << endl;
 	}
 	return 0;
 }
+
+ofstream fileout;
 
 int main(int argc, char**argv) {
 	/*if (argc != 2) {
@@ -474,7 +502,6 @@ int main(int argc, char**argv) {
 	}
 
 	cout << "open output file..." << endl;
-	ofstream fileout;
 	if (optind + 1 == argc) {
 		fileout.open("a.out", ios::out|ios::trunc);
 	} else if (optind + 2 == argc) {
@@ -511,7 +538,6 @@ int main(int argc, char**argv) {
 
 	cout << "-----------start execution----------" << endl << endl;
 	vector<char>::iterator citr;
-	int cindex = 0;
 
 	int result;
 	if (stepflag == 1) {
@@ -523,8 +549,7 @@ int main(int argc, char**argv) {
 			cout << endl;
 			if (!outChar.empty()) {
 				for (citr = outChar.begin(); citr != outChar.end(); citr++) {
-					fileout << "out[" << cindex << "]: " << *citr << endl;
-					cindex++;
+					fileout << *citr;
 				}
 			}
 			debug();
@@ -535,18 +560,17 @@ int main(int argc, char**argv) {
 		result = normal();
 		if (!result) {
 			end = chrono::system_clock::now();
-			double elapsed = chrono::duration_cast<chrono::microseconds>(end-start).count();
+			double elapsed = chrono::duration_cast<chrono::milliseconds>(end-start).count();
 			cout << "finish execution successfully!" << endl << endl;
-			cout << "execution time: " << elapsed << " microseconds" << endl;
+			cout << "execution time: " << elapsed << " milliseconds" << endl;
 			cout << "return value is... GPR[1]:" << hex << GPR[1]<< dec << " FPR[0]:" << FPR[0] << endl;
 			cout << "the total number of instructions is (dec) : " << dec << instNum << endl;
 			cout << endl;
-			if (!outChar.empty()) {
+			/*if (!outChar.empty()) {
 				for (citr = outChar.begin(); citr != outChar.end(); citr++) {
-					fileout << "out[" << cindex << "]: " << *citr << endl;
-					cindex++;
+					fileout << *citr << " "  << endl;
 				}
-			}
+			}*/
 			debug();
 		}
 	}
