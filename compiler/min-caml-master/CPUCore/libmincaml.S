@@ -51,6 +51,7 @@ min_caml_print_int_le.85:
 min_caml_print_int_div_10.33:
 	srwi	r5, r2, 4
 	srwi	r6, r2, 3
+  addi	r6, r6, 1
 	b	min_caml_print_int_div_10_loop.29
 min_caml_print_int_mod_10.35:
 	st	r2, r3, 0
@@ -80,7 +81,7 @@ min_caml_print_int_print_int_rec.37:
 min_caml_print_int_beq_else.87:
 	st	r2, r3, 0
 	mflr	r31
-	st	r31,, r3, 8
+	st	r31, r3, 8
 	bl	min_caml_print_int_mod_10.35
 	li	r31, 8
 	sub	r3, r3, r31

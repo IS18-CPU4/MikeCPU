@@ -13,7 +13,7 @@ in
 
 let rec div_10 n =
   let left = n / 16 in
-  let right = n / 8 in
+  let right = n / 8 + 1 in
   div_10_loop n left right
 in
 
