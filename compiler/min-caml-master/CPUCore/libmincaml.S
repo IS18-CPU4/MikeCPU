@@ -1,5 +1,5 @@
 min_caml_print_newline:
-  li r2, 20
+  li r2, 10
   out r2
   blr
 #min_caml_print_int:
