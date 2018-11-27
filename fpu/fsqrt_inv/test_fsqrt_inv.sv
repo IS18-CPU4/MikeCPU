@@ -3,6 +3,7 @@
 
 module test_fsqrt_inv();
    wire [31:0] x,y;
+   wire        ovf;
    logic [31:0] xi;
    shortreal    fx,fy;
    int          i,k,it;
@@ -17,13 +18,13 @@ module test_fsqrt_inv();
 
    assign x = xi;
    
-   fsqrt_inv u1(x,y);
+   fsqrt_inv u1(x,y,ovf);
 
    // for inv 1<=m<=2^23-1 because when m=0 fsqrt behaves differently
    initial begin
       // $dumpfile("test_finv.vcd");
       // $dumpvars(0);
-
+      /*
       for (i=1; i<1024*1024*8; i++) begin // 1 ~ 2^23-1
         #1;
         m = i[22:0];
@@ -41,10 +42,11 @@ module test_fsqrt_inv();
               $display("x      =%e  %b", $bitstoshortreal(x), x);
               $display("true y =%e  %b ", fy, $shortrealtobits(fy));
               $display("my   y =%e  %b \n", $bitstoshortreal(y), y);
+           end else begin
+              $display("succeeded");
            end
         end
-      
-      
+      */
       
       for (i=1; i<1024*1024*8; i++) begin // 1 ~ 2^23-1 
         #1;

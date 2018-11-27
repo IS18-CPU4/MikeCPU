@@ -23,6 +23,7 @@ module fsqrt
    assign e = (xe[0] == 1) ? 8'd189 - shift_xe : 8'd190 - shift_xe; 
 
    // calc m
+   wire [22:0] m;
    wire [47:0] val;
    wire [10:0] key;
    assign key = {xe[0], xm[22:13]};
