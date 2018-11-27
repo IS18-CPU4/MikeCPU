@@ -26,6 +26,8 @@ let locate x =
 let offset x = 4 * List.hd (locate x)
 let stacksize () = align ((List.length !stackmap + 1) * 4)
 
+let lib_bool = ref true
+
 let reg r =
   if is_reg r
   then String.sub r 1 (String.length r - 1)
@@ -480,10 +482,11 @@ let f oc (Prog(data, fundefs, e)) =
   Printf.fprintf oc "\t.globl _min_caml_start\n";
   Printf.fprintf oc "\t.align 2\n";
   (* libmincaml.S埋め込み *)
-  Printf.fprintf oc "#Library\n";
-  let inchan = open_in ("libmincaml.S") in
-    write_library oc inchan;
-  close_in inchan;
+  if (!lib_bool) then
+    (Printf.fprintf oc "#Library\n";
+    let inchan = open_in ("libmincaml.S") in
+      write_library oc inchan;
+    close_in inchan);
   List.iter (fun fundef -> h oc fundef) fundefs;
 (*  Printf.fprintf oc "_min_caml_start: # main entry point\n"; *)
   Printf.fprintf oc "_min_caml_start:\n";
