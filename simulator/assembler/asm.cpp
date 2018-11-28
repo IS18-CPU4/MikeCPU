@@ -6,6 +6,7 @@
 #include <sstream>
 #include <arpa/inet.h>
 #include <unordered_map>
+#include <iomanip>
 #include "encode.h"
 #include "opAsm.h"
 
@@ -66,6 +67,10 @@ int main(int argc, char** argv) {
 	cout << "open inputfile..." << endl;
 	ifstream filein;
 	filein.open(argv[1], ifstream::in);
+	if (!filein) {
+		cerr << "cannnot open inputfile" << endl;
+		return 1;
+	}
 	cout << "open outputfile..." << endl;
 	/*ofstream fileout(argv[2]);*/
 	ofstream fileout;
@@ -75,6 +80,12 @@ int main(int argc, char** argv) {
 	if (argc == 3) {
 		fileout.open(argv[2], ios::out|ios::binary|ios::trunc);
 	}
+	if (!fileout) {
+		cerr << "cannnot open outputfile"  << endl;
+		return 1;
+	}
+	ofstream fileout2;
+	fileout2.open("asm_with_PC.out", ios::out|ios::trunc);
 	if (!fileout) {
 		cerr << "cannnot open outputfile"  << endl;
 		return 1;
@@ -111,9 +122,12 @@ int main(int argc, char** argv) {
 			}
 		}
 		if (vitem[0].find_first_of("#", 0) == 0) {
+			//fileout2 << setw(8) << "" << noshowpos << " |  " << line << endl;
+			fileout2 << "--------" << " |  " << line << endl;
 			continue;
 		}
 		if (vitem[0].find_first_of(".", 0) == 0) {
+			fileout2 << "--------" << " |  " << line << endl;
 			continue;
 		}
 		if (vitem[0].find_last_of(':') == vitem[0].length()-1) {
@@ -124,8 +138,10 @@ int main(int argc, char** argv) {
 				mincamlStart = PC;
 			}
 			cout << "PC: "<<  hex << PC << dec << endl;
+			fileout2 << "--------" << " |  " << line << endl;
 			continue;
 		}
+		fileout2 << hex << setw(8) << left << PC << noshowpos << dec <<  " |  " << line << endl;
 		PC += 4;
 	}
 	codeByte = PC;
@@ -138,7 +154,8 @@ int main(int argc, char** argv) {
 	fileout.write((char*)&codeByteout, sizeof(uint32_t));
 	fileout.write((char*)&mincamlStartout, sizeof(uint32_t));
 
-	ifstream filein2(argv[1]);
+	ifstream filein2;
+	filein2.open(argv[1], ifstream::in);
 	PC = 0;
 
 	while (getline(filein2, line)) {
