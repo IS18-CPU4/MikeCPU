@@ -64,7 +64,8 @@ int main(int argc, char** argv) {
 	}
 	
 	cout << "open inputfile..." << endl;
-	ifstream filein(argv[1]);
+	ifstream filein;
+	filein.open(argv[1], ifstream::in);
 	cout << "open outputfile..." << endl;
 	/*ofstream fileout(argv[2]);*/
 	ofstream fileout;
