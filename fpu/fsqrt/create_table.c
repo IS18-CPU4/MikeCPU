@@ -63,7 +63,7 @@ int main(int argc, char *argv[]){
         break;
       }
       gradient.f = powf(x0.f, 3);
-      printbit(constant.i, 22, 0);
+      printbit(gradient.i, 22, 0);
     } else {
       // odd (e=2k+1)
       // 2 / sqrt(1.m)
@@ -79,7 +79,7 @@ int main(int argc, char *argv[]){
       constant.f = 3 * x0.f;
       printbit((get_up2down(constant.i, 22, 0) + ((uint32_t)1 << 23)) << 1, 24, 0);
       gradient.f = powf(x0.f, 3);
-      printbit(constant.i, 22, 0);
+      printbit(gradient.i, 22, 0);
     }
     
     if (key == 0x400*2-1) {

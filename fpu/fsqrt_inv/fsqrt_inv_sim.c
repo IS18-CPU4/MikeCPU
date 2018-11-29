@@ -99,6 +99,7 @@ uint32_t get_grad(uint32_t key) {
 }
 
 int main(int argc, char *argv[]){
+  // 1.8 is just for placeholder
   union fp x;
   x.f = 1.8;
   union fp y_true;
