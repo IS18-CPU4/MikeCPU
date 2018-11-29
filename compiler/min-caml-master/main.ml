@@ -119,6 +119,7 @@ let () = (* ここからコンパイラの実行が開始される (caml2html: m
     [("-inline", Arg.Int(fun i -> Inline.threshold := i), "maximum size of functions inlined");
      ("-iter", Arg.Int(fun i -> limit := i), "maximum number of optimizations iterated");
 (*   ("-dump", Arg.Unit(fun () -> dump_bool := true), "intermediate result output")]  *)
+     ("-nonlib", Arg.Unit(fun () -> Emit.lib_bool := false), "don't paste libmincaml.S into assembly");
      ("-dump", Arg.String(fun op -> dump_bools op), "intermediate result output")] (* Syntax.tやKNormal.tなどの標準出力 *)
     (fun s -> files := !files @ [s])
     ("Mitou Min-Caml Compiler (C) Eijiro Sumii\n" ^

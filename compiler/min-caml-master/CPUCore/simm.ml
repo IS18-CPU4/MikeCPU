@@ -15,7 +15,7 @@ let rec g env = function (* ̿������16bit¨�ͺ�Ŭ�� (caml2ht
 and g' env = function (* ��̿����16bit¨�ͺ�Ŭ�� (caml2html: simm13_gprime) *)
   | Add(x, V(y)) when M.mem y env -> Add(x, C(M.find y env))
   | Add(x, V(y)) when M.mem x env -> Add(y, C(M.find x env))
-(*  | Sub(x, V(y)) when M.mem y env -> Sub(x, C(M.find y env)) *)
+  | Sub(x, V(y)) when M.mem y env -> Sub(x, C(M.find y env)) 
   | Slw(x, V(y)) when M.mem y env -> Slw(x, C(M.find y env))
   | Srw(x, V(y)) when M.mem y env -> Srw(x, C(M.find y env))
   | Lwz(x, V(y)) when M.mem y env -> Lwz(x, C(M.find y env))

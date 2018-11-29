@@ -26,6 +26,8 @@ let locate x =
 let offset x = 4 * List.hd (locate x)
 let stacksize () = align ((List.length !stackmap + 1) * 4)
 
+let lib_bool = ref true
+
 let reg r =
   if is_reg r
   then String.sub r 1 (String.length r - 1)
@@ -125,8 +127,7 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprim
   | NonTail(x), Add(y, C(z)) -> Printf.fprintf oc "\taddi\t%s, %s, %d\n" (reg x) (reg y) z
   | NonTail(x), Sub(y, V(z)) -> Printf.fprintf oc "\tsub\t%s, %s, %s\n" (reg x) (reg y) (reg z)
 (*  | NonTail(x), Sub(y, C(z)) -> Printf.fprintf oc "\tsubi\t%s, %s, %d\n" (reg x) (reg y) z *)
-  | NonTail(x), Sub(y, C(z)) -> Printf.fprintf oc "\tli\t%s, %d\n" (reg x) z;
-                                Printf.fprintf oc "\tsub\t%s, %s, %s\n" (reg x) (reg y) (reg x)
+  | NonTail(x), Sub(y, C(z)) -> Printf.fprintf oc "\taddi\t%s, %s, %d\n" (reg x) (reg y) (-z)
   | NonTail(x), Slw(y, V(z)) -> Printf.fprintf oc "\tslw\t%s, %s, %s\n" (reg x) (reg y) (reg z) (* 要用意 *)
   | NonTail(x), Slw(y, C(z)) -> Printf.fprintf oc "\tslwi\t%s, %s, %d\n" (reg x) (reg y) z
   | NonTail(x), Srw(y, V(z)) -> Printf.fprintf oc "\tsrw\t%s, %s, %s\n" (reg x) (reg y) (reg z)
@@ -378,7 +379,7 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprim
       Printf.fprintf oc "\tld\t%s, %s, 0\n" (reg reg_tmp) (reg reg_cl);
       Printf.fprintf oc "\tmr\tr29, %s\n" (reg reg_tmp);
       Printf.fprintf oc "\tbal\tr29\n";
-      Printf.fprintf oc "\tsubi\t%s, %s, %d\n" (reg reg_sp) (reg reg_sp) ss;
+      Printf.fprintf oc "\taddi\t%s, %s, %d\n" (reg reg_sp) (reg reg_sp) (-ss);
       Printf.fprintf oc "\tld\t%s, %s, %d\n" (reg reg_tmp) (reg reg_sp) (ss - 4);
       if List.mem a allregs && a <> regs.(0) then
         Printf.fprintf oc "\tmr\t%s, %s\n" (reg a) (reg regs.(0))
@@ -394,9 +395,7 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprim
       Printf.fprintf oc "\tbl\t%s\n" x;
 
 (*    Printf.fprintf oc "\tsubi\t%s, %s, %d\n" (reg reg_sp) (reg reg_sp) ss; *)
-      Printf.fprintf oc "\tli\t%s, %d\n" (reg reg_tmp) ss;
-      Printf.fprintf oc "\tsub\t%s, %s, %s\n" (reg reg_sp) (reg reg_sp) (reg reg_tmp); (* reg_tmp後でldされるから大丈夫っしょ *)
-
+      Printf.fprintf oc "\taddi\t%s, %s, %d\n" (reg reg_sp) (reg reg_sp) (-ss);
       Printf.fprintf oc "\tld\t%s, %s, %d\n" (reg reg_tmp) (reg reg_sp) (ss - 4);
       if List.mem a allregs && a <> regs.(0) then
         Printf.fprintf oc "\tmr\t%s, %s\n" (reg a) (reg regs.(0))
@@ -480,10 +479,11 @@ let f oc (Prog(data, fundefs, e)) =
   Printf.fprintf oc "\t.globl _min_caml_start\n";
   Printf.fprintf oc "\t.align 2\n";
   (* libmincaml.S埋め込み *)
-  Printf.fprintf oc "#Library\n";
-  let inchan = open_in ("libmincaml.S") in
-    write_library oc inchan;
-  close_in inchan;
+  if (!lib_bool) then
+    (Printf.fprintf oc "#Library\n";
+    let inchan = open_in ("libmincaml.S") in
+      write_library oc inchan;
+    close_in inchan);
   List.iter (fun fundef -> h oc fundef) fundefs;
 (*  Printf.fprintf oc "_min_caml_start: # main entry point\n"; *)
   Printf.fprintf oc "_min_caml_start:\n";
@@ -506,6 +506,14 @@ let f oc (Prog(data, fundefs, e)) =
   Printf.fprintf oc "#\tmain program ends\n";
   (* Printf.fprintf oc "\tmr\tr3, %s\n" regs.(0); (* なんかコメントアウトしてる *)*)
 (* 以下終了処理 *)
+(*
+  (* libmincaml.S埋め込み->ここに埋め込むならまず、先に終了処理何か居る *)
+  if (!lib_bool) then
+    (Printf.fprintf oc "#Library\n";
+    let inchan = open_in ("libmincaml.S") in
+      write_library oc inchan;
+    close_in inchan);
+*)
 (* (* ppc *)
   Printf.fprintf oc "\tlwz\tr1, 0(r1)\n";
   Printf.fprintf oc "\tlwz\tr0, 8(r1)\n";
