@@ -15,5 +15,5 @@ opAsm.o: opAsm.cpp opAsm.h
 
 
 clean:
-	rm -rf *.o out.bin asm
+	rm -rf *.o out.bin asm_with_PC.out asm
 
