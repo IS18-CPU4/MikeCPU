@@ -165,7 +165,9 @@ min_caml_read_float:
 min_caml_create_array:
 min_caml_create_float_array:
 min_caml_abs_float:
+    fabs fr1, fr1
 min_caml_sqrt:
+    fsqrt fr1, fr1
 min_caml_floor:
 min_caml_int_of_float:
   ftoi r2, fr1
