@@ -1,8 +1,8 @@
 CC = g++
 CFLAGS = -std=c++11 -O2 -Wall
 
-ALL: sim.o revAsm.o op.o instruction.o float/fadd.o float/fsub.o float/fmul.o float/finv.o float/fdiv.o float/ftoi.o float/itof.o
-	$(CC) $(CFLAGS) -o sim sim.o revAsm.o op.o instruction.o float/fadd.o float/fsub.o float/fmul.o float/finv.o float/fdiv.o float/ftoi.o float/itof.o
+ALL: sim.o revAsm.o op.o instruction.o float/fadd.o float/fsub.o float/fmul.o float/finv.o float/fdiv.o float/ftoi.o float/itof.o float/fsqrt.o
+	$(CC) $(CFLAGS) -o sim sim.o revAsm.o op.o instruction.o float/fadd.o float/fsub.o float/fmul.o float/finv.o float/fdiv.o float/ftoi.o float/itof.o float/fsqrt.o
 
 sim.o: sim.cpp
 	$(CC) $(CFLAGS) -o sim.o -c sim.cpp
@@ -36,6 +36,9 @@ float/ftoi.o: float/ftoi.cpp float/ftoi.h float/fcalc.h
 
 float/itof.o: float/itof.cpp float/itof.h float/fcalc.h
 	$(CC) $(CFLAGS) -o float/itof.o -c float/itof.cpp
+
+float/fsqrt.o: float/fsqrt.cpp float/fsqrt.h float/fcalc.h float/fmul.h
+	$(CC) $(CFLAGS) -o float/fsqrt.o -c float/fsqrt.cpp
 
 
 clean:

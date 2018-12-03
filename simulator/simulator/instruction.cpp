@@ -4,6 +4,7 @@
 #include <cmath>
 #include <stdlib.h>
 #include <stdint.h>
+#include <algorithm>
 #include "instruction.h"
 #include "float/fadd.h"
 #include "float/fsub.h"
@@ -12,6 +13,7 @@
 #include "float/fdiv.h"
 #include "float/ftoi.h"
 #include "float/itof.h"
+#include "float/fsqrt.h"
 #define DATA_ADDR 0x10000
 
 using namespace std;
@@ -183,7 +185,9 @@ void fmul() {
 void fsqrt() {
 	rD = get_rD(OP);
 	rA = get_rA(OP);
-	FPR[rD] = sqrt(FPR[rA]);
+	uint32_t x = *(uint32_t*)&FPR[rA];
+	uint32_t tmp = fsqrt_f(x);
+	FPR[rD] = *(float*)&tmp;
 }
 void fabs() {
 	rD = get_rD(OP);
