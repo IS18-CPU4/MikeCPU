@@ -148,6 +148,20 @@ min_caml_read_int:
     add r2, r2, r31
     blr
 min_caml_read_float:
+    in  r2
+    slwi    r2, r2, 8
+    in  r31
+    add r2, r2, r31
+    slwi    r2, r2, 8
+    in  r31
+    add r2, r2, r31
+    slwi    r2, r2, 8
+    in  r31
+    add r2, r2, r31
+
+    st  r2, r3, 8
+    fld fr1, r3, 8
+    blr
 min_caml_create_array:
 min_caml_create_float_array:
 min_caml_abs_float:
