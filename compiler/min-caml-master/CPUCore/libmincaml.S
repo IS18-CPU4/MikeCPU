@@ -136,11 +136,38 @@ min_caml_prerr_byte:
 	blr
 #min_caml_prerr_float:
 min_caml_read_int:
+    in  r2
+    slwi    r2, r2, 8
+    in  r31
+    add r2, r2, r31
+    slwi    r2, r2, 8
+    in  r31
+    add r2, r2, r31
+    slwi    r2, r2, 8
+    in  r31
+    add r2, r2, r31
+    blr
 min_caml_read_float:
+    in  r2
+    slwi    r2, r2, 8
+    in  r31
+    add r2, r2, r31
+    slwi    r2, r2, 8
+    in  r31
+    add r2, r2, r31
+    slwi    r2, r2, 8
+    in  r31
+    add r2, r2, r31
+
+    st  r2, r3, 8
+    fld fr1, r3, 8
+    blr
 min_caml_create_array:
 min_caml_create_float_array:
 min_caml_abs_float:
+    fabs fr1, fr1
 min_caml_sqrt:
+    fsqrt fr1, fr1
 min_caml_floor:
 min_caml_int_of_float:
   ftoi r2, fr1
