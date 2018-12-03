@@ -111,7 +111,7 @@ module FAlu (
   fadd_p2 adder (x1, x2, ya, ovfa, clk, rstn);
   fsub_p2 subber(x1, x2, ys, ovfs, clk, rstn);
   fmul    muller(x1, x2, ym, ovfm);
-  fdiv    diver (x1, x2, yd, ovfd);
+  fdiv_p2 diver (x1, x2, yd, ovfd, clk);
 
   assign y = (
     (command == `FA_COM_add) ? ya :
@@ -507,7 +507,7 @@ module Controller(
             condreg <= {alu_out[31], ~(alu_out[31]), ~(|alu_out), 1'b0};
           end
           if (inst_op == `OP_fcmpw) begin
-            condreg <= {falu_out[31], ~(falu_out[31]), ~(falu_out[30:23]==0), 1'b0};
+            condreg <= {falu_out[31], ~(falu_out[31]), (falu_out[30:23]==0), 1'b0};
           end
 
           if (inst_op == `OP_ld) begin
