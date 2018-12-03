@@ -40,33 +40,50 @@ int main(int argc, char *argv[]){
   for (key = 0; key < 0x400*2; key++) {
     printf("(key == 11'b");
     printbit(key, 10, 0);
-    printf(") ? 46'b");
+    printf(") ? 48'b");
     if (key < 0x400) {
-      // even
+      // even (e=2k)
       // sqrt(2) / sqrt(1.m)
       input.i = one.i + (key << 13);
       x1.i = input.i;
       x2.i = input.i + ((uint32_t)1 << 13);
-      x0.f = (1 / sqrtf(x1.f) + 1 / sqrtf(x2.f)) / sqrt(2);
+      x0.f = (1 / sqrtf(x1.f) + 1 / sqrtf(x2.f)) / sqrtf(2);
+      if (x0.f < 1.0 || x0.f > sqrtf(2)) {
+        printf("something is wrong (even).\n");
+        printf("value is %f\n", x0.f);
+        break;
+      }
       constant.f = 3 * x0.f;
-      printbit(constant.i, 22, 0);
+      if (get_up2down(constant.i, 30, 23) == 128) {
+        printbit(get_up2down(constant.i, 22, 0) + ((uint32_t)1 << 23), 24, 0);
+      } else if (get_up2down(constant.i, 30, 23) == 129) {
+        printbit((get_up2down(constant.i, 22, 0) + ((uint32_t)1 << 23)) << 1, 24, 0);
+      } else {
+        printf("something wrong!!!!\n");
+        break;
+      }
       gradient.f = powf(x0.f, 3);
-      printbit(constant.i, 22, 0);
+      printbit(gradient.i, 22, 0);
     } else {
-      // odd
+      // odd (e=2k+1)
       // 2 / sqrt(1.m)
-      input.i = one.i + ((key - ((uint32_t)1<<11)) << 13);
+      input.i = one.i + ((key - ((uint32_t)1<<10)) << 13);
       x1.i = input.i;
       x2.i = input.i + ((uint32_t)1 << 13);
       x0.f = (1 / sqrtf(x1.f) + 1 / sqrtf(x2.f));
+      if (x0.f > 2.0 || x0.f < sqrtf(2)) {
+        printf("something is wrong (odd).\n");
+        printf("value is %f\n", x0.f);
+        break;
+      }
       constant.f = 3 * x0.f;
-      printbit(constant.i, 22, 0);
+      printbit((get_up2down(constant.i, 22, 0) + ((uint32_t)1 << 23)) << 1, 24, 0);
       gradient.f = powf(x0.f, 3);
-      printbit(constant.i, 22, 0);
+      printbit(gradient.i, 22, 0);
     }
     
     if (key == 0x400*2-1) {
-      printf(" : 46'd0;\n");
+      printf(" : 48'd0;\n");
     } else {
       printf(" :\n");
     }
