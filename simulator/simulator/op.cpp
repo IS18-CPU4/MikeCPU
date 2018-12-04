@@ -12,6 +12,7 @@ extern uint32_t INST_MEM[INST_ADDR];
 extern uint32_t PC;
 extern uint32_t OP;
 extern bool stepflag;
+extern bool inputflag;
 
 int do_op() {
 	//cout << "PC: " << hex << (PC << 2) << endl;
@@ -128,6 +129,11 @@ int do_op() {
 		case 35:
 			//cout << "opname bal" << endl;
 			branch_abs_and_link();break;
+		case 62:
+			if (inputflag == 0) {
+				cout << "error: no input sld but called instruction \"in\"" << endl;
+			}
+			in();PC++;break;
 		case 63:
 			//cout << "opname out" << endl;
 			if (stepflag == 0) {
@@ -143,4 +149,3 @@ int do_op() {
 
 	return 0;
 }
-

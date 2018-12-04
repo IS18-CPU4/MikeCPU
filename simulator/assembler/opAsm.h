@@ -57,6 +57,8 @@ uint32_t op_out(const vector<string>&);
 uint32_t op_ba(const vector<string>&);
 uint32_t op_bal(const vector<string>&);
 
+uint32_t op_in(const vector<string>&);
+
 uint32_t set_txt(const vector<string>&);
 uint32_t set_align(const vector<string>&);
 uint32_t set_globl(const vector<string>&);

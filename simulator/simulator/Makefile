@@ -4,7 +4,7 @@ CFLAGS = -std=c++11 -O2 -Wall
 ALL: sim.o revAsm.o op.o instruction.o float/fadd.o float/fsub.o float/fmul.o float/finv.o float/fdiv.o float/ftoi.o float/itof.o float/fsqrt.o
 	$(CC) $(CFLAGS) -o sim sim.o revAsm.o op.o instruction.o float/fadd.o float/fsub.o float/fmul.o float/finv.o float/fdiv.o float/ftoi.o float/itof.o float/fsqrt.o
 
-sim.o: sim.cpp
+sim.o: sim.cpp sld.h
 	$(CC) $(CFLAGS) -o sim.o -c sim.cpp
 
 revAsm.o: revAsm.cpp revAsm.h

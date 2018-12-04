@@ -319,6 +319,11 @@ uint32_t op_bal(const vector<string>& vitem) {
 	return (op | get_rD(vitem[1]));
 }
 
+uint32_t op_in(const vector<string>& vitem) {
+	op = (1 << 31) | (1 << 30) | (1 << 29) | (1 << 28) | (1 << 27);
+	return (op | get_rD(vitem[1]));
+}
+
 uint32_t set_txt(const vector<string>& vitem) {
 	return 0;
 }
