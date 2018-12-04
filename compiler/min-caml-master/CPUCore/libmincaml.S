@@ -200,58 +200,49 @@ min_caml_float_of_int:
   blr
 #min_caml_cos:
 #min_caml_sin:
-min_caml_sincos_ker_sin.100:
+min_caml_sincos_ker_sin.85:
 	fmul	fr2, fr1, fr1
-	fmul	fr2, fr2, fr1
+	fmul	fr3, fr1, fr2
 	li	r31, 15915
 	slwi	r31, r31, 16
 	addi	r31, r31, 43692
 	st	r31, r3, 8
-	fld	fr3, r3, 8
-	fmul	fr2, fr2, fr3
-	fsub	fr2, fr1, fr2
-	fmul	fr3, fr1, fr1
-	fmul	fr3, fr3, fr1
-	fmul	fr3, fr3, fr1
-	fmul	fr3, fr3, fr1
+	fld	fr4, r3, 8
+	fmul	fr4, fr3, fr4
+	fsub	fr1, fr1, fr4
+	fmul	fr4, fr3, fr2
 	li	r31, 15369
 	slwi	r31, r31, 16
 	addi	r31, r31, 34406
 	st	r31, r3, 8
-	fld	fr4, r3, 8
-	fmul	fr3, fr3, fr4
-	fadd	fr2, fr2, fr3
-	fmul	fr3, fr1, fr1
-	fmul	fr3, fr3, fr1
-	fmul	fr3, fr3, fr1
-	fmul	fr3, fr3, fr1
-	fmul	fr3, fr3, fr1
-	fmul	fr1, fr3, fr1
+	fld	fr5, r3, 8
+	fmul	fr4, fr4, fr5
+	fadd	fr1, fr1, fr4
+	fmul	fr3, fr3, fr2
+	fmul	fr2, fr3, fr2
 	li	r31, 14669
 	slwi	r31, r31, 16
 	addi	r31, r31, 25782
 	st	r31, r3, 8
 	fld	fr3, r3, 8
-	fmul	fr1, fr1, fr3
-	fsub	fr1, fr2, fr1
+	fmul	fr2, fr2, fr3
+	fsub	fr1, fr1, fr2
 	blr
-min_caml_sincos_ker_cos.102:
+min_caml_sincos_ker_cos.87:
+	fmul	fr1, fr1, fr1
 	li	r31, 16256
 	slwi	r31, r31, 16
 	addi	r31, r31, 0
 	st	r31, r3, 8
 	fld	fr2, r3, 8
-	fmul	fr3, fr1, fr1
 	li	r31, 16128
 	slwi	r31, r31, 16
 	addi	r31, r31, 0
 	st	r31, r3, 8
-	fld	fr4, r3, 8
-	fmul	fr3, fr3, fr4
+	fld	fr3, r3, 8
+	fmul	fr3, fr1, fr3
 	fsub	fr2, fr2, fr3
 	fmul	fr3, fr1, fr1
-	fmul	fr3, fr3, fr1
-	fmul	fr3, fr3, fr1
 	li	r31, 15659
 	slwi	r31, r31, 16
 	addi	r31, r31, 42889
@@ -260,9 +251,6 @@ min_caml_sincos_ker_cos.102:
 	fmul	fr3, fr3, fr4
 	fadd	fr2, fr2, fr3
 	fmul	fr3, fr1, fr1
-	fmul	fr3, fr3, fr1
-	fmul	fr3, fr3, fr1
-	fmul	fr3, fr3, fr1
 	fmul	fr1, fr3, fr1
 	li	r31, 15028
 	slwi	r31, r31, 16
@@ -284,75 +272,75 @@ min_caml_sin:
 	st	r31, r3, 8
 	fld	fr3, r3, 8
 	fcmp	cr0, fr3, fr1
-	blt	min_caml_sincos_le.234
-	beq	min_caml_sincos_le.234
+	blt	min_caml_sincos_le.207
+	beq	min_caml_sincos_le.207
 	fsub	fr1, fr0, fr1
 	mflr	r31
 	st	r31, r3, 4
 	addi	r3, r3, 8
-	bl	min_caml_sincos_a_sin.104
+	bl	min_caml_sin
 	addi	r3, r3, -8
 	ld	r31, r3, 4
 	mtlr	r31
 	fsub	fr1, fr0, fr1
 	blr
-min_caml_sincos_le.234:
+min_caml_sincos_le.207:
 	li	r31, 16585
 	slwi	r31, r31, 16
 	addi	r31, r31, 4059
 	st	r31, r3, 8
 	fld	fr3, r3, 8
 	fcmp	cr0, fr3, fr1
-	blt	min_caml_sincos_le.235
-	beq	min_caml_sincos_le.235
+	blt	min_caml_sincos_le.208
+	beq	min_caml_sincos_le.208
 	fcmp	cr0, fr2, fr1
-	blt	min_caml_sincos_le.236
-	beq	min_caml_sincos_le.236
+	blt	min_caml_sincos_le.209
+	beq	min_caml_sincos_le.209
 	li	r31, 16329
 	slwi	r31, r31, 16
 	addi	r31, r31, 4059
 	st	r31, r3, 8
 	fld	fr2, r3, 8
 	fcmp	cr0, fr2, fr1
-	blt	min_caml_sincos_le.237
-	beq	min_caml_sincos_le.237
+	blt	min_caml_sincos_le.210
+	beq	min_caml_sincos_le.210
 	li	r31, 16201
 	slwi	r31, r31, 16
 	addi	r31, r31, 4059
 	st	r31, r3, 8
 	fld	fr2, r3, 8
 	fcmp	cr0, fr2, fr1
-	blt	min_caml_sincos_le.238
-	beq	min_caml_sincos_le.238
-	b	min_caml_sincos_ker_sin.100
-min_caml_sincos_le.238:
+	blt	min_caml_sincos_le.211
+	beq	min_caml_sincos_le.211
+	b	min_caml_sincos_ker_sin.85
+min_caml_sincos_le.211:
 	li	r31, 16329
 	slwi	r31, r31, 16
 	addi	r31, r31, 4059
 	st	r31, r3, 8
 	fld	fr2, r3, 8
 	fsub	fr1, fr2, fr1
-	b	min_caml_sincos_ker_cos.102
-min_caml_sincos_le.237:
+	b	min_caml_sincos_ker_cos.87
+min_caml_sincos_le.210:
 	li	r31, 16329
 	slwi	r31, r31, 16
 	addi	r31, r31, 4059
 	st	r31, r3, 8
 	fld	fr2, r3, 8
 	fsub	fr1, fr1, fr2
-	b	min_caml_sincos_a_sin.104
-min_caml_sincos_le.236:
+	b	min_caml_sin
+min_caml_sincos_le.209:
 	fsub	fr1, fr1, fr2
 	mflr	r31
 	st	r31, r3, 4
 	addi	r3, r3, 8
-	bl	min_caml_sincos_a_sin.104
+	bl	min_caml_sin
 	addi	r3, r3, -8
 	ld	r31, r3, 4
 	mtlr	r31
 	fsub	fr1, fr0, fr1
 	blr
-min_caml_sincos_le.235:
+min_caml_sincos_le.208:
 	li	r31, 16585
 	slwi	r31, r31, 16
 	addi	r31, r31, 4059
@@ -386,7 +374,7 @@ min_caml_sincos_le.235:
 	fmul	fr1, fr1, fr2
 	fld	fr2, r3, 0
 	fsub	fr1, fr2, fr1
-	b	min_caml_sincos_a_sin.104
+	b	min_caml_sin
 min_caml_cos:
 	li	r31, 16457
 	slwi	r31, r31, 16
@@ -399,48 +387,48 @@ min_caml_cos:
 	st	r31, r3, 8
 	fld	fr3, r3, 8
 	fcmp	cr0, fr3, fr1
-	blt	min_caml_sincos_le.239
-	beq	min_caml_sincos_le.239
+	blt	min_caml_sincos_le.212
+	beq	min_caml_sincos_le.212
 	fsub	fr1, fr0, fr1
-	b	min_caml_sincos_a_cos.106
-min_caml_sincos_le.239:
+	b	min_caml_cos
+min_caml_sincos_le.212:
 	li	r31, 16585
 	slwi	r31, r31, 16
 	addi	r31, r31, 4059
 	st	r31, r3, 8
 	fld	fr3, r3, 8
 	fcmp	cr0, fr3, fr1
-	blt	min_caml_sincos_le.240
-	beq	min_caml_sincos_le.240
+	blt	min_caml_sincos_le.213
+	beq	min_caml_sincos_le.213
 	fcmp	cr0, fr2, fr1
-	blt	min_caml_sincos_le.241
-	beq	min_caml_sincos_le.241
+	blt	min_caml_sincos_le.214
+	beq	min_caml_sincos_le.214
 	li	r31, 16329
 	slwi	r31, r31, 16
 	addi	r31, r31, 4059
 	st	r31, r3, 8
 	fld	fr2, r3, 8
 	fcmp	cr0, fr2, fr1
-	blt	min_caml_sincos_le.242
-	beq	min_caml_sincos_le.242
+	blt	min_caml_sincos_le.215
+	beq	min_caml_sincos_le.215
 	li	r31, 16201
 	slwi	r31, r31, 16
 	addi	r31, r31, 4059
 	st	r31, r3, 8
 	fld	fr2, r3, 8
 	fcmp	cr0, fr2, fr1
-	blt	min_caml_sincos_le.243
-	beq	min_caml_sincos_le.243
-	b	min_caml_sincos_ker_cos.102
-min_caml_sincos_le.243:
+	blt	min_caml_sincos_le.216
+	beq	min_caml_sincos_le.216
+	b	min_caml_sincos_ker_cos.87
+min_caml_sincos_le.216:
 	li	r31, 16329
 	slwi	r31, r31, 16
 	addi	r31, r31, 4059
 	st	r31, r3, 8
 	fld	fr2, r3, 8
 	fsub	fr1, fr2, fr1
-	b	min_caml_sincos_ker_sin.100
-min_caml_sincos_le.242:
+	b	min_caml_sincos_ker_sin.85
+min_caml_sincos_le.215:
 	li	r31, 16329
 	slwi	r31, r31, 16
 	addi	r31, r31, 4059
@@ -450,24 +438,24 @@ min_caml_sincos_le.242:
 	mflr	r31
 	st	r31, r3, 4
 	addi	r3, r3, 8
-	bl	min_caml_sincos_a_cos.106
+	bl	min_caml_cos
 	addi	r3, r3, -8
 	ld	r31, r3, 4
 	mtlr	r31
 	fsub	fr1, fr0, fr1
 	blr
-min_caml_sincos_le.241:
+min_caml_sincos_le.214:
 	fsub	fr1, fr1, fr2
 	mflr	r31
 	st	r31, r3, 4
 	addi	r3, r3, 8
-	bl	min_caml_sincos_a_cos.106
+	bl	min_caml_cos
 	addi	r3, r3, -8
 	ld	r31, r3, 4
 	mtlr	r31
 	fsub	fr1, fr0, fr1
 	blr
-min_caml_sincos_le.240:
+min_caml_sincos_le.213:
 	li	r31, 16585
 	slwi	r31, r31, 16
 	addi	r31, r31, 4059
@@ -501,5 +489,148 @@ min_caml_sincos_le.240:
 	fmul	fr1, fr1, fr2
 	fld	fr2, r3, 0
 	fsub	fr1, fr2, fr1
-	b	min_caml_sincos_a_cos.106
+	b	min_caml_cos
+#min_caml_atan:
+min_caml_atan_ker_atan.44:
+	fmul	fr2, fr1, fr1
+	fmul	fr3, fr1, fr2
+	fmul	fr4, fr2, fr2
+	fmul	fr5, fr3, fr3
+	fmul	fr5, fr5, fr3
+	li	r31, 16043
+	slwi	r31, r31, 16
+	addi	r31, r31, 43690
+	st	r31, r3, 8
+	fld	fr6, r3, 8
+	fmul	fr6, fr3, fr6
+	fsub	fr1, fr1, fr6
+	fmul	fr6, fr3, fr2
+	li	r31, 15949
+	slwi	r31, r31, 16
+	addi	r31, r31, 52429
+	st	r31, r3, 8
+	fld	fr7, r3, 8
+	fmul	fr6, fr6, fr7
+	fadd	fr1, fr1, fr6
+	fmul	fr3, fr3, fr4
+	li	r31, 15890
+	slwi	r31, r31, 16
+	addi	r31, r31, 18725
+	st	r31, r3, 8
+	fld	fr6, r3, 8
+	fmul	fr3, fr3, fr6
+	fsub	fr1, fr1, fr3
+	li	r31, 15844
+	slwi	r31, r31, 16
+	addi	r31, r31, 36408
+	st	r31, r3, 8
+	fld	fr3, r3, 8
+	fmul	fr3, fr5, fr3
+	fadd	fr1, fr1, fr3
+	fmul	fr2, fr5, fr2
+	li	r31, 15800
+	slwi	r31, r31, 16
+	addi	r31, r31, 54894
+	st	r31, r3, 8
+	fld	fr3, r3, 8
+	fmul	fr2, fr2, fr3
+	fsub	fr1, fr1, fr2
+	fmul	fr2, fr5, fr4
+	li	r31, 15734
+	slwi	r31, r31, 16
+	addi	r31, r31, 59333
+	st	r31, r3, 8
+	fld	fr3, r3, 8
+	fmul	fr2, fr2, fr3
+	fadd	fr1, fr1, fr2
+	blr
 min_caml_atan:
+	li	r31, 0
+	slwi	r31, r31, 16
+	addi	r31, r31, 0
+	st	r31, r3, 8
+	fld	fr2, r3, 8
+	fcmp	cr0, fr2, fr1
+	blt	min_caml_atan_le.113
+	beq	min_caml_atan_le.113
+	fsub	fr1, fr0, fr1
+	mflr	r31
+	st	r31, r3, 4
+	addi	r3, r3, 8
+	bl	min_caml_atan
+	addi	r3, r3, -8
+	ld	r31, r3, 4
+	mtlr	r31
+	fsub	fr1, fr0, fr1
+	blr
+min_caml_atan_le.113:
+	li	r31, 16096
+	slwi	r31, r31, 16
+	addi	r31, r31, 0
+	st	r31, r3, 8
+	fld	fr2, r3, 8
+	fcmp	cr0, fr2, fr1
+	blt	min_caml_atan_le.114
+	beq	min_caml_atan_le.114
+	b	min_caml_atan_ker_atan.44
+min_caml_atan_le.114:
+	li	r31, 16412
+	slwi	r31, r31, 16
+	addi	r31, r31, 0
+	st	r31, r3, 8
+	fld	fr2, r3, 8
+	fcmp	cr0, fr2, fr1
+	blt	min_caml_atan_le.115
+	beq	min_caml_atan_le.115
+	li	r31, 16201
+	slwi	r31, r31, 16
+	addi	r31, r31, 4059
+	st	r31, r3, 8
+	fld	fr2, r3, 8
+	li	r31, 16256
+	slwi	r31, r31, 16
+	addi	r31, r31, 0
+	st	r31, r3, 8
+	fld	fr3, r3, 8
+	fsub	fr3, fr1, fr3
+	li	r31, 16256
+	slwi	r31, r31, 16
+	addi	r31, r31, 0
+	st	r31, r3, 8
+	fld	fr4, r3, 8
+	fadd	fr1, fr1, fr4
+	fdiv	fr1, fr3, fr1
+	fst	fr2, r3, 0
+	mflr	r31
+	st	r31, r3, 4
+	addi	r3, r3, 8
+	bl	min_caml_atan_ker_atan.44
+	addi	r3, r3, -8
+	ld	r31, r3, 4
+	mtlr	r31
+	fld	fr2, r3, 0
+	fadd	fr1, fr2, fr1
+	blr
+min_caml_atan_le.115:
+	li	r31, 16329
+	slwi	r31, r31, 16
+	addi	r31, r31, 4059
+	st	r31, r3, 8
+	fld	fr2, r3, 8
+	li	r31, 16256
+	slwi	r31, r31, 16
+	addi	r31, r31, 0
+	st	r31, r3, 8
+	fld	fr3, r3, 8
+	fdiv	fr1, fr3, fr1
+	fst	fr2, r3, 4
+	mflr	r31
+	st	r31, r3, 12
+	addi	r3, r3, 16
+	bl	min_caml_atan_ker_atan.44
+	addi	r3, r3, -16
+	ld	r31, r3, 12
+	mtlr	r31
+	fld	fr2, r3, 4
+	fsub	fr1, fr2, fr1
+	blr
