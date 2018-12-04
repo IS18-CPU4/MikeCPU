@@ -179,10 +179,10 @@ min_caml_create_float_array:
 	mr	r2, r4
 create_float_array_loop:
 	cmpwi	cr0, r5, 0
-	bne	cr0, create_float_array_cont
+	bne	create_float_array_cont
 	blr
 create_float_array_cont:
-	stfd	fr1, r4, 0
+	fst	fr1, r4, 0
 	addi	r5, r5, -1
 	addi	r4, r4, 4
 	b	create_float_array_loop
