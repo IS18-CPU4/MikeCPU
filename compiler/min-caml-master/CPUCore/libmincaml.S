@@ -163,7 +163,29 @@ min_caml_read_float:
     fld fr1, r3, 8
     blr
 min_caml_create_array:
+  mr	r6, r2
+  mr	r2, r4
+  create_array_loop:
+  cmpwi	cr0, r6, 0
+  bne	create_array_cont
+  blr
+  create_array_cont:
+  st	r5, r4, 0
+  addi  r6, r6, -1
+  addi	r4, r4, 4
+  b	create_array_loop
 min_caml_create_float_array:
+	mr	r5, r2
+	mr	r2, r4
+create_float_array_loop:
+	cmpwi	cr0, r5, 0
+	bne	cr0, create_float_array_cont
+	blr
+create_float_array_cont:
+	stfd	fr1, r4, 0
+	addi	r5, r5, -1
+	addi	r4, r4, 8
+	b	create_float_array_loop
 min_caml_abs_float:
     fabs fr1, fr1
     blr
