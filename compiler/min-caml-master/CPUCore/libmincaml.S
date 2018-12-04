@@ -184,7 +184,7 @@ create_float_array_loop:
 create_float_array_cont:
 	stfd	fr1, r4, 0
 	addi	r5, r5, -1
-	addi	r4, r4, 8
+	addi	r4, r4, 4
 	b	create_float_array_loop
 min_caml_abs_float:
     fabs fr1, fr1
