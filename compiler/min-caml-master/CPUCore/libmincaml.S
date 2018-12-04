@@ -166,9 +166,29 @@ min_caml_create_array:
 min_caml_create_float_array:
 min_caml_abs_float:
     fabs fr1, fr1
+    blr
 min_caml_sqrt:
     fsqrt fr1, fr1
+    blr
+#min_caml_floor:
 min_caml_floor:
+	li	r31, 0
+	slwi	r31, r31, 16
+	addi	r31, r31, 0
+	st	r31, r3, 8
+	fld	fr2, r3, 8
+	fcmp	cr0, fr2, fr1
+	blt	min_caml_floor_le.58
+	beq	min_caml_floor_le.58
+	li	r31, 16256
+	slwi	r31, r31, 16
+	addi	r31, r31, 0
+	st	r31, r3, 8
+	fld	fr2, r3, 8
+	fsub	fr1, fr1, fr2
+	b	min_caml_int_of_float
+min_caml_floor_le.58:
+	b	min_caml_int_of_float
 min_caml_int_of_float:
   ftoi r2, fr1
   blr
