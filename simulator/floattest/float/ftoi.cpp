@@ -17,7 +17,9 @@ uint32_t ftoi_f(uint32_t x) {
 	m1 = (1 << 23) | m;
 
 	uint64_t shift_m1;//53bit
-	shift_m1 = getBit64((uint64_t)(e - 127), 53, 0);
+	uint64_t tmp_shift_m1;
+	tmp_shift_m1 = (uint64_t)m1 << (e - 127);
+	shift_m1 = getBit64(tmp_shift_m1, 53, 0);
 
 	uint32_t i;//31bit
 	i = (e == 126) ? 1 : ((e <= 125)? 0 : ((e >= 150) ? (uint32_t)getBit64(shift_m1, 53, 23): (uint32_t)getBit64(shift_m1, 22, 22)));
