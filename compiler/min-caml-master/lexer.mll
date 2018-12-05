@@ -114,6 +114,9 @@ and comment = parse
 | "(*"
     { comment lexbuf;
       comment lexbuf }
+| enter
+    { Lexing.new_line lexbuf;
+      comment lexbuf}
 | eof
     { Format.eprintf "warning: unterminated comment@." }
 | _
