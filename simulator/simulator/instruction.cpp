@@ -2,8 +2,9 @@
 #include <fstream>
 #include <vector>
 #include <cmath>
-#include <stdlib.h>
+#include <cstdlib>
 #include <stdint.h>
+#include <algorithm>
 #include "instruction.h"
 #include "float/fadd.h"
 #include "float/fsub.h"
@@ -12,6 +13,7 @@
 #include "float/fdiv.h"
 #include "float/ftoi.h"
 #include "float/itof.h"
+#include "float/fsqrt.h"
 #define DATA_ADDR 0x10000
 
 using namespace std;
@@ -26,6 +28,11 @@ extern uint32_t PC;
 extern uint32_t OP;
 extern vector<char> outChar;
 extern ofstream fileout;
+
+extern vector<uint32_t> uinput_vector;
+int uinput_byte_count = 0;;//1byteずつ取得したい
+int uinput_index = 0;
+
 
 int rD;
 int rA;
@@ -183,7 +190,9 @@ void fmul() {
 void fsqrt() {
 	rD = get_rD(OP);
 	rA = get_rA(OP);
-	FPR[rD] = sqrt(FPR[rA]);
+	uint32_t x = *(uint32_t*)&FPR[rA];
+	uint32_t tmp = fsqrt_f(x);
+	FPR[rD] = *(float*)&tmp;
 }
 void fabs() {
 	rD = get_rD(OP);
@@ -422,4 +431,20 @@ void branch_abs_and_link() {
 	uint32_t addr = GPR[rD];
 	LR = PC + 1;
 	PC = addr;
+}
+
+void in() {
+	rD = get_rD(OP);
+	//some exec
+	//input_byte_count input_string_indexでアクセス
+	if (uinput_byte_count == 4) {
+		uinput_byte_count = 0;
+		uinput_index++;
+	}
+	uint32_t uinput = uinput_vector[uinput_index];
+	uint32_t utmp = uinput << (uinput_byte_count * 8);
+	uint32_t uin = utmp >> 24;
+	GPR[rD] = uin;
+	
+	uinput_byte_count++;
 }

@@ -51,6 +51,9 @@ uint32_t encode_to_op(vector<string> vitem) {
 	//added 2
 	if (scmp("ba")) {return op_ba(vitem);}
 	if (scmp("bal")) {return op_bal(vitem);}
+	
+	//added 3
+	if (scmp("in")) {return op_in(vitem);}
 
 	if (scmp(".text")) {return set_txt(vitem);}
 	if (scmp(".align")) {return set_align(vitem);}

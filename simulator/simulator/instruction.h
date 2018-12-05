@@ -84,4 +84,7 @@ void outstep();
 void branch_abs();
 void branch_abs_and_link();
 
+//added 3
+void in();
+
 #endif //INSTRUCTION_H_

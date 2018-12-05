@@ -12,6 +12,7 @@
 #include <chrono>
 #include "revAsm.h"
 #include "op.h"
+#include "sld.h"
 
 #define INST_ADDR 0x10000
 #define DATA_ADDR 0x10000
@@ -20,34 +21,44 @@ using namespace std;
 void PrintHelp() {
 cout << "--step:   execute by step\n"
 				"--help:	 show help\n"
+				"--input: specify inputfile (.sld)\n"
 				"put 1 input file name...\n";
 exit(1);
 }
+
 int step();
 int normal();
 bool stepflag = 0;
+bool inputflag = 0;
+string sldname;
+
 void ProcessArgs(int argc, char** argv) {
-const char* const short_opts = "h:";
-const option long_opts[] = {
-	{"step", no_argument, nullptr, 's'},
-	{"help", no_argument, nullptr, 'h'},
-	{nullptr, no_argument, nullptr, 0}
-};
-while (1) {
-	int opt = getopt_long(argc, argv, short_opts, long_opts, nullptr);
-	if (-1 == opt) {break;}
-	switch (opt) {
-	case 's':
-		stepflag = 1;
-		break;
-	case 'h':
-	case '?':
-		PrintHelp();
-		break;
-	default:
-		break;
+	const char* const short_opts = "h:";
+	const option long_opts[] = {
+		{"step", no_argument, nullptr, 's'},
+		{"help", no_argument, nullptr, 'h'},
+		{"input", required_argument, NULL, 'i'},
+		{nullptr, no_argument, nullptr, 0}
+	};
+	while (1) {
+		int opt = getopt_long(argc, argv, short_opts, long_opts, nullptr);
+		if (-1 == opt) {break;}
+		switch (opt) {
+		case 's':
+			stepflag = 1;
+			break;
+		case 'i':
+			sldname = optarg;
+			inputflag = 1;
+			break;
+		case 'h':
+		case '?':
+			PrintHelp();
+			break;
+		default:
+			break;
+		}
 	}
-}
 }
 
 
@@ -71,6 +82,8 @@ uint32_t lastPC;
 /*static inline uint32_t bits(uint32_t inst, unsigned int i, unsigned int j) {
 return (inst & ((1 << (i+1)) - (1 << j))) >> j;
 }*/
+
+vector<uint32_t> uinput_vector;
 
 // レジスタに値を設定　引数などに使用
 void initialize();
@@ -494,12 +507,64 @@ int main(int argc, char**argv) {
 
 
 	FILE* binary;
-	cout << "open input file..." << endl;
+	cout << "open input binary file..." << endl;
 	binary = fopen(argv[optind], "rb");
 	if (!binary) {
-		cerr << "cannot open file" << endl;
+		cerr << "cannot open binary file" << endl;
 		return EXIT_FAILURE;
 	}
+	if (inputflag == 1) {//deal with sld file
+		cout << "optional input: " << sldname << endl;
+		ifstream inputsld;
+		inputsld.open(sldname, ifstream::in);
+		if (!inputsld) {
+			cerr << "cannot open optional input file" << endl;
+			return 1;
+		}
+		string line;
+		while (getline(inputsld, line)) {
+			if (line == "") {
+				continue;
+			}
+			string trimmedStr = trim(line);
+			vector<string> vitem = StringSplit(trimmedStr, ' ');
+			vector<string>::iterator slditr;
+			for (slditr = vitem.begin(); slditr != vitem.end(); slditr++) {
+		//		input_string.push_back(*slditr);
+				string input = *slditr;
+				uint32_t uinput;
+				if (input.find(".") != string::npos) {
+				//string to float
+					float finput;
+					try {
+						finput = (float)stod(input, nullptr);
+						uinput = *(uint32_t*)&finput;
+					} catch (const invalid_argument &e) {
+						cout << "invalid input from sld (float)" << endl;
+						return 1;
+					}
+				} else {
+					//string to int
+					try {
+						int iinput = stoi(input, nullptr, 0);
+						uinput = *(uint32_t*)&iinput;
+					} catch (const invalid_argument &e) {
+						cout << "invalid_argument from sld (int)" << endl;
+					}
+				}
+				uinput_vector.push_back(uinput);
+			}
+		}
+		//debug
+		/*vector<uint32_t>::iterator inputitr;
+		cout << "------optional input-------" << endl;
+		for (inputitr = uinput_vector.begin(); inputitr != uinput_vector.end(); inputitr++) {
+			cout << *inputitr << " ";
+		}
+		cout << endl << "--------optional input end--------" << endl;
+		cout << endl;*/
+
+	}//end dealing with sld file
 
 	cout << "open output file..." << endl;
 	if (optind + 1 == argc) {
