@@ -8,7 +8,7 @@
 
 `define OP_fadd     6'd7
 `define OP_fsub     6'd8
-`define OP_fdiv     6'd9 // not implemented
+`define OP_fdiv     6'd9
 `define OP_fmul     6'd10
 `define OP_fsqrt    6'd11 // not implemented
 `define OP_fabs     6'd12 // not implemented
