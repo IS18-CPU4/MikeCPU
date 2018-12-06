@@ -10,8 +10,8 @@
 `define OP_fsub     6'd8
 `define OP_fdiv     6'd9
 `define OP_fmul     6'd10
-`define OP_fsqrt    6'd11 // not implemented
-`define OP_fabs     6'd12 // not implemented
+`define OP_fsqrt    6'd11
+`define OP_fabs     6'd12
 `define OP_fmr       6'd13
 
 `define OP_b        6'd14
@@ -68,6 +68,8 @@
 `define FA_COM_sub 4'd2
 `define FA_COM_mul 4'd3
 `define FA_COM_div 4'd4
+`define FA_COM_sqrt 4'd5
+`define FA_COM_abs 4'd6
 
 `define ERR_C_INVALID_STATE 8'b0000_1000
 `define ERR_C_INVALID_OP    8'b0000_0100
@@ -106,24 +108,31 @@ module FAlu (
   input wire clk,
   input wire rstn);
 
-  wire [31:0] ya, ys, ym, yd;
-  wire ovfa, ovfs, ovfm, ovfd;
+  wire [31:0] ya, ys, ym, yd, ysq, yabs;
+  wire ovfa, ovfs, ovfm, ovfd, ovfsq;
   fadd_p2 adder (x1, x2, ya, ovfa, clk, rstn);
   fsub_p2 subber(x1, x2, ys, ovfs, clk, rstn);
   fmul    muller(x1, x2, ym, ovfm);
   fdiv_p2 diver (x1, x2, yd, ovfd, clk);
+  fsqrt   sqrter(x1, x2, ysq,ovfsq);
+
+  assign yabs = {1'b0, x1[30:0]};
+
 
   assign y = (
     (command == `FA_COM_add) ? ya :
     (command == `FA_COM_sub) ? ys :
     (command == `FA_COM_mul) ? ym :
-    (command == `FA_COM_div) ? yd : 32'b0);
+    (command == `FA_COM_div) ? yd : 
+    (command == `FA_COM_sqrt)? ysq:
+    (command == `FA_COM_abs) ? yabs: 32'b0);
 
   assign ovf = (
     ((command == `FA_COM_add) & ovfa) |
     ((command == `FA_COM_sub) & ovfs) |
     ((command == `FA_COM_mul) & ovfm) |
-    ((command == `FA_COM_div) & ovfd) );
+    ((command == `FA_COM_div) & ovfd) |
+    ((command == `FA_COM_sqrt)&ovfsq) );
 
 endmodule
 
@@ -344,8 +353,12 @@ module Controller(
             `OP_fmul: begin
               fcommand <= `FA_COM_mul;
             end
-            // fsqrt
-            // fabs
+            `OP_fsqrt: begin
+              fcommand <= `FA_COM_sqrt;
+            end
+            `OP_fabs: begin
+              fcommand <= `FA_COM_abs;
+            end
             `OP_fmr: begin
             end
 
