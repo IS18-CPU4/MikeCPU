@@ -83,7 +83,7 @@ fsub					 ok				 ok
 fmul					 ok				 ok
 finv					 ok				 ok
 fdiv					 ok				 ok
-ftoi					 ok
+ftoi					 ok				 ok
 itof					 ok
 fsqrt					 ok				 ok
 
@@ -93,6 +93,7 @@ in命令の追加、それに従いin命令に使うファイルを入力でき�
 仕様があってるかわからないので./asm ./test/in.s ./sim --input in.sld out.bin をやってみてほしい
 
 12/5 ftoiが死んでいた　直したけどtestは少し待って
+12/9 ftoiが相変わらず死んでいた testしたので大丈夫
 
 ---------------------------------------タスク------------------------------------------------------
 
