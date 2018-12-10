@@ -2,7 +2,7 @@ min_caml_print_newline:
   li r2, 10
   out r2
   blr
-#min_caml_print_int:
+# min_caml_print_int:
 min_caml_print_int_mul_10.29:
 	slwi	r5, r2, 1
 	slwi	r2, r2, 3
@@ -130,50 +130,51 @@ min_caml_print_int_bge_else.94:
 min_caml_print_byte:
   out r2
   blr
-#min_caml_prerr_int:
+# min_caml_prerr_int:
 min_caml_prerr_byte:
 	out r2
 	blr
-#min_caml_prerr_float:
+# min_caml_prerr_float:
 min_caml_read_int:
-    in  r2
-    slwi    r2, r2, 8
-    in  r31
-    add r2, r2, r31
-    slwi    r2, r2, 8
-    in  r31
-    add r2, r2, r31
-    slwi    r2, r2, 8
-    in  r31
-    add r2, r2, r31
-    blr
+  in r2
+  slwi  r2, r2, 8
+  in r31
+  add r2, r2, r31
+  slwi  r2, r2, 8
+  in r31
+  add r2, r2, r31
+  slwi  r2, r2, 8
+  in r31
+  add r2, r2, r31
+  blr
 min_caml_read_float:
-    in  r2
-    slwi    r2, r2, 8
-    in  r31
-    add r2, r2, r31
-    slwi    r2, r2, 8
-    in  r31
-    add r2, r2, r31
-    slwi    r2, r2, 8
-    in  r31
-    add r2, r2, r31
-
-    st  r2, r3, 8
-    fld fr1, r3, 8
-    blr
+  in r2
+  slwi  r2, r2, 8
+  in r31
+  add r2, r2, r31
+  slwi  r2, r2, 8
+  in r31
+  add r2, r2, r31
+  slwi  r2, r2, 8
+  in r31
+  add r2, r2, r31
+  st  r2, r3, 8
+  fld fr1, r3, 8
+  blr
+# create_array
 min_caml_create_array:
   mr	r6, r2
   mr	r2, r4
-  create_array_loop:
+create_array_loop:
   cmpwi	cr0, r6, 0
   bne	create_array_cont
   blr
-  create_array_cont:
+create_array_cont:
   st	r5, r4, 0
   addi  r6, r6, -1
   addi	r4, r4, 4
   b	create_array_loop
+# create_float_array
 min_caml_create_float_array:
 	mr	r5, r2
 	mr	r2, r4
@@ -187,12 +188,12 @@ create_float_array_cont:
 	addi	r4, r4, 4
 	b	create_float_array_loop
 min_caml_abs_float:
-    fabs fr1, fr1
-    blr
+  fabs fr1, fr1
+  blr
 min_caml_sqrt:
-    fsqrt fr1, fr1
-    blr
-#min_caml_floor:
+  fsqrt fr1, fr1
+  blr
+# min_caml_floor:
 min_caml_floor:
 	li	r31, 0
 	slwi	r31, r31, 16
@@ -220,8 +221,8 @@ min_caml_truncate:
 min_caml_float_of_int:
   itof fr1, r2
   blr
-#min_caml_cos:
-#min_caml_sin:
+# min_caml_cos:
+# min_caml_sin:
 min_caml_sincos_ker_sin.85:
 	fmul	fr2, fr1, fr1
 	fmul	fr3, fr1, fr2
@@ -512,7 +513,7 @@ min_caml_sincos_le.213:
 	fld	fr2, r3, 0
 	fsub	fr1, fr2, fr1
 	b	min_caml_cos
-#min_caml_atan:
+# min_caml_atan:
 min_caml_atan_ker_atan.44:
 	fmul	fr2, fr1, fr1
 	fmul	fr3, fr1, fr2

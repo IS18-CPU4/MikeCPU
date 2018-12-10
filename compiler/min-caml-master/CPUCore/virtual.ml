@@ -125,8 +125,10 @@ let rec g env = function (* 式の仮想マシンコード生成 (caml2html: virtual_g) *)
       let offset = Id.genid "o" in
       (match M.find x env with
       | Type.Array(Type.Unit) -> Ans(Nop)
+(* alignは8でなくても4でいい? *)
       | Type.Array(Type.Float) ->
-          Let((offset, Type.Int), Slw(y, C(3)),
+(*          Let((offset, Type.Int), Slw(y, C(3)), *)
+          Let((offset, Type.Int), Slw(y, C(2)),
               Ans(Lfd(x, V(offset))))
       | Type.Array(_) ->
           Let((offset, Type.Int), Slw(y, C(2)),
@@ -136,8 +138,10 @@ let rec g env = function (* 式の仮想マシンコード生成 (caml2html: virtual_g) *)
       let offset = Id.genid "o" in
       (match M.find x env with
       | Type.Array(Type.Unit) -> Ans(Nop)
+ (* alignは8でなくても4でいい? *)
       | Type.Array(Type.Float) ->
-          Let((offset, Type.Int), Slw(y, C(3)),
+(*          Let((offset, Type.Int), Slw(y, C(3)), *)
+          Let((offset, Type.Int), Slw(y, C(2)),
               Ans(Stfd(z, x, V(offset))))
       | Type.Array(_) ->
           Let((offset, Type.Int), Slw(y, C(2)),

@@ -92,7 +92,7 @@ let file f = (* ファイルをコンパイルしてファイルに出力する 
   let inchan = open_in (f ^ ".ml") in
   let outchan = open_out (f ^ ".s") in
   try
-    let _ = if !dump_bool then (*������ -dump �μ¹�*)
+    let _ = if !dump_bool then
       dump_lexbuf outchan (Lexing.from_channel inchan)
     else
       lexbuf outchan (Lexing.from_channel inchan)
