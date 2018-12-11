@@ -243,11 +243,11 @@ void branch_lt() {
 }
 void branch_and_link() {
 	simm26 = get_simm26(OP);
-	LR = PC + 1;
+	LR = (PC + 1)<<2;
 	PC = uint32_t((int32_t)PC + simm26);
 }
 void branch_link_reg() {
-	PC = LR;
+	PC = LR>>2;
 }
 void move_from_link() {
 	rD = get_rD(OP);
@@ -424,13 +424,13 @@ void outstep() {
 void branch_abs() {
 	rD = get_rD(OP);
 	uint32_t addr = GPR[rD];
-	PC = addr;
+	PC = addr >> 2;
 }	
 void branch_abs_and_link() {
 	rD = get_rD(OP);
 	uint32_t addr = GPR[rD];
-	LR = PC + 1;
-	PC = addr;
+	LR = (PC + 1)<<2;
+	PC = addr >> 2;
 }
 
 void in() {
