@@ -59,8 +59,8 @@ uint32_t get_simm16(const string str) {
 	//cout << "getsimm16" << endl;
 
 	uint32_t simm16;
-	regex re(R"(ha\(.*\))");
-	regex re2(R"(lo\(.*\))");
+	regex re(R"(ha(16)?\(.*\))");
+	regex re2(R"(lo(16)?\(.*\))");
 	if (regex_match(str, re)) {
 		vector<string> vtmp = StringSplit(str, '(');
 		vtmp[1].erase(vtmp[1].size() -1);

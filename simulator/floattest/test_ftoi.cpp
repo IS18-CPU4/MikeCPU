@@ -15,7 +15,7 @@ int main() {
 
 	for (uint32_t i = 0; i < 158; i++) {
 		for (uint32_t s1 = 0; s1 < 2; s1++) {
-			for (int it = 0; it < 4194304; it++) {
+			for (int it = 0; it < 8388608; it++) {
 				m  = it;
 				x = (s1 << 31) | (i << 23) | m;
 

@@ -6,7 +6,7 @@ start:
 	b end
 equal:
 	cmpwi cr2, r1, 2
-	bc cr9, lo(morethan)
+	bc cr9, lo16(morethan)
 	li r2, 4
 	b end
 lessthan:
