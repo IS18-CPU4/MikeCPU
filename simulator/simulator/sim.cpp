@@ -270,8 +270,9 @@ int step() {//step実行
 	GPR[3] = 0x8000;//stack
 	//uint32_t breakpoint = 0;
 	vector<uint32_t> breakpoint_PC;
-	vector<uint32_t> breakpoint_Inst;
+	vector<long> breakpoint_Inst;
 	vector<uint32_t>::iterator bitr;
+	vector<long>::iterator biitr;
 	vector<char>::iterator citr;
 	string str_pc,str_inst;
 	uint32_t opname;
@@ -294,8 +295,8 @@ int step() {//step実行
 				for (bitr = breakpoint_PC.begin(), bi = 0; bitr != breakpoint_PC.end(); bitr++, bi++) {
 					cout << "breakpoint PC" << dec << bi << " (hex): "<< hex  << (*bitr << 2) << dec << endl;
 				}
-				for (bitr = breakpoint_Inst.begin(), bi = 0; bitr != breakpoint_Inst.end(); bitr++, bi++) {
-					cout << "breakpoint Inst" << dec << bi << " (dec): "<<  *bitr  << endl;
+				for (biitr = breakpoint_Inst.begin(), bi = 0; biitr != breakpoint_Inst.end(); biitr++, bi++) {
+					cout << "breakpoint Inst" << dec << bi << " (dec): "<<  *biitr  << endl;
 				}
 				while(1) {
 				cout << "choose which to set breakpoint by...PC 'p', number of instructions 'i' (put e to end): ";
@@ -341,9 +342,9 @@ int step() {//step実行
 								break;
 							} else {
 								try {
-									int int_inst= stoi(str_inst, nullptr, 0);
-									cout << "breakpoint INST = " << int_inst << endl;
-										breakpoint_Inst.push_back(int_inst);
+									long long_inst= stol(str_inst, nullptr, 0);
+									cout << "breakpoint INST = " << long_inst << endl;
+										breakpoint_Inst.push_back(long_inst);
 										break;
 								}catch (const invalid_argument& e) {
 									cin.clear();
@@ -370,9 +371,9 @@ int step() {//step実行
 						cout << "reached breakpoint PC" << endl;
 						break;
 					}
-					bitr = find(breakpoint_Inst.begin(), breakpoint_Inst.end(), instNum);
-					if (bitr != breakpoint_Inst.end()) {
-						breakpoint_Inst.erase(bitr);
+					biitr = find(breakpoint_Inst.begin(), breakpoint_Inst.end(), instNum);
+					if (biitr != breakpoint_Inst.end()) {
+						breakpoint_Inst.erase(biitr);
 						cout << "reached breakpoint Inst" << endl;
 						break;
 					}
@@ -527,11 +528,15 @@ int main(int argc, char**argv) {
 				continue;
 			}
 			string trimmedStr = trim(line);
-			vector<string> vitem = StringSplit(trimmedStr, ' ');
+			vector<string> vitem1 = StringSplit(trimmedStr, ' ');
 			vector<string>::iterator slditr;
-			for (slditr = vitem.begin(); slditr != vitem.end(); slditr++) {
+			for (slditr = vitem1.begin(); slditr != vitem1.end(); slditr++) {
 		//		input_string.push_back(*slditr);
 				string input = *slditr;
+				if ((input == " ")| (input == "") | (input == "\t")) {
+					continue;
+				}
+				//cout << "input from sld: " << input << endl;
 				uint32_t uinput;
 				if (input.find(".") != string::npos) {
 				//string to float

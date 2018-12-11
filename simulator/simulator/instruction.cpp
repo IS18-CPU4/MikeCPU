@@ -354,7 +354,7 @@ void fstore() {
 		cerr << "cannot store: memory overflow" << " " << hex << addr << endl;
 		exit(1);
 	}
-	*((float*)&DATA_MEM[addr]) = FPR[rD];
+	DATA_MEM[addr] = *(uint32_t*)&FPR[rD];
 }
 
 //added
