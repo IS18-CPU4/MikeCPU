@@ -1,42 +1,42 @@
 %{
 (* parserが利用する変数、関数、型などの定義 *)
 open Syntax
-let addtyp x = (x, Type.gentyp ())
+let addtyp (x, _, _, _) = (x, Type.gentyp ())
 %}
 
 /* (* 字句を表すデータ型の定義 (caml2html: parser_token) *) */
-%token <bool> BOOL
-%token <int> INT
-%token <float> FLOAT
-%token NOT
-%token MINUS
-%token PLUS
-%token AST
-%token SLASH
-%token MINUS_DOT
-%token PLUS_DOT
-%token AST_DOT
-%token SLASH_DOT
-%token EQUAL
-%token LESS_GREATER
-%token LESS_EQUAL
-%token GREATER_EQUAL
-%token LESS
-%token GREATER
-%token IF
-%token THEN
-%token ELSE
-%token <Id.t> IDENT
-%token LET
-%token IN
-%token REC
-%token COMMA
-%token ARRAY_CREATE
-%token DOT
-%token LESS_MINUS
-%token SEMICOLON
-%token LPAREN
-%token RPAREN
+%token <bool * int * int * int> BOOL
+%token <int * int * int * int> INT
+%token <float * int * int * int> FLOAT
+%token <int * int * int> NOT
+%token <int * int * int> MINUS
+%token <int * int * int> PLUS
+%token <int * int * int> AST
+%token <int * int * int> SLASH
+%token <int * int * int> MINUS_DOT
+%token <int * int * int> PLUS_DOT
+%token <int * int * int> AST_DOT
+%token <int * int * int> SLASH_DOT
+%token <int * int * int> EQUAL
+%token <int * int * int> LESS_GREATER
+%token <int * int * int> LESS_EQUAL
+%token <int * int * int> GREATER_EQUAL
+%token <int * int * int> LESS
+%token <int * int * int> GREATER
+%token <int * int * int> IF
+%token <int * int * int> THEN
+%token <int * int * int> ELSE
+%token <Id.t * int * int * int> IDENT
+%token <int * int * int> LET
+%token <int * int * int> IN
+%token <int * int * int> REC
+%token <int * int * int> COMMA
+%token <int * int * int> ARRAY_CREATE
+%token <int * int * int> DOT
+%token <int * int * int> LESS_MINUS
+%token <int * int * int> SEMICOLON
+%token <int * int * int> LPAREN
+%token <int * int * int> RPAREN
 %token EOF
 
 /* (* 優先順位とassociativityの定義（低い方から高い方へ） (caml2html: parser_prior) *) */
@@ -64,91 +64,197 @@ simple_exp: /* (* 括弧をつけなくても関数の引数になれる式 (caml2html: parser_simp
 | LPAREN exp RPAREN
     { $2 }
 | LPAREN RPAREN
-    { Unit }
+    {
+      let (pos_line, pos_start, _) = $1 in
+        Unit(pos_line, pos_start, pos_start + 1)
+    }
 | BOOL
-    { Bool($1) }
+    {
+    let (flag, line, start, p_end) = $1 in
+      Bool(flag, line, start, p_end)
+    }
 | INT
-    { Int($1) }
+    {
+    let (num, line, start, p_end) = $1 in
+      Int(num, line, start, p_end)
+    }
 | FLOAT
-    { Float($1) }
+    {
+      let (num, line, start, p_end) = $1 in
+        Float(num, line, start, p_end)
+    }
 | IDENT
-    { Var($1) }
+    {
+      let (id, line, start, p_end) = $1 in
+        Var(id, line, start, p_end)
+    }
 | simple_exp DOT LPAREN exp RPAREN
-    { Get($1, $4) }
+    {
+      let (line, start, _) = get_pos $1 in
+      let (_, _, p_end) = $5 in
+        Get($1, $4, line, start, p_end)
+    }
 
 exp: /* (* 一般の式 (caml2html: parser_exp) *) */
 | simple_exp
     { $1 }
 | NOT exp
     %prec prec_app
-    { Not($2) }
+    {
+      let (line, start, p_end) = $1 in
+        Not($2, line, start, p_end)
+    }
 | MINUS exp
     %prec prec_unary_minus
-    { match $2 with
-    | Float(f) -> Float(-.f) (* -1.23などは型エラーではないので別扱い *)
-    | e -> Neg(e) }
+    {
+    let (line, start, p_end) = $1 in
+      match $2 with
+       | Float(f, _, _, f_end) -> Float(-.f, line, start, f_end) (* -1.23などは型エラーではないので別扱い *)
+       | e -> Neg(e, line, start, p_end)
+    }
 | exp PLUS exp /* (* 足し算を構文解析するルール (caml2html: parser_add) *) */
-    { Add($1, $3) }
+    {
+      let (line, start, p_end) = $2 in
+        Add($1, $3, line, start, p_end)
+    }
 | exp MINUS exp
-    { Sub($1, $3) }
+    {
+      let (line, start, p_end) = $2 in
+        Sub($1, $3, line, start, p_end)
+    }
 | exp AST exp /* (* 掛け算（左シフト）を構文解析するルール *) */
-    { Mul($1, $3) }
+    {
+      let (line, start, p_end) = $2 in
+        Mul($1, $3, line, start, p_end)
+    }
 | exp SLASH exp
-    { Div($1, $3) }
+    {
+      let (line, start, p_end) = $2 in
+        Div($1, $3, line, start, p_end)
+    }
 | exp EQUAL exp
-    { Eq($1, $3) }
+    {
+      let (line, start, p_end) = $2 in
+        Eq($1, $3, line, start, p_end)
+    }
 | exp LESS_GREATER exp
-    { Not(Eq($1, $3)) }
+    {
+      let (line, start, p_end) = $2 in
+        Not(Eq($1, $3, line, start, p_end), line, start, p_end)
+    }
 | exp LESS exp
-    { Not(LE($3, $1)) }
+    {
+      let (line, start, p_end) = $2 in
+        Not(LE($3, $1, line, start, p_end), line, start, p_end)
+    }
 | exp GREATER exp
-    { Not(LE($1, $3)) }
+    {
+      let (line, start, p_end) = $2 in
+        Not(LE($1, $3, line, start, p_end), line, start, p_end)
+    }
 | exp LESS_EQUAL exp
-    { LE($1, $3) }
+    {
+      let (line, start, p_end) = $2 in
+        LE($1, $3, line, start, p_end)
+    }
 | exp GREATER_EQUAL exp
-    { LE($3, $1) }
+    {
+      let (line, start, p_end) = $2 in
+        LE($3, $1, line, start, p_end)
+    }
 | IF exp THEN exp ELSE exp
     %prec prec_if
-    { If($2, $4, $6) }
+    {
+      let (line, start, p_end) = $1 in
+        If($2, $4, $6, line, start, p_end)
+    }
 | MINUS_DOT exp
     %prec prec_unary_minus
-    { FNeg($2) }
+    {
+      let (line, start, p_end) = $1 in
+        FNeg($2, line, start, p_end)
+    }
 | exp PLUS_DOT exp
-    { FAdd($1, $3) }
+    {
+      let (line, start, p_end) = $2 in
+        FAdd($1, $3, line, start, p_end)
+    }
 | exp MINUS_DOT exp
-    { FSub($1, $3) }
+    {
+      let (line, start, p_end) = $2 in
+        FSub($1, $3, line, start, p_end)
+    }
 | exp AST_DOT exp
-    { FMul($1, $3) }
+    {
+      let (line, start, p_end) = $2 in
+        FMul($1, $3, line, start, p_end)
+    }
 | exp SLASH_DOT exp
-    { FDiv($1, $3) }
+    {
+      let (line, start, p_end) = $2 in
+        FDiv($1, $3, line, start, p_end)
+    }
+/* (* min-rt用でっち上げルール。最後を in 0にされた対応*) */
 | LET IDENT EQUAL exp IN exp
     %prec prec_let
-    { Let(addtyp $2, $4, $6) }
+    {
+      match $6 with
+        | Int (_) -> $4
+        | _ -> let (line, start, p_end) = $1 in
+                 Let(addtyp $2, $4, $6, line, start, p_end)
+    }
 | LET REC fundef IN exp
     %prec prec_let
-    { LetRec($3, $5) }
+    {
+      let (line, start, p_end) = $1 in
+        LetRec($3, $5, line, start, p_end + 3)
+    }
 | simple_exp actual_args
     %prec prec_app
-    { App($1, $2) }
+    {
+      let (line, start, p_end) = get_pos $1 in
+        App($1, $2, line, start, p_end)
+    }
 | elems
     %prec prec_tuple
-    { Tuple($1) }
+    {
+      let start = (Parsing.symbol_start_pos ()).Lexing.pos_cnum - (Parsing.symbol_start_pos ()).Lexing.pos_bol in
+      let line = (Parsing.symbol_start_pos ()).Lexing.pos_lnum in
+      let p_end = (Parsing.symbol_end_pos ()).Lexing.pos_cnum - (Parsing.symbol_end_pos ()).Lexing.pos_bol in
+        Tuple($1, start, line, p_end)
+    }
 | LET LPAREN pat RPAREN EQUAL exp IN exp
-    { LetTuple($3, $6, $8) }
+    {
+      let (line, start, p_end) = $1 in
+        LetTuple($3, $6, $8, line, start, p_end)
+    }
 | simple_exp DOT LPAREN exp RPAREN LESS_MINUS exp
-    { Put($1, $4, $7) }
+    {
+      let (line, start, _) = get_pos $1 in
+      let (_, _, p_end) = get_pos $7 in
+        Put($1, $4, $7, line, start, p_end)
+    }
 | exp SEMICOLON exp
-    { Let((Id.gentmp Type.Unit, Type.Unit), $1, $3) }
+    {
+      let (line, start, p_end) = $2 in
+        Let((Id.gentmp Type.Unit, Type.Unit), $1, $3, line, start, p_end)
+    }
 | exp SEMICOLON /*(* minrt用superでっち上げ ";"のあとに書いてなくても通る実質バグ *)*/
-    { Let((Id.gentmp Type.Unit, Type.Unit), $1, Unit) }
+    {
+      let (line, start, p_end) = $2 in
+        Let((Id.gentmp Type.Unit, Type.Unit), $1, Unit(line, start + 1, p_end + 1), line, start, p_end)
+    }
 | ARRAY_CREATE simple_exp simple_exp
     %prec prec_app
-    { Array($2, $3) }
+    {
+      let (line, start, p_end) = $1 in
+        Array($2, $3, line, start, p_end)
+    }
 | error
     { failwith
-        (let pos_start = (Parsing.symbol_end_pos ()).pos_cnum - (Parsing.symbol_end_pos ()).pos_bol in
+        (let pos_start = (Parsing.symbol_end_pos ()).Lexing.pos_cnum - (Parsing.symbol_end_pos ()).Lexing.pos_bol in
          Printf.sprintf "parse error near line %d, characters %d-%d"
-           ((Parsing.symbol_end_pos ()).pos_lnum)
+           ((Parsing.symbol_end_pos ()).Lexing.pos_lnum)
            pos_start
            (pos_start + 1)) }
 
