@@ -53,22 +53,7 @@ module fsqrt
    assign m = tmp_m[22:0]; // ignore implicit 1
 
    wire [31:0] tmp_y;
-   fmul u1(x, {s, e, m}, tmp_y, ovf);
-
-   wire [31:0] root2;
-   assign root2 = 31'b00111111101101010000010011110011;
-
-   wire [7:0] odd_zero_ye;
-   assign odd_zero_ye = shift_xe + 8'd64;
-
-   wire [31:0] even_zero_y;
-   wire [7:0] even_zero_tmp_ye;
-   assign even_zero_y = 8'd63 + shift_xe;
-   wire tmp_ovf;
-   fmul u2(root2, {xs, even_zero_tmp_ye, xm}, even_zero_y, tmp_ovf);
-
-   assign y = (xm != 23'd0) ? tmp_y :
-              (xe[0] == 1) ? {xs, odd_zero_ye, xm} : even_zero_y;
+   fmul u1(x, {s, e, m}, y, ovf);
 
 endmodule
 
