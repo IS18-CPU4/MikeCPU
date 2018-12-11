@@ -47,7 +47,19 @@ let rec dump_bools op =
   let n = String.length op in
     pre_dump_bools op n
 
-let rec file_concat inchan1 inchan2 outchan = 
+(* ファイル書き込み　実質cpコマンド *)
+let rec write_file inchan outchan last_message =
+  try
+    let s = input_line inchan in
+      output_string outchan (s^"\n");
+    write_file inchan outchan last_message
+  with
+    e -> output_string outchan last_message
+
+(* ファイル結合 *)
+let file_concat inchan1 inchan2 outchan =
+  write_file inchan1 outchan "(** End Global**)\n\n\n";
+  write_file inchan2 outchan ""
 
 
 let dump_lexbuf outchan l = (* lexbufもどき *)
@@ -99,14 +111,14 @@ let file f = (* ファイルをコンパイルしてファイルに出力する 
   let outchan = open_out (f ^ ".s") in
 *)
   let inchan = if !global_bool then
-                 let original_inchan = open_in (f ^ ".ml")
-                 let globals_inchan = open_in "globals.s" in
-                 let globals_outchan = open_out (f ^ "globals.ml") in
+                 let original_inchan = open_in (f ^ ".ml") in
+                 let globals_inchan = open_in "min-rt/globals.s" in
+                 let globals_outchan = open_out (f ^ "_globals.ml") in
                  let _ = file_concat globals_inchan original_inchan globals_outchan in
                  let _ = close_in original_inchan in
                  let _ = close_in globals_inchan in
                  let _ = close_out globals_outchan in
-                   open_in (f ^ "globals.ml")
+                   open_in (f ^ "_globals.ml")
                else
                  open_in (f ^ ".ml")
                in
