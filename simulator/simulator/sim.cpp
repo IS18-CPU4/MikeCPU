@@ -285,7 +285,8 @@ void debug() {//レジスタの中身を見る
 int normal() {//通常実行
 	instNum = 0;
 	PC = mincamlStart >> 2;
-	GPR[3] = 0xFF00;//stack
+	uint32_t initsp = 0xFF00;
+	GPR[3] = initsp;//stack
 	volatile int exception = 0;
 	while(PC < lastPC) {
 		try {
@@ -294,7 +295,7 @@ int normal() {//通常実行
 				throw 1;
 			
 			}
-			if (GPR[3] < GPR[4]) {
+			if (initsp < GPR[4]) {
 				throw 2;
 			}
 			if (result) {
@@ -324,7 +325,8 @@ int step() {//step実行
 	instNum = 0;
 	cout << "execute by step..." << endl;
 	PC = mincamlStart >> 2;
-	GPR[3] = 0xFF00;//stack
+	uint32_t initsp = 0xFF00;
+	GPR[3] = initsp;//stack
 	//uint32_t breakpoint = 0;
 	vector<uint32_t> breakpoint_PC;
 	vector<long> breakpoint_Inst;
@@ -439,7 +441,7 @@ int step() {//step実行
 						if (GPR[3] > 0x10000) {
 						throw 1;
 						}
-						if (GPR[3] < GPR[4]) {
+						if (initsp < GPR[4]) {
 							throw 2;
 						}
 						if (result) {
@@ -565,7 +567,7 @@ int step() {//step実行
 			if (GPR[3] > 0x10000) {
 				throw 1;
 			}
-			if (GPR[3] < GPR[4]) {
+			if (initsp < GPR[4]) {
 				throw 2;
 			}
 			if (result) {
