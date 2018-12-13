@@ -114,7 +114,7 @@ module FAlu (
   fsub_p2 subber(x1, x2, ys, ovfs, clk, rstn);
   fmul    muller(x1, x2, ym, ovfm);
   fdiv_p2 diver (x1, x2, yd, ovfd, clk);
-  fsqrt   sqrter(x1, x2, ysq,ovfsq);
+  fsqrt   sqrter(x1, ysq,ovfsq);
 
   assign yabs = {1'b0, x1[30:0]};
 
