@@ -41,8 +41,8 @@ void cr0_set0(const uint32_t);
 void cr0_set1(const uint32_t);
 void cr0_set2(const uint32_t);
 
-void load_imm();
-void move_reg();
+bool load_imm();
+bool move_reg();
 void add_imm();
 void add_reg();
 void sub_reg();
@@ -66,10 +66,10 @@ void move_to_link();
 void cmp_imm();
 void cmp_reg();
 void fcmp_reg();
-void load();//word
-void store();
-void fload();
-void fstore();
+bool load();//word
+bool store();
+bool fload();
+bool fstore();
 
 //added
 void l_shift_lg();

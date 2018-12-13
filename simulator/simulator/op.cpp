@@ -19,14 +19,15 @@ int do_op() {
 	OP = htonl(INST_MEM[PC]);
 	uint32_t opname = get_opname(OP);
 	//cout << "operation:" << opname  << " "<< dec;
+	bool result = 0;
 	
 	switch((int)opname) {
 		case 0:
 			//cout << "opname li" << endl;
-			load_imm();PC++;break;
+			result = load_imm();PC++;break;
 		case 1:
 			//cout << "opname mr" << endl;
-			move_reg();PC++;break;
+			result = move_reg();PC++;break;
 		case 2:
 			//cout << "opname addi" << endl;
 			add_imm();PC++;break;
@@ -98,16 +99,16 @@ int do_op() {
 			fcmp_reg();PC++;break;
 		case 25:
 			//cout << "opname ld" << endl;
-			load();PC++;break;
+			result = load();PC++;break;
 		case 26:
 			//cout << "opname st" << endl;
-			store();PC++;break;
+			result = store();PC++;break;
 		case 27:
 			//cout << "opname fld" << endl;
-			fload();PC++;break;
+			result = fload();PC++;break;
 		case 28:
 			//cout << "opname fst" << endl;
-			fstore();PC++;break;
+			result = fstore();PC++;break;
 		case 29:
 			//cout << "opname slw" << endl;
 			l_shift_lg();PC++;break;
@@ -144,8 +145,11 @@ int do_op() {
 			break;
 		default:
 			cerr << "undefined instruction" << endl;
-			return 1;
+			result = 1;
 	}
-
-	return 0;
+	if (result == 1) {
+		return 1;
+	} else {
+		return 0;
+	}
 }

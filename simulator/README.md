@@ -80,7 +80,7 @@ fsub					 ok				 ok
 fmul					 ok				 ok
 finv					 ok				 ok
 fdiv					 ok				 ok
-ftoi					 ok
+ftoi					 ok				 ok
 itof					 ok
 fsqrt					 ok				 ok
 
@@ -98,10 +98,15 @@ LRにPCをちゃんと保存していなかったので、balで死んでいた
 iｎ命令は死んでいそう
 in命令は２つ続きのスペースを読めていなかっただけのよう
 
+12/13
+stackoverflowとheapoverflowのとき実行を終わらせてデバッグに移行するようにした。
+ついでにsimの調整をした。（実行が失敗してもfinished successfullyとでていたので）
+
 ---------------------------------------タスク------------------------------------------------------
 
 (.txt .align .globlなどの調整)
 
-float
-
 (リンカ)
+
+各instructionで例外を発生できるようにしたい(いまはload,storeのみ)
+命令を種類ごとに数える統計機能

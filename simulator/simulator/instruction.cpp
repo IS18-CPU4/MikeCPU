@@ -69,23 +69,25 @@ void cr0_set3(uint32_t cr){
 
 
 //int
-void load_imm() {
+bool load_imm() {
 	rD = get_rD(OP);
 	if (rD == 0) {
 		cerr << "cannot load to GPR[0]" << endl;
-		exit(1);
+		return 1;
 	}
 	simm16 = get_simm16(OP);
 	GPR[rD] = (uint32_t)simm16;
+	return 0;
 }
-void move_reg() {
+bool move_reg() {
 	rD = get_rD(OP);
 	if (rD == 0) {
 		cerr << "cannot move to GPR[0]" << endl;
-		exit(1);
+		return 1;
 	}
 	rA = get_rA(OP);
 	GPR[rD] = GPR[rA];
+	return 0;
 }
 
 void add_imm() {
@@ -305,23 +307,24 @@ void fcmp_reg() {
 
 
 //memory
-void load() {
+bool load() {
 	rD = get_rD(OP);
 	rA = get_rA(OP);
 	simm16 = get_simm16(OP);
 	if (rD == 0) {
 		cerr << "cannot write in GPR[0] : ld" << endl;
-		exit(1);
+		return 1;
 	}
 	uint32_t addr = (uint32_t)((int32_t)GPR[rA] + simm16);
 	if (!(0 <= addr && addr < 0x10000)) {
 		cerr << "cannot load: memory overflow" << " " << hex << addr << endl;
-		exit(1);
+		return 1;
 	}
 	//cout << "load " <<  DATA_MEM[addr] << endl;
 	GPR[rD] = DATA_MEM[addr];
+	return 0;
 }
-void store() {
+bool store() {
 	rD = get_rD(OP);
 	rA = get_rA(OP);
 	simm16 = get_simm16(OP);
@@ -329,32 +332,35 @@ void store() {
 	uint32_t addr = (uint32_t)((int32_t)GPR[rA] + simm16);
 	if (!(0 <= addr && addr < 0x10000)) {
 		cerr << "cannot store: memory overflow" << " " << hex << addr << endl;
-		exit(1);
+		return 1;
 	}
 	//cout << "store " << GPR[rD] << endl;
 	DATA_MEM[addr] = GPR[rD];
+	return 0;
 }
-void fload() {
+bool fload() {
 	rD = get_rD(OP);
 	rA = get_rA(OP);
 	simm16 = get_simm16(OP);
 	uint32_t addr = (uint32_t)((int32_t)GPR[rA] + simm16);
 	if (!(0 <= addr && addr < 0x10000)) {
-		cerr << "cannot load: memory overflow" << " " << hex << addr << endl;
-		exit(1);
+		cerr << "cannot fload: memory overflow" << " " << hex << addr << endl;
+		return 1;
 	}
 	FPR[rD] = *((float*)&DATA_MEM[addr]);//怪しい
+	return 0;
 }
-void fstore() {
+bool fstore() {
 	rD = get_rD(OP);
 	rA = get_rA(OP);
 	simm16 = get_simm16(OP);
 	uint32_t addr = (uint32_t)((int32_t)GPR[rA] + simm16);
 	if (!(0 <= addr && addr < 0x10000)) {
-		cerr << "cannot store: memory overflow" << " " << hex << addr << endl;
-		exit(1);
+		cerr << "cannot fstore: memory overflow" << " " << hex << addr << endl;
+		return 1;
 	}
 	DATA_MEM[addr] = *(uint32_t*)&FPR[rD];
+	return 0;
 }
 
 //added
