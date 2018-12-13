@@ -95,6 +95,8 @@ long long int instNum;//何番目の命令か
 
 vector<char> outChar;//outによる出力を保存しておく
 
+uint32_t initsp = 0x8000;//spの初期値
+
 #define SHOWGPR()\
 do { \
 	int num = 0;\
@@ -285,7 +287,6 @@ void debug() {//レジスタの中身を見る
 int normal() {//通常実行
 	instNum = 0;
 	PC = mincamlStart >> 2;
-	uint32_t initsp = 0xFF00;
 	GPR[3] = initsp;//stack
 	volatile int exception = 0;
 	while(PC < lastPC) {
@@ -325,7 +326,6 @@ int step() {//step実行
 	instNum = 0;
 	cout << "execute by step..." << endl;
 	PC = mincamlStart >> 2;
-	uint32_t initsp = 0xFF00;
 	GPR[3] = initsp;//stack
 	//uint32_t breakpoint = 0;
 	vector<uint32_t> breakpoint_PC;
