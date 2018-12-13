@@ -174,7 +174,7 @@ let rec print_knormal_t knormal =
                              let _ = print_endline id in
                                kn_tab := !kn_tab - 1
     | KNormal.ExtFunApp (id, id_list) -> let _ = print_tab !kn_tab in
-                                         let _ = print_endline "EXTARRAY" in
+                                         let _ = print_endline "EXTFUNAPP" in
                                          let _ = (kn_tab := !kn_tab + 1) in
                                          let _ = print_tab !kn_tab in
                                          let _ = print_endline id in

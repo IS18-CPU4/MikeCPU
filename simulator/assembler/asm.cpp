@@ -6,6 +6,7 @@
 #include <sstream>
 #include <arpa/inet.h>
 #include <unordered_map>
+#include <iomanip>
 #include "encode.h"
 #include "opAsm.h"
 
@@ -34,13 +35,22 @@ string trim(const string& str, const char* trimCharacterList = "\t\v\r\n") {
 uint32_t encode(string str) {
 	string trimmedStr = trim(str);
 	vector<string> vitem;
-	vector<string> vitem1 = StringSplit(trimmedStr, ' ');
+	vector<string> vitemtmp;
+	vector<string> vitem1 = StringSplit(trimmedStr, '\t');
 	vector<string>::iterator itr;
 	for (itr = vitem1.begin(); itr != vitem1.end(); itr++) {
-		vector<string> vitem2 = StringSplit(*itr, ',');
+		vector<string> vitem2 = StringSplit(*itr, ' ');
 		vector<string>::iterator itr2;
 		for (itr2 = vitem2.begin(); itr2 != vitem2.end(); itr2++) {
-			vitem.push_back(*itr2);
+				vitemtmp.push_back(*itr2);
+		}
+	}
+	vector<string>::iterator itrtmp;
+	for (itrtmp = vitemtmp.begin(); itrtmp != vitemtmp.end(); itrtmp++) {
+		vector<string> vitem3 = StringSplit(*itrtmp, ',');
+		vector<string>::iterator itr3;
+		for (itr3 = vitem3.begin(); itr3 != vitem3.end(); itr3++) {
+				vitem.push_back(*itr3);
 		}
 	}
 	uint32_t op = encode_to_op(vitem);
@@ -55,7 +65,12 @@ int main(int argc, char** argv) {
 	}
 	
 	cout << "open inputfile..." << endl;
-	ifstream filein(argv[1]);
+	ifstream filein;
+	filein.open(argv[1], ifstream::in);
+	if (!filein) {
+		cerr << "cannnot open inputfile" << endl;
+		return 1;
+	}
 	cout << "open outputfile..." << endl;
 	/*ofstream fileout(argv[2]);*/
 	ofstream fileout;
@@ -65,6 +80,12 @@ int main(int argc, char** argv) {
 	if (argc == 3) {
 		fileout.open(argv[2], ios::out|ios::binary|ios::trunc);
 	}
+	if (!fileout) {
+		cerr << "cannnot open outputfile"  << endl;
+		return 1;
+	}
+	ofstream fileout2;
+	fileout2.open("asm_with_PC.out", ios::out|ios::trunc);
 	if (!fileout) {
 		cerr << "cannnot open outputfile"  << endl;
 		return 1;
@@ -82,19 +103,31 @@ int main(int argc, char** argv) {
 		}
 		string trimmedStr = trim(line);
 		vector<string> vitem;
-		vector<string> vitem1 = StringSplit(trimmedStr, ' ');
+		vector<string> vitemtmp;
+		vector<string> vitem1 = StringSplit(trimmedStr, '\t');
 		vector<string>::iterator itr;
 		for (itr = vitem1.begin(); itr != vitem1.end(); itr++) {
-			vector<string> vitem2 = StringSplit(*itr, ',');
+			vector<string> vitem2 = StringSplit(*itr, ' ');
 			vector<string>::iterator itr2;
 			for (itr2 = vitem2.begin(); itr2 != vitem2.end(); itr2++) {
-				vitem.push_back(*itr2);
+					vitemtmp.push_back(*itr2);
+			}
+		}
+		vector<string>::iterator itrtmp;
+		for (itrtmp = vitemtmp.begin(); itrtmp != vitemtmp.end(); itrtmp++) {
+			vector<string> vitem3 = StringSplit(*itrtmp, ',');
+			vector<string>::iterator itr3;
+			for (itr3 = vitem3.begin(); itr3 != vitem3.end(); itr3++) {
+					vitem.push_back(*itr3);
 			}
 		}
 		if (vitem[0].find_first_of("#", 0) == 0) {
+			//fileout2 << setw(8) << "" << noshowpos << " |  " << line << endl;
+			fileout2 << "--------" << " |  " << line << endl;
 			continue;
 		}
 		if (vitem[0].find_first_of(".", 0) == 0) {
+			fileout2 << "--------" << " |  " << line << endl;
 			continue;
 		}
 		if (vitem[0].find_last_of(':') == vitem[0].length()-1) {
@@ -105,8 +138,10 @@ int main(int argc, char** argv) {
 				mincamlStart = PC;
 			}
 			cout << "PC: "<<  hex << PC << dec << endl;
+			fileout2 << "--------" << " |  " << line << endl;
 			continue;
 		}
+		fileout2 << hex << setw(8) << left << PC << noshowpos << dec <<  " |  " << line << endl;
 		PC += 4;
 	}
 	codeByte = PC;
@@ -119,7 +154,8 @@ int main(int argc, char** argv) {
 	fileout.write((char*)&codeByteout, sizeof(uint32_t));
 	fileout.write((char*)&mincamlStartout, sizeof(uint32_t));
 
-	ifstream filein2(argv[1]);
+	ifstream filein2;
+	filein2.open(argv[1], ifstream::in);
 	PC = 0;
 
 	while (getline(filein2, line)) {

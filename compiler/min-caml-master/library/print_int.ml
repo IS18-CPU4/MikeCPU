@@ -13,7 +13,7 @@ in
 
 let rec div_10 n =
   let left = n / 16 in
-  let right = n / 8 in
+  let right = n / 8 + 1 in
   div_10_loop n left right
 in
 
@@ -31,10 +31,10 @@ in
 
 
 let rec a_print_int n =
-  if n = 0 then (print_byte 48; print_byte 10)
+  if n = 0 then (print_byte 48)
   else
     if n < 0 then
-      (print_byte 45;print_int_rec (-n); print_byte 10)
+      (print_byte 45;print_int_rec (-n))
     else
-      (print_int_rec n; print_byte 10)
+      (print_int_rec n)
 in a_print_int (3*8+8)

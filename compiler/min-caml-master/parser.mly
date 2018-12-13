@@ -139,6 +139,8 @@ exp: /* (* 一般の式 (caml2html: parser_exp) *) */
     { Put($1, $4, $7) }
 | exp SEMICOLON exp
     { Let((Id.gentmp Type.Unit, Type.Unit), $1, $3) }
+| exp SEMICOLON /*(* minrt用superでっち上げ ";"のあとに書いてなくても通る実質バグ *)*/
+    { Let((Id.gentmp Type.Unit, Type.Unit), $1, Unit) }
 | ARRAY_CREATE simple_exp simple_exp
     %prec prec_app
     { Array($2, $3) }

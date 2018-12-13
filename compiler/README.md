@@ -11,11 +11,12 @@ $ cd min-caml-master
 $ ./to_cpucore
 
 --コンパイルの仕方--
-$ make
+$ make bc
 $ ./min-caml hoge
 
-・make時にエラー吐くけど、ただ実行しようとして命令セットがあってないだけなので基本的には問題なし（要修正、Makefileをイジイジするだけ）
+・make時にエラー吐くけど、ただ実行しようとして命令セットがあってないだけなので基本的には問題なし（解決：　make bcとするだけ）
 ・・でも、もしコンパイルエラーを吐いたら文句言いに来てください
+
 ・hogeはソースコードの相対アドレスから.mlをとったもの・
 ・・例: test/fib.mlをコンパイルしたいなら
  $ ./min-caml test/fib
@@ -25,6 +26,7 @@ $ ./min-caml hoge
  $ ./min-caml -op hoge みたいに使う
 ・-iter n : n回(既存のmin-camlコンパイラに用意された)最適化を行う。使わない変数とか捨てられたり、割と適当なコードだと改変されるので、生のコードのままにして欲しいなら -iter 0 とすべき。デフォルトで -iter 1000している。
 ・-inline n : 最大サイズnまでinline展開する。
+・-nonlib : libmincaml.Sを出力アセンブリに埋め込まない。
 ・-dump str : strに対応した途中結果を出力する strはs,k,a,cの結合文字列で以下を出力する
 ・・ s:Syntax.fを通した結果
 ・・ k:KNormal.fを通した結果

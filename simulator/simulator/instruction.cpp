@@ -1,9 +1,19 @@
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <cmath>
-#include <stdlib.h>
+#include <cstdlib>
 #include <stdint.h>
+#include <algorithm>
 #include "instruction.h"
+#include "float/fadd.h"
+#include "float/fsub.h"
+#include "float/fmul.h"
+#include "float/finv.h"
+#include "float/fdiv.h"
+#include "float/ftoi.h"
+#include "float/itof.h"
+#include "float/fsqrt.h"
 #define DATA_ADDR 0x10000
 
 using namespace std;
@@ -17,6 +27,12 @@ extern uint32_t DATA_MEM[DATA_ADDR];
 extern uint32_t PC;
 extern uint32_t OP;
 extern vector<char> outChar;
+extern ofstream fileout;
+
+extern vector<uint32_t> uinput_vector;
+int uinput_byte_count = 0;;//1byteずつ取得したい
+int uinput_index = 0;
+
 
 int rD;
 int rA;
@@ -60,7 +76,7 @@ void load_imm() {
 		exit(1);
 	}
 	simm16 = get_simm16(OP);
-	GPR[rD] = simm16;
+	GPR[rD] = (uint32_t)simm16;
 }
 void move_reg() {
 	rD = get_rD(OP);
@@ -81,9 +97,9 @@ void add_imm() {
 		exit(1);
 	}
 	if (rA == 0) {
-		GPR[rD] = 0 + simm16;
+		GPR[rD] = uint32_t(simm16);
 	} else {
-		GPR[rD] = GPR[rA] + simm16;
+		GPR[rD] = uint32_t(int32_t(GPR[rA]) + simm16);
 	}
 }
 void add_reg() {
@@ -94,7 +110,7 @@ void add_reg() {
 		cerr << "cannot write in GPR[0] : add" << endl;
 		exit(1);
 	}
-	GPR[rD] = GPR[rA] + GPR[rB];
+	GPR[rD] = (uint32_t)((int32_t)GPR[rA] + (int32_t)GPR[rB]);
 }
 void sub_reg() {
 	rD = get_rD(OP);
@@ -104,7 +120,7 @@ void sub_reg() {
 		cerr << "cannot write in GPR[0] : sub" << endl;
 		exit(1);
 	}
-	GPR[rD] = GPR[rA] - GPR[rB];
+	GPR[rD] = uint32_t((int32_t)GPR[rA] - (int32_t)GPR[rB]);
 }
 
 
@@ -136,30 +152,47 @@ void fadd() {
 	rD = get_rD(OP);
 	rA = get_rA(OP);
 	rB = get_rB(OP);
-	FPR[rD] = FPR[rA] + FPR[rB];
+	//FPR[rD] = FPR[rA] + FPR[rB];
+	uint32_t x1 = *(uint32_t*)&FPR[rA];
+	uint32_t x2 = *(uint32_t*)&FPR[rB];
+	uint32_t tmp = fadd_f(x1, x2);
+	FPR[rD] = *(float*)&tmp;
 }
 void fsub() {
 	rD = get_rD(OP);
 	rA = get_rA(OP);
 	rB = get_rB(OP);
 	FPR[rD] = FPR[rA] - FPR[rB];
+	uint32_t x1 = *(uint32_t*)&FPR[rA];
+	uint32_t x2 = *(uint32_t*)&FPR[rB];
+	uint32_t tmp = fsub_f(x1, x2);
+	FPR[rD] = *(float*)&tmp;
 }
 void fdiv() {
 	rD = get_rD(OP);
 	rA = get_rA(OP);
 	rB = get_rB(OP);
-	FPR[rD] = FPR[rA] / FPR[rB];
+	//FPR[rD] = FPR[rA]/FPR[rB];
+	uint32_t x1 = *(uint32_t*)&FPR[rA];
+	uint32_t x2 = *(uint32_t*)&FPR[rB];
+	uint32_t tmp = fdiv_f(x1, x2);
+	FPR[rD] = *(float*)&tmp;
 }
 void fmul() {
 	rD = get_rD(OP);
 	rA = get_rA(OP);
 	rB = get_rB(OP);
-	FPR[rD] = FPR[rA] * FPR[rB];
+	uint32_t x1 = *(uint32_t*)&FPR[rA];
+	uint32_t x2 = *(uint32_t*)&FPR[rB];
+	uint32_t tmp = fmul_f(x1, x2);
+	FPR[rD] = *(float*)&tmp;
 }
 void fsqrt() {
 	rD = get_rD(OP);
 	rA = get_rA(OP);
-	FPR[rD] = sqrt(FPR[rA]);
+	uint32_t x = *(uint32_t*)&FPR[rA];
+	uint32_t tmp = fsqrt_f(x);
+	FPR[rD] = *(float*)&tmp;
 }
 void fabs() {
 	rD = get_rD(OP);
@@ -176,15 +209,18 @@ void fmove_reg() {
 //jump
 void branch() {
 	simm26 = get_simm26(OP);
-	PC += simm26;
+	//	PC += simm26;
+	PC = uint32_t((int32_t)PC + simm26);
 
 	//本来はPCはwordごとなので2bit左シフト
 	//今はただ配列のindex
+
+	//型を合わせているがPCは必ず正なのでいらない
 }
 void branch_eq() {
 	if (CR & (1 << 29)) {
 		simm26 = get_simm26(OP);
-		PC += simm26;
+		PC = uint32_t((int32_t)PC + simm26);
 	} else {
 		PC++;
 	}
@@ -194,13 +230,13 @@ void branch_neq() {
 		PC++;
 	} else {
 		simm26 = get_simm26(OP);
-		PC += simm26;
+		PC = uint32_t((int32_t)PC + simm26);
 	}
 }
 void branch_lt() {
 	if (CR & (1 << 31)) {
 		simm26 = get_simm26(OP);
-		PC += simm26;
+		PC = uint32_t((int32_t)PC + simm26);
 	} else {
 		PC++;
 	}
@@ -208,7 +244,7 @@ void branch_lt() {
 void branch_and_link() {
 	simm26 = get_simm26(OP);
 	LR = PC + 1;
-	PC += simm26;
+	PC = uint32_t((int32_t)PC + simm26);
 }
 void branch_link_reg() {
 	PC = LR;
@@ -233,9 +269,9 @@ void cmp_imm(){
 	rD = get_rD(OP);
 	rA = get_rA(OP);
 	simm16 = get_simm16(OP);
-	if (GPR[rA] < simm16) {
+	if ((int32_t)GPR[rA] < simm16) {
 		cr0_set0(rD);
-	} else if (GPR[rA] == simm16) {
+	} else if ((int32_t)GPR[rA] == simm16) {
 		cr0_set2(rD);
 	} else {
 		cr0_set1(rD);
@@ -245,9 +281,9 @@ void cmp_reg() {
 	rD = get_rD(OP);
 	rA = get_rA(OP);
 	rB = get_rB(OP);
-	if (GPR[rA] < GPR[rB]) {
+	if ((int32_t)GPR[rA] < (int32_t)GPR[rB]) {
 		cr0_set0(rD);
-	} else if (GPR[rA] == GPR[rB]) {
+	} else if ((int32_t)GPR[rA] == (int32_t)GPR[rB]) {
 		cr0_set2(rD);
 	} else {
 		cr0_set1(rD);
@@ -277,7 +313,7 @@ void load() {
 		cerr << "cannot write in GPR[0] : ld" << endl;
 		exit(1);
 	}
-	uint32_t addr = GPR[rA] + simm16;
+	uint32_t addr = (uint32_t)((int32_t)GPR[rA] + simm16);
 	if (!(0 <= addr && addr < 0x10000)) {
 		cerr << "cannot load: memory overflow" << " " << hex << addr << endl;
 		exit(1);
@@ -289,7 +325,8 @@ void store() {
 	rD = get_rD(OP);
 	rA = get_rA(OP);
 	simm16 = get_simm16(OP);
-	uint32_t addr = GPR[rA] + simm16;
+	//uint32_t addr = GPR[rA] + simm16;
+	uint32_t addr = (uint32_t)((int32_t)GPR[rA] + simm16);
 	if (!(0 <= addr && addr < 0x10000)) {
 		cerr << "cannot store: memory overflow" << " " << hex << addr << endl;
 		exit(1);
@@ -301,7 +338,7 @@ void fload() {
 	rD = get_rD(OP);
 	rA = get_rA(OP);
 	simm16 = get_simm16(OP);
-	uint32_t addr = GPR[rA] + simm16;
+	uint32_t addr = (uint32_t)((int32_t)GPR[rA] + simm16);
 	if (!(0 <= addr && addr < 0x10000)) {
 		cerr << "cannot load: memory overflow" << " " << hex << addr << endl;
 		exit(1);
@@ -312,7 +349,7 @@ void fstore() {
 	rD = get_rD(OP);
 	rA = get_rA(OP);
 	simm16 = get_simm16(OP);
-	uint32_t addr = GPR[rA] + simm16;
+	uint32_t addr = (uint32_t)((int32_t)GPR[rA] + simm16);
 	if (!(0 <= addr && addr < 0x10000)) {
 		cerr << "cannot store: memory overflow" << " " << hex << addr << endl;
 		exit(1);
@@ -347,7 +384,7 @@ void branch_cond() {
 	int bit = 31 - rA;
 	if (CR & (1 << bit)) {
 		simm16 = get_simm16(OP);
-		PC += simm16;
+		PC = (uint32_t)((int32_t)PC + simm16);
 	} else {
 		PC++;
 	}
@@ -355,7 +392,9 @@ void branch_cond() {
 void int_to_float() {
 	rD = get_rD(OP);
 	rA = get_rA(OP);
-	FPR[rD] = (float)(GPR[rA]);
+	//FPR[rD] = (float)((int32_t)GPR[rA]);
+	uint32_t tmp = itof_f(GPR[rA]);
+	FPR[rD] = *(float*)&tmp;
 }
 void float_to_int() {
 	rD = get_rD(OP);
@@ -364,10 +403,18 @@ void float_to_int() {
 		exit(1);
 	}
 	rA = get_rA(OP);
-	GPR[rD] = (uint32_t)(FPR[rA]);
+	//GPR[rD] = (uint32_t)((int32_t)(FPR[rA]));
+	uint32_t tmp = *(uint32_t*)&FPR[rA];
+	GPR[rD] = ftoi_f(tmp);
 }
 
 void out() {
+	rD = get_rD(OP);
+	uint32_t result = 0x000000FF & GPR[rD];
+	char resultc = static_cast<char>(result);
+	fileout << resultc;
+}
+void outstep() {
 	rD = get_rD(OP);
 	uint32_t result = 0x000000FF & GPR[rD];
 	cout << "operation out..." << static_cast<char>(result)  << endl;
@@ -384,4 +431,20 @@ void branch_abs_and_link() {
 	uint32_t addr = GPR[rD];
 	LR = PC + 1;
 	PC = addr;
+}
+
+void in() {
+	rD = get_rD(OP);
+	//some exec
+	//input_byte_count input_string_indexでアクセス
+	if (uinput_byte_count == 4) {
+		uinput_byte_count = 0;
+		uinput_index++;
+	}
+	uint32_t uinput = uinput_vector[uinput_index];
+	uint32_t utmp = uinput << (uinput_byte_count * 8);
+	uint32_t uin = utmp >> 24;
+	GPR[rD] = uin;
+	
+	uinput_byte_count++;
 }
