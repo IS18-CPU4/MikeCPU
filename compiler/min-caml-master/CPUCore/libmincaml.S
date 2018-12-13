@@ -127,6 +127,8 @@ min_caml_print_int_bge_else.94:
 	ld	r2, r3, 0
 	sub	r2, r0, r2
 	b	min_caml_print_int_print_int_rec.39
+# print_char = print_byte
+min_caml_print_char:
 min_caml_print_byte:
   out r2
   blr
@@ -187,7 +189,22 @@ create_float_array_cont:
 	addi	r5, r5, -1
 	addi	r4, r4, 4
 	b	create_float_array_loop
+# for min-rt libs :fhalf, fsqr, fneg
+min_caml_fhalf:
+  li	r31, 16128
+  slwi	r31, r31, 16
+  addi	r31, r31, 0
+  st	r31, r3, 8
+  fld	fr2, r3, 8
+  fmul	fr1, fr1, fr2
+  blr
+min_caml_fsqr:
+  fmul	fr1, fr1, fr1
+  blr
 min_caml_abs_float:
+  fabs fr1, fr1
+  blr
+min_caml_fabs:
   fabs fr1, fr1
   blr
 min_caml_sqrt:
@@ -195,23 +212,20 @@ min_caml_sqrt:
   blr
 # min_caml_floor:
 min_caml_floor:
-	li	r31, 0
-	slwi	r31, r31, 16
-	addi	r31, r31, 0
-	st	r31, r3, 8
-	fld	fr2, r3, 8
-	fcmp	cr0, fr2, fr1
-	blt	min_caml_floor_le.58
-	beq	min_caml_floor_le.58
-	li	r31, 16256
+	li	r31, 16128
 	slwi	r31, r31, 16
 	addi	r31, r31, 0
 	st	r31, r3, 8
 	fld	fr2, r3, 8
 	fsub	fr1, fr1, fr2
-	b	min_caml_int_of_float
-min_caml_floor_le.58:
-	b	min_caml_int_of_float
+	mflr	r31
+	st	r31, r3, 4
+	addi	r3, r3, 8
+	bl	min_caml_int_of_float
+	addi	r3, r3, -8
+	ld	r31, r3, 4
+	mtlr	r31
+	b	min_caml_float_of_int
 min_caml_int_of_float:
   ftoi r2, fr1
   blr
