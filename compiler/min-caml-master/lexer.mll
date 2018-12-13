@@ -57,6 +57,28 @@ rule token = parse
       let l_end = start + 3 in
         NOT(line, start, l_end)
     }
+(* min-rt用parse時に解釈可能なもの fneg, fless, fequal *)
+| "fneg"
+    {
+      let start = lexbuf.lex_curr_p.pos_cnum - lexbuf.lex_curr_p.pos_bol in
+      let line = lexbuf.lex_curr_p.pos_lnum in
+      let l_end = start + 4 in
+        FUNFNEG(line, start, l_end)
+    }
+| "fless"
+    {
+      let start = lexbuf.lex_curr_p.pos_cnum - lexbuf.lex_curr_p.pos_bol in
+      let line = lexbuf.lex_curr_p.pos_lnum in
+      let l_end = start + 5 in
+        FUNFLESS(line, start, l_end)
+    }
+| "fequal"
+    {
+      let start = lexbuf.lex_curr_p.pos_cnum - lexbuf.lex_curr_p.pos_bol in
+      let line = lexbuf.lex_curr_p.pos_lnum in
+      let l_end = start + 6 in
+        FUNFEQUAL(line, start, l_end)
+    }
 | digit+ (* 整数を字句解析するルール (caml2html: lexer_int) *)
     {
       let start = lexbuf.lex_curr_p.pos_cnum - lexbuf.lex_curr_p.pos_bol in
