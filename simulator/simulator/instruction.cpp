@@ -14,11 +14,11 @@
 #include "float/ftoi.h"
 #include "float/itof.h"
 #include "float/fsqrt.h"
-#define DATA_ADDR 0x10000
 
 using namespace std;
 
 
+const int DATA_ADDR = 0x100000;
 extern vector<uint32_t> GPR;
 extern vector<float> FPR;
 extern uint32_t CR;
@@ -316,7 +316,7 @@ bool load() {
 		return 1;
 	}
 	uint32_t addr = (uint32_t)((int32_t)GPR[rA] + simm16);
-	if (!(0 <= addr && addr < 0x10000)) {
+	if (!(0 <= addr && addr < DATA_ADDR)) {
 		cerr << "cannot load: memory overflow" << " " << hex << addr << endl;
 		return 1;
 	}
@@ -330,7 +330,7 @@ bool store() {
 	simm16 = get_simm16(OP);
 	//uint32_t addr = GPR[rA] + simm16;
 	uint32_t addr = (uint32_t)((int32_t)GPR[rA] + simm16);
-	if (!(0 <= addr && addr < 0x10000)) {
+	if (!(0 <= addr && addr < DATA_ADDR)) {
 		cerr << "cannot store: memory overflow" << " " << hex << addr << endl;
 		return 1;
 	}
@@ -343,7 +343,7 @@ bool fload() {
 	rA = get_rA(OP);
 	simm16 = get_simm16(OP);
 	uint32_t addr = (uint32_t)((int32_t)GPR[rA] + simm16);
-	if (!(0 <= addr && addr < 0x10000)) {
+	if (!(0 <= addr && addr < DATA_ADDR)) {
 		cerr << "cannot fload: memory overflow" << " " << hex << addr << endl;
 		return 1;
 	}
@@ -355,7 +355,7 @@ bool fstore() {
 	rA = get_rA(OP);
 	simm16 = get_simm16(OP);
 	uint32_t addr = (uint32_t)((int32_t)GPR[rA] + simm16);
-	if (!(0 <= addr && addr < 0x10000)) {
+	if (!(0 <= addr && addr < DATA_ADDR)) {
 		cerr << "cannot fstore: memory overflow" << " " << hex << addr << endl;
 		return 1;
 	}

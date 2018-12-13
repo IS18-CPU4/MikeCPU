@@ -14,9 +14,6 @@
 #include "op.h"
 #include "sld.h"
 
-#define INST_ADDR 0x10000
-#define DATA_ADDR 0x10000
-
 using namespace std;
 void PrintHelp() {
 cout << "--step:   execute by step\n"
@@ -69,6 +66,9 @@ uint32_t CR = 0;//コンディションレジスタ
 //CR0~CR7の8個の4bitフィールド
 
 uint32_t LR = 0;//リンクレジスタ
+
+const int INST_ADDR = 0x10000;
+const int DATA_ADDR = 0x100000;
 uint32_t INST_MEM[INST_ADDR] = {};//命令のバイナリを読み込むエンディアンに注意!
 
 uint32_t DATA_MEM[DATA_ADDR] = {};//データを保存するメモリ
@@ -95,7 +95,7 @@ long long int instNum;//何番目の命令か
 
 vector<char> outChar;//outによる出力を保存しておく
 
-uint32_t initsp = 0x8000;//spの初期値
+const uint32_t initsp = 0x80000;//spの初期値
 
 #define SHOWGPR()\
 do { \
@@ -249,8 +249,12 @@ void debug() {//レジスタの中身を見る
 				} else {
 					try {
 						int int_add = stoi(address, nullptr, 0);
-						cout << "DATA_MEM[" << hex<< address << "] = " << DATA_MEM[int_add] << dec << endl;
-				}catch (const invalid_argument& e) {
+						if (!((0 <= int_add) && (int_add < DATA_ADDR))) {
+							cout << "invalid address...try again." << endl;
+						}else {
+							cout << "DATA_MEM[" << hex<< address << "] = " << DATA_MEM[int_add] << dec << endl;
+						}
+					}catch (const invalid_argument& e) {
 						cout << "try again." << endl;
 					}
 				}
@@ -268,7 +272,11 @@ void debug() {//レジスタの中身を見る
 				} else {
 					try {
 						int int_add = stoi(address, nullptr, 0);
-						cout << "DATA_MEM[" << hex << address << "] = " << DATA_MEM[int_add] << dec<< endl;
+						if (!((0 <= int_add) && (int_add < DATA_ADDR))) {
+							cout << "invalid address...try again." << endl;
+						}else {
+							cout << "DATA_MEM[" << hex<< address << "] = " << DATA_MEM[int_add] << dec << endl;
+						}
 					}catch (const invalid_argument& e) {
 							cout << "try again." << endl;
 					}
@@ -292,7 +300,7 @@ int normal() {//通常実行
 	while(PC < lastPC) {
 		try {
 			int result = do_op();
-			if (GPR[3] > 0x10000) {
+			if (GPR[3] >= DATA_ADDR) {
 				throw 1;
 			
 			}
@@ -438,7 +446,7 @@ int step() {//step実行
 					}
 					try {
 						int result = do_op();
-						if (GPR[3] > 0x10000) {
+						if (GPR[3] >= DATA_ADDR) {
 						throw 1;
 						}
 						if (initsp < GPR[4]) {
@@ -495,7 +503,11 @@ int step() {//step実行
 					} else {
 						try {
 							int int_add = stoi(address, nullptr, 0);
-							cout << "DATA_MEM[" << hex<< address << "] = " << DATA_MEM[int_add] << dec << endl;
+							if (!((0 <= int_add) && (int_add < DATA_ADDR))) {
+								cout << "invalid address...try again." << endl;
+							}else {
+								cout << "DATA_MEM[" << hex<< address << "] = " << DATA_MEM[int_add] << dec << endl;
+							}
 					}catch (const invalid_argument& e) {
 							cout << "try again." << endl;
 						}
@@ -514,7 +526,11 @@ int step() {//step実行
 					} else {
 						try {
 							int int_add = stoi(address, nullptr, 0);
-							cout << "DATA_MEM[" << hex << address << "] = " << DATA_MEM[int_add] << dec<< endl;
+							if (!((0 <= int_add) && (int_add < DATA_ADDR))) {
+								cout << "invalid address...try again." << endl;
+							}else {
+								cout << "DATA_MEM[" << hex<< address << "] = " << DATA_MEM[int_add] << dec << endl;
+							}
 						}catch (const invalid_argument& e) {
 								cout << "try again." << endl;
 						}
@@ -564,7 +580,7 @@ int step() {//step実行
 
 		try {
 			int result = do_op();
-			if (GPR[3] > 0x10000) {
+			if (GPR[3] >= DATA_ADDR) {
 				throw 1;
 			}
 			if (initsp < GPR[4]) {
