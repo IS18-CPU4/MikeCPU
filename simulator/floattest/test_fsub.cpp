@@ -12,13 +12,16 @@ int main() {
 	mt19937 mt(rd());
 	float x1, x2, sub_result, mysub_result;
 	uint32_t ux1, ux2, umysub_result;
-	float LOW = -pow(2, 127);
-	float HI = pow(2, 127);
+	//float LOW = -pow(2, 127);
+	float LOW = -1000;
+	//float HI = pow(2, 127);
+	float HI = 1000;
 	float epsilon = pow(2, -126);
 	uniform_real_distribution<> dis(LOW, HI);
 	int count = 0;
 	float diff, difftmp;
 
+	//for (int i = 0; i < 1000000000; i++) {
 	for (int i = 0; i < 1000000000; i++) {
 		x1 = (float)dis(mt);
 		x2 = (float)dis(mt);

@@ -14,9 +14,6 @@
 #include "op.h"
 #include "sld.h"
 
-#define INST_ADDR 0x10000
-#define DATA_ADDR 0x10000
-
 using namespace std;
 void PrintHelp() {
 cout << "--step:   execute by step\n"
@@ -69,6 +66,9 @@ uint32_t CR = 0;//コンディションレジスタ
 //CR0~CR7の8個の4bitフィールド
 
 uint32_t LR = 0;//リンクレジスタ
+
+const int INST_ADDR = 0x10000;
+const int DATA_ADDR = 0xf000000;
 uint32_t INST_MEM[INST_ADDR] = {};//命令のバイナリを読み込むエンディアンに注意!
 
 uint32_t DATA_MEM[DATA_ADDR] = {};//データを保存するメモリ
@@ -94,6 +94,8 @@ void debug();
 long long int instNum;//何番目の命令か
 
 vector<char> outChar;//outによる出力を保存しておく
+
+const uint32_t initsp = 0x800000;//spの初期値
 
 #define SHOWGPR()\
 do { \
@@ -202,10 +204,10 @@ void debug() {//レジスタの中身を見る
 	while (1) {
 		if (stepflag == 1) {
 			cout << "which to show? put char..." << endl
-						<< "GPR 'g', FPR 'f', CondR 'c', LinkR 'l', PC&operation 'i', out 'o',  'end 'e': ";
+						<< "GPR 'g', FPR 'f', CondR 'c', LinkR 'l', PC&operation 'i', out 'o', memory 'm', stack 's',  end 'e': , ";
 		} else {
 			cout << "which to show? put char..." << endl
-						<< "GPR 'g', FPR 'f', CondR 'c', LinkR 'l', PC&operation 'i',  'end 'e': ";
+						<< "GPR 'g', FPR 'f', CondR 'c', LinkR 'l', PC&operation 'i',  memory 'm', stack 's', end 'e': ";
 		}
 		char x;
 		cin >> x;
@@ -229,13 +231,58 @@ void debug() {//レジスタの中身を見る
 					for (citr = outChar.begin();citr != outChar.end();citr++) {
 						cout << "out[" << charcount << "]: " << *citr << endl;
 						charcount++;
-					} 
+					}
 				} else {
 					cout << "no out" << endl;
 				}
 			} else {
 				cout << "undefined...try again" << endl;
 			}
+			break;
+		case 'm'://メモリを見る
+			while (1) {
+				cout << "check data mem...put address of mem in hex (put e to end): ";
+				string address;
+				cin >> address;
+				if (address == "e") {
+					break;
+				} else {
+					try {
+						int int_add = stoi(address, nullptr, 0);
+						if (!((0 <= int_add) && (int_add < DATA_ADDR))) {
+							cout << "invalid address...try again." << endl;
+						}else {
+							cout << "DATA_MEM[" << hex<< address << "] = " << DATA_MEM[int_add] << dec << endl;
+						}
+					}catch (const invalid_argument& e) {
+						cout << "try again." << endl;
+					}
+				}
+			}
+			cout << endl;
+			break;
+		case 's'://stackを見る
+			cout << "stack pointer (GPR3) is: " << hex << GPR[3] << dec << endl;
+			while (1) {
+				cout << "check stack...put address of mem in hex (put e to end): ";
+				string address;
+				cin >> address;
+				if (address == "e") {
+					break;
+				} else {
+					try {
+						int int_add = stoi(address, nullptr, 0);
+						if (!((0 <= int_add) && (int_add < DATA_ADDR))) {
+							cout << "invalid address...try again." << endl;
+						}else {
+							cout << "DATA_MEM[" << hex<< address << "] = " << DATA_MEM[int_add] << dec << endl;
+						}
+					}catch (const invalid_argument& e) {
+							cout << "try again." << endl;
+					}
+				}
+			}
+			cout << endl;
 			break;
 		case 'e':
 			return;
@@ -248,15 +295,35 @@ void debug() {//レジスタの中身を見る
 int normal() {//通常実行
 	instNum = 0;
 	PC = mincamlStart >> 2;
-	GPR[3] = 0x8000;//stack
+	GPR[3] = initsp;//stack
+	volatile int exception = 0;
 	while(PC < lastPC) {
-		int result = do_op();
-		if (result) {
-			cerr << "error at PC:" << hex << (PC << 2) << dec << endl;
+		try {
+			int result = do_op();
+			if (GPR[3] >= DATA_ADDR) {
+				throw 1;
+
+			}
+			if (initsp < GPR[4]) {
+				throw 2;
+			}
+			if (result) {
+				throw 3;
+			}
+		} catch (int fError) {
+			if (fError == 1) {
+				cerr << "error: stack overflow " << endl;
+				PC--;
+			} else if (fError == 2) {
+				cerr << "error: heap overflow " << endl;
+				PC--;
+			}
+			cout << "error at PC:" << hex << (PC<<2) << dec << endl;
+			cout << hex << OP << dec << endl;
+			cout << "in mnemonic: "; rev_asm(OP);
 			cerr << "the number of executed instructions: " << dec << instNum << endl;
 			cerr << "move to debug mode..." << endl;
-			debug();
-			return EXIT_FAILURE;
+			return 1;
 		}
 		instNum++;
 	}
@@ -267,7 +334,7 @@ int step() {//step実行
 	instNum = 0;
 	cout << "execute by step..." << endl;
 	PC = mincamlStart >> 2;
-	GPR[3] = 0x8000;//stack
+	GPR[3] = initsp;//stack
 	//uint32_t breakpoint = 0;
 	vector<uint32_t> breakpoint_PC;
 	vector<long> breakpoint_Inst;
@@ -377,12 +444,31 @@ int step() {//step実行
 						cout << "reached breakpoint Inst" << endl;
 						break;
 					}
-					int result = do_op();
-					if (result) {
-						cerr << "error at PC:" << hex << (PC << 2) << dec << endl;
-						cerr << "move to debug mode" << endl;
-						debug();
-						return EXIT_FAILURE;
+					try {
+						int result = do_op();
+						if (GPR[3] >= DATA_ADDR) {
+						throw 1;
+						}
+						if (initsp < GPR[4]) {
+							throw 2;
+						}
+						if (result) {
+							throw 3;
+						}
+					} catch (int frError) {
+						if (frError == 1) {
+							cerr << "error: stack overflow " << endl;
+							PC--;
+						} else if (frError == 2) {
+							cerr << "error: heap overflow " << endl;
+							PC--;
+						}
+						cout << "error at PC:" << hex << (PC<<2) << dec << endl;
+						cout << hex << OP << dec << endl;
+						cout << "in mnemonic: "; rev_asm(OP);
+						cerr << "the number of executed instructions: " << dec << instNum << endl;
+						cerr << "move to debug mode..." << endl;
+						return 1;
 					}
 					instNum++;
 				}
@@ -417,7 +503,11 @@ int step() {//step実行
 					} else {
 						try {
 							int int_add = stoi(address, nullptr, 0);
-							cout << "DATA_MEM[" << hex<< address << "] = " << DATA_MEM[int_add] << dec << endl;
+							if (!((0 <= int_add) && (int_add < DATA_ADDR))) {
+								cout << "invalid address...try again." << endl;
+							}else {
+								cout << "DATA_MEM[" << hex<< address << "] = " << DATA_MEM[int_add] << dec << endl;
+							}
 					}catch (const invalid_argument& e) {
 							cout << "try again." << endl;
 						}
@@ -436,7 +526,11 @@ int step() {//step実行
 					} else {
 						try {
 							int int_add = stoi(address, nullptr, 0);
-							cout << "DATA_MEM[" << hex << address << "] = " << DATA_MEM[int_add] << dec<< endl;
+							if (!((0 <= int_add) && (int_add < DATA_ADDR))) {
+								cout << "invalid address...try again." << endl;
+							}else {
+								cout << "DATA_MEM[" << hex<< address << "] = " << DATA_MEM[int_add] << dec << endl;
+							}
 						}catch (const invalid_argument& e) {
 								cout << "try again." << endl;
 						}
@@ -450,7 +544,7 @@ int step() {//step実行
 					for (citr = outChar.begin();citr != outChar.end();citr++) {
 						cout << "out[" << charcount << "]: " << *citr << endl;
 						charcount++;
-					} 
+					}
 				} else {
 					cout << "no out" << endl;
 				}
@@ -484,12 +578,31 @@ int step() {//step実行
 				 << "in mnemonic...: "; rev_asm(opname);
 		cout << endl;
 
-		int result = do_op();
-		if (result) {
-			cerr << "error at PC:" << hex << (PC << 2) << dec << endl;
-			cerr << "move to debug mode" << endl;
-			debug();
-			return EXIT_FAILURE;
+		try {
+			int result = do_op();
+			if (GPR[3] >= DATA_ADDR) {
+				throw 1;
+			}
+			if (initsp < GPR[4]) {
+				throw 2;
+			}
+			if (result) {
+				throw 3;
+			}
+		} catch (int fError) {
+			if (fError == 1) {
+				cerr << "error: stack overflow " << endl;
+				PC--;
+			} else if (fError == 2) {
+				cerr << "error: heap overflow " << endl;
+				PC--;
+			}
+			cout << "error at PC:" << hex << (PC<<2) << dec << endl;
+			cout << hex << OP << dec << endl;
+			cout << "in mnemonic: "; rev_asm(OP);
+			cerr << "the number of executed instructions: " << dec << instNum << endl;
+			cerr << "move to debug mode..." << endl;
+			return 1;
 		}
 		instNum++;
 	}
@@ -597,11 +710,11 @@ int main(int argc, char**argv) {
 	cout << "_min_caml_start label address: " << hex << mincamlStart << dec << endl;
 	while ((cnt = fread(&INST_MEM[pos], 4, 2048, binary))) {
 		pos += cnt;
-	} 
+	}
 	lastPC = pos;
 	fclose(binary);
 	cout << "end reading!" << endl << endl;//読み取り終わり
-	
+
 	GPR[3] = 0x8000;
 	initialize();
 	cout << endl;
@@ -609,10 +722,11 @@ int main(int argc, char**argv) {
 	cout << "-----------start execution----------" << endl << endl;
 	vector<char>::iterator citr;
 
-	int result;
+	int ex_result = 0;
+
 	if (stepflag == 1) {
-		result = step();
-		if (!result) {
+		ex_result = step();
+		if (ex_result == 0) {
 			cout << "finish execution successfully!" << endl << endl;
 			cout << "return value is... GPR[1]:" << hex << GPR[1]<< dec << " FPR[0]:" << FPR[0] << endl;
 			cout << "the total number of instructions is (dec) : " << dec << instNum << endl;
@@ -623,12 +737,14 @@ int main(int argc, char**argv) {
 				}
 			}
 			debug();
+		} else {
+			debug();
 		}
 	} else {
 		chrono::system_clock::time_point start, end;
 		start = chrono::system_clock::now();
-		result = normal();
-		if (!result) {
+		ex_result = normal();
+		if (ex_result == 0) {
 			end = chrono::system_clock::now();
 			double elapsed = chrono::duration_cast<chrono::milliseconds>(end-start).count();
 			cout << "finish execution successfully!" << endl << endl;
@@ -641,6 +757,8 @@ int main(int argc, char**argv) {
 					fileout << *citr << " "  << endl;
 				}
 			}*/
+			debug();
+		} else {
 			debug();
 		}
 	}
