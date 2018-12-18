@@ -76,6 +76,7 @@ uint32_t DATA_MEM[DATA_ADDR] = {};//データを保存するメモリ
 uint32_t PC;
 uint32_t OP;
 uint32_t mincamlStart;
+vector<uint32_t> callStack;
 
 uint32_t lastPC;
 //bitを取り出す
@@ -319,6 +320,11 @@ int normal() {//通常実行
 				PC--;
 			}
 			cout << "error at PC:" << hex << (PC<<2) << dec << endl;
+
+            cout << "call stack |";
+            for (auto stackedPC : callStack) cout << hex << (stackedPC<<2) << " > ";
+            cout << endl;
+
 			cout << hex << OP << dec << endl;
 			cout << "in mnemonic: "; rev_asm(OP);
 			cerr << "the number of executed instructions: " << dec << instNum << endl;

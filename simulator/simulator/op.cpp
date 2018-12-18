@@ -10,6 +10,7 @@ using namespace std;
 
 extern uint32_t INST_MEM[INST_ADDR];
 extern uint32_t PC;
+extern vector<uint32_t> callStack;
 extern uint32_t OP;
 extern bool stepflag;
 extern bool inputflag;
@@ -78,9 +79,11 @@ int do_op() {
 			branch_lt();break;
 		case 18:
 			//cout << "opname bl" << endl;
+            callStack.push_back(PC);
 			branch_and_link();break;
 		case 19:
 			//cout << "opname blr" << endl;
+            callStack.pop_back();
 			branch_link_reg();break;
 		case 20:
 			//cout << "opname mflr" << endl;
@@ -129,6 +132,7 @@ int do_op() {
 			branch_abs();break;
 		case 35:
 			//cout << "opname bal" << endl;
+            callStack.push_back(PC);
 			branch_abs_and_link();break;
 		case 62:
 			if (inputflag == 0) {
