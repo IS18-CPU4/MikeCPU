@@ -18,7 +18,7 @@
 using namespace std;
 
 
-const int DATA_ADDR = 0x100000;
+const int DATA_ADDR = 0xf000000;
 extern vector<uint32_t> GPR;
 extern vector<float> FPR;
 extern uint32_t CR;
@@ -431,7 +431,7 @@ void branch_abs() {
 	rD = get_rD(OP);
 	uint32_t addr = GPR[rD];
 	PC = addr >> 2;
-}	
+}
 void branch_abs_and_link() {
 	rD = get_rD(OP);
 	uint32_t addr = GPR[rD];
@@ -451,6 +451,6 @@ void in() {
 	uint32_t utmp = uinput << (uinput_byte_count * 8);
 	uint32_t uin = utmp >> 24;
 	GPR[rD] = uin;
-	
+
 	uinput_byte_count++;
 }

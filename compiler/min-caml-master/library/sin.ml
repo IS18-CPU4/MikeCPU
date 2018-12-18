@@ -47,4 +47,16 @@ let rec a_cos x =
     ker_cos x
 in
 
-print_int (int_of_float (10.0 *. (a_sin 5.0)) + int_of_float (10.0 *. (a_cos 5.0)))
+print_int (int_of_float (10.0 *. (a_sin 5.0)) + int_of_float (10.0 *. (a_cos 5.0)));print_newline ();
+print_int (int_of_float (100.0 *. (a_sin (-.0.00000001))));print_newline ();
+print_int (int_of_float (100.0 *. (a_sin 0.00000001)));print_newline ();
+print_int (int_of_float (100.0 *. a_sin 0.0));print_newline ();
+print_int (int_of_float (100.0 *. a_sin 314.0));print_newline ();
+print_int (int_of_float (100.0 *. a_sin (-.314.0)));print_newline ();
+print_int (int_of_float (100.0 *. a_sin 0.88));print_newline ();
+print_int (int_of_float (100.0 *. a_sin 0.89));print_newline ();
+print_int (int_of_float (100.0 *. a_sin 1.57));print_newline ();
+print_int (int_of_float (100.0 *. a_sin 1.56));print_newline ();
+print_int (int_of_float (100.0 *. a_sin 1.58));print_newline ();
+print_int (int_of_float (100.0 *. a_sin 3.14));print_newline ();
+print_int (int_of_float (100.0 *. a_sin 3.1401));print_newline ();

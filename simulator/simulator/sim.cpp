@@ -68,7 +68,7 @@ uint32_t CR = 0;//コンディションレジスタ
 uint32_t LR = 0;//リンクレジスタ
 
 const int INST_ADDR = 0x10000;
-const int DATA_ADDR = 0x100000;
+const int DATA_ADDR = 0xf000000;
 uint32_t INST_MEM[INST_ADDR] = {};//命令のバイナリを読み込むエンディアンに注意!
 
 uint32_t DATA_MEM[DATA_ADDR] = {};//データを保存するメモリ
@@ -95,7 +95,7 @@ long long int instNum;//何番目の命令か
 
 vector<char> outChar;//outによる出力を保存しておく
 
-const uint32_t initsp = 0x80000;//spの初期値
+const uint32_t initsp = 0x800000;//spの初期値
 
 #define SHOWGPR()\
 do { \
@@ -231,7 +231,7 @@ void debug() {//レジスタの中身を見る
 					for (citr = outChar.begin();citr != outChar.end();citr++) {
 						cout << "out[" << charcount << "]: " << *citr << endl;
 						charcount++;
-					} 
+					}
 				} else {
 					cout << "no out" << endl;
 				}
@@ -302,7 +302,7 @@ int normal() {//通常実行
 			int result = do_op();
 			if (GPR[3] >= DATA_ADDR) {
 				throw 1;
-			
+
 			}
 			if (initsp < GPR[4]) {
 				throw 2;
@@ -544,7 +544,7 @@ int step() {//step実行
 					for (citr = outChar.begin();citr != outChar.end();citr++) {
 						cout << "out[" << charcount << "]: " << *citr << endl;
 						charcount++;
-					} 
+					}
 				} else {
 					cout << "no out" << endl;
 				}
@@ -710,11 +710,11 @@ int main(int argc, char**argv) {
 	cout << "_min_caml_start label address: " << hex << mincamlStart << dec << endl;
 	while ((cnt = fread(&INST_MEM[pos], 4, 2048, binary))) {
 		pos += cnt;
-	} 
+	}
 	lastPC = pos;
 	fclose(binary);
 	cout << "end reading!" << endl << endl;//読み取り終わり
-	
+
 	GPR[3] = 0x8000;
 	initialize();
 	cout << endl;

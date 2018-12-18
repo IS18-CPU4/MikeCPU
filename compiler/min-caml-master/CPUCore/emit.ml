@@ -144,13 +144,11 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprim
   | NonTail(x), Lwz(y, C(z))-> raise (ASM_ERR("lwz"))
   | NonTail(_), Stw(x, y, C(z)) -> raise (ASM_ERR("stw"))
 *)
-  | NonTail(x), Lwz(y, V(z))-> Printf.fprintf oc "\tadd\t%s, %s, %s\n" (reg y) (reg y) (reg z);
-                               Printf.fprintf oc "\tld\t%s, %s, 0\n" (reg x) (reg y);
-                               Printf.fprintf oc "\tsub\t%s, %s, %s\n" (reg y) (reg y) (reg z)
+  | NonTail(x), Lwz(y, V(z))-> Printf.fprintf oc "\tadd\t%s, %s, %s\n" (reg reg_tmp) (reg y) (reg z);
+                               Printf.fprintf oc "\tld\t%s, %s, 0\n" (reg x) (reg reg_tmp)
   | NonTail(x), Lwz(y, C(z)) -> Printf.fprintf oc "\tld\t%s, %s, %d\n" (reg x) (reg y) z
-  | NonTail(_), Stw(x, y, V(z)) -> Printf.fprintf oc "\tadd\t%s, %s, %s\n" (reg y) (reg y) (reg z);
-                                   Printf.fprintf oc "\tst\t%s, %s, 0\n" (reg x) (reg y);
-                                   Printf.fprintf oc "\tsub\t%s, %s, %s\n" (reg y) (reg y) (reg z)
+  | NonTail(_), Stw(x, y, V(z)) -> Printf.fprintf oc "\tadd\t%s, %s, %s\n" (reg reg_tmp) (reg y) (reg z);
+                                   Printf.fprintf oc "\tst\t%s, %s, 0\n" (reg x) (reg reg_tmp)
   | NonTail(_), Stw(x, y, C(z)) -> Printf.fprintf oc "\tst\t%s, %s, %d\n" (reg x) (reg y) z
   | NonTail(x), FMr(y) when x = y -> ()
   | NonTail(x), FMr(y) -> Printf.fprintf oc "\tfmr\t%s, %s\n" (reg x) (reg y)
