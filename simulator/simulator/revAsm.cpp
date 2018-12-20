@@ -114,6 +114,8 @@ void rev_asm(const uint32_t op) {
 			cout << "ba "; print_rD(op); cout << endl;break;
 		case 35:
 			cout << "bal "; print_rD(op); cout << endl;break;
+		case 62:
+			cout << "in "; print_rD(op); cout << endl;break;
 		case 63:
 			cout << "out "; print_rD(op); cout << endl;break;
 		default:

@@ -18,7 +18,7 @@
 using namespace std;
 
 
-const int DATA_ADDR = 0xf000000;
+const int DATA_ADDR = 0x1000000;
 extern vector<uint32_t> GPR;
 extern vector<float> FPR;
 extern uint32_t CR;
@@ -30,7 +30,7 @@ extern vector<char> outChar;
 extern ofstream fileout;
 
 extern vector<uint32_t> uinput_vector;
-int uinput_byte_count = 0;;//1byteずつ取得したい
+//int uinput_byte_count = 0;;//1byteずつ取得したい
 int uinput_index = 0;
 
 
@@ -423,7 +423,7 @@ void out() {
 void outstep() {
 	rD = get_rD(OP);
 	uint32_t result = 0x000000FF & GPR[rD];
-	cout << "operation out..." << static_cast<char>(result)  << endl;
+//	cout << "operation out..." << static_cast<char>(result)  << endl;
 	outChar.push_back(static_cast<char>(result));
 }
 
@@ -431,7 +431,7 @@ void branch_abs() {
 	rD = get_rD(OP);
 	uint32_t addr = GPR[rD];
 	PC = addr >> 2;
-}
+}	
 void branch_abs_and_link() {
 	rD = get_rD(OP);
 	uint32_t addr = GPR[rD];
@@ -441,16 +441,8 @@ void branch_abs_and_link() {
 
 void in() {
 	rD = get_rD(OP);
-	//some exec
-	//input_byte_count input_string_indexでアクセス
-	if (uinput_byte_count == 4) {
-		uinput_byte_count = 0;
-		uinput_index++;
-	}
 	uint32_t uinput = uinput_vector[uinput_index];
-	uint32_t utmp = uinput << (uinput_byte_count * 8);
-	uint32_t uin = utmp >> 24;
-	GPR[rD] = uin;
-
-	uinput_byte_count++;
+	GPR[rD] = uinput;
+	uinput_index++;
+	
 }
