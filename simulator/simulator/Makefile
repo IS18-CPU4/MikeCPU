@@ -42,4 +42,4 @@ float/fsqrt.o: float/fsqrt.cpp float/fsqrt.h float/fcalc.h float/fmul.h
 
 
 clean:
-	rm -rf *.o float/*.o out.bin a.out sim
+	rm -rf *.o float/*.o out.bin a.out instruction_count.out sim

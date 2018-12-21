@@ -21,6 +21,8 @@ optionなしで普通の実行。現状optionはstepとhelpのみ。
 out命令の出力がoutputfileに出力される。アスキーコードで変換済み。
 上のoutputfileを指定しない場合a.outに出力される。
 
+各命令の数はinstruction_count.outに出力される。
+
 step実行時のコマンドはhで確認できる。
 (step 累計命令数)という表示。
 
@@ -102,6 +104,9 @@ simulator/simulator で
 > ./sim --input sld/contest.bin out.bin
 
 contest.sldが動いて、命令数65億、実行時間60sec
+
+12/21
+各命令をカウントし、instruction_count.outに出力
 
 ---------------------------------------タスク------------------------------------------------------
 

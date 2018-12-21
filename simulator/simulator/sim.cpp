@@ -85,6 +85,8 @@ return (inst & ((1 << (i+1)) - (1 << j))) >> j;
 
 vector<uint32_t> uinput_vector;
 
+vector<long long int> instCount(64, 0);//各命令をカウント
+
 // レジスタに値を設定　引数などに使用
 void initialize();
 //debug用に各レジスタを出力する関数をつくる
@@ -653,7 +655,12 @@ int main(int argc, char**argv) {
 		cerr << "cannot open outputfile" << endl;
 		return 1;
 	}
-
+	ofstream instout;
+	instout.open("instruction_count.out", ios::out|ios::trunc);
+	if (!instout) {
+		cerr << "cannot open outputfile" << endl;
+		return 1;
+	}
 
 	//機械語の読み取り
 	size_t cnt;
@@ -695,9 +702,6 @@ int main(int argc, char**argv) {
 					fileout << *citr;
 				}
 			}
-			debug();
-		} else {
-			debug();
 		}
 	} else {
 		chrono::system_clock::time_point start, end;
@@ -716,9 +720,90 @@ int main(int argc, char**argv) {
 					fileout << *citr << " "  << endl;
 				}
 			}*/
-			debug();
-		} else {
-			debug();
 		}
 	}
+	//print count of instructions
+	for (int i = 0; i <= 63; i++) {
+		switch (i) {
+		case 0:
+			instout << "li: " << instCount[0] << endl;break;
+		case 1:
+			instout << "mr: " << instCount[1] << endl;break;
+		case 2:
+			instout << "addi: " << instCount[2] << endl;break;
+		case 3:
+			instout << "add: " << instCount[3] << endl;break;
+		case 4:
+			instout << "sub: " << instCount[4] << endl;break;
+		case 5:
+			instout << "slwi: " << instCount[5] << endl;break;
+		case 6:
+			instout << "srwi: " << instCount[6] << endl;break;
+		case 7:
+			instout << "fadd: " << instCount[7] << endl;break;
+		case 8:
+			instout << "fsub: " << instCount[8] << endl;break;
+		case 9:
+			instout << "fdiv: " << instCount[9] << endl;break;
+		case 10:
+			instout << "fmul: " << instCount[10] << endl;break;
+		case 11:
+			instout << "fsqrt: " << instCount[11] << endl;break;
+		case 12:
+			instout << "fabs: " << instCount[12] << endl;break;
+		case 13:
+			instout << "fmr: " << instCount[13] << endl;break;
+		case 14:
+			instout << "b: " << instCount[14] << endl;break;
+		case 15:
+			instout << "beq: " << instCount[15] << endl;break;
+		case 16:
+			instout << "bneq: " << instCount[16] << endl;break;
+		case 17:
+			instout << "blt: " << instCount[17] << endl;break;
+		case 18:
+			instout << "bl: " << instCount[18] << endl;break;
+		case 19:
+			instout << "blr: " << instCount[19]<< endl;break;
+		case 20:
+			instout << "mflr: " << instCount[20] << endl;break;
+		case 21:
+			instout << "mtlr: " << instCount[21] << endl;break;
+		case 22:
+			instout << "cmpwi: " << instCount[22] << endl;break;
+		case 23:
+			instout << "cmpw: " << instCount[23] << endl;break;
+		case 24:
+			instout << "fcmp: " << instCount[24] << endl;break;
+		case 25:
+			instout << "ld: " << instCount[25] << endl;break;
+		case 26:
+			instout << "st: " << instCount[26] << endl;break;
+		case 27:
+			instout << "fld: " << instCount[27] << endl;break;
+		case 28:
+			instout << "fst: " << instCount[28] << endl;break;
+		case 29:
+			instout << "slw: " << instCount[29] << endl;break;
+		case 30:
+			instout << "srw: " << instCount[30] << endl;break;
+		case 31:
+			instout << "bc: " << instCount[31] << endl;break;
+		case 32:
+			instout << "itof: " << instCount[32] << endl;break;
+		case 33:
+			instout << "ftoi: " << instCount[33] << endl;break;
+		case 34:
+			instout << "ba: " << instCount[34] << endl;break;
+		case 35:
+			instout << "bal: " << instCount[35] << endl;break;
+		case 62:
+			instout << "in: " << instCount[62] << endl;break;
+		case 63:
+			instout << "out: " << instCount[63] << endl;break;
+		default:
+			break;
+		}
+	}
+	debug();
 }
