@@ -62,8 +62,7 @@ module itof
    assign m = tmp_i[30:8];
    assign e = 8'd157 - {3'd0, l};
 
-   assign y = (i == 0) ? 32'd0 :
-              (x == 32'd4294967295) ? {1'b1, 8'd0, 23'd158} : {s, e, m};
+   assign y = (i == 0) ? 32'd0 : {s, e, m};
 
 endmodule
 
