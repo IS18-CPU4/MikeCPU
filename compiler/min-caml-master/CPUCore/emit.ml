@@ -485,6 +485,10 @@ let f oc (Prog(data, fundefs, e)) =
   List.iter (fun fundef -> h oc fundef) fundefs;
 (*  Printf.fprintf oc "_min_caml_start: # main entry point\n"; *)
   Printf.fprintf oc "_min_caml_start:\n";
+  Printf.fprintf oc "\tli\t%s, %d\n" (reg reg_sp) 0x7;
+  Printf.fprintf oc "\tslwi\t%s, %s, %d\n" (reg reg_sp) (reg reg_sp) 16;
+  Printf.fprintf oc "\taddi\t%s, %s, %d\n" (reg reg_sp) (reg reg_sp) 0x4e0;
+  Printf.fprintf oc "\tli\t%s, %d\n" (reg reg_hp) 0;
 (* (* エントリーポイントはいらない *)
   Printf.fprintf oc "_min_caml_start:\n # main entry point\n";
   Printf.fprintf oc "\tmflr\tr0\n";
