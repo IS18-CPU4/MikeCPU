@@ -109,12 +109,12 @@ module FAlu (
   input wire rstn);
 
   wire [31:0] ya, ys, ym, yd, ysq, yabs;
-  wire ovfa, ovfs, ovfm, ovfd, ovfsq;
+  wire ovfa, ovfs, ovfm, ovfd;
   fadd_p2 adder (x1, x2, ya, ovfa, clk, rstn);
   fsub_p2 subber(x1, x2, ys, ovfs, clk, rstn);
   fmul    muller(x1, x2, ym, ovfm);
   fdiv_p2 diver (x1, x2, yd, ovfd, clk);
-  fsqrt   sqrter(x1, ysq,ovfsq);
+  fsqrt_p2   sqrter(x1, ysq, clk, rstn);
 
   assign yabs = {1'b0, x1[30:0]};
 
@@ -131,8 +131,7 @@ module FAlu (
     ((command == `FA_COM_add) & ovfa) |
     ((command == `FA_COM_sub) & ovfs) |
     ((command == `FA_COM_mul) & ovfm) |
-    ((command == `FA_COM_div) & ovfd) |
-    ((command == `FA_COM_sqrt)&ovfsq) );
+    ((command == `FA_COM_div) & ovfd));
 
 endmodule
 
@@ -188,7 +187,7 @@ module Controller(
   wire [31:0] rB;
   wire [31:0] rD;
   RegisterFile register(inst_rD, inst_rA, inst_rB, rD, rA, rB, 
-    reg_we, reg_wdata, CLK);
+    reg_we, reg_wdata, CLK, RSTN);
 
   // float register
   reg freg_we;
@@ -197,7 +196,7 @@ module Controller(
   wire [31:0] frB;
   wire [31:0] frD;
   RegisterFile fregister(inst_rD, inst_rA, inst_rB, frD, frA, frB, 
-    freg_we, freg_wdata, CLK);
+    freg_we, freg_wdata, CLK, RSTN);
 
   // ftoi, itof
   wire [31:0] ftoi_out, itof_out;
@@ -244,15 +243,17 @@ module Controller(
   endfunction
 
   // status
-  localparam [2:0] s_init   = 3'b000;
-  localparam [2:0] s_fetch  = 3'b001;
-  localparam [2:0] s_decode = 3'b010;
-  localparam [2:0] s_exec   = 3'b011;
-  localparam [2:0] s_write  = 3'b100;
-  localparam [2:0] s_i      = 3'b101;
-  localparam [2:0] s_o      = 3'b110;
-  localparam [2:0] s_halt   = 3'b111;
-  reg [2:0] state;
+  localparam [3:0] s_init   = 4'd0;
+  localparam [3:0] s_fetch1 = 4'd1;
+  localparam [3:0] s_fetch2 = 4'd2;
+  localparam [3:0] s_decode = 4'd3;
+  localparam [3:0] s_exec1  = 4'd4;
+  localparam [3:0] s_exec2  = 4'd5;
+  localparam [3:0] s_write  = 4'd6;
+  localparam [3:0] s_i      = 4'd7;
+  localparam [3:0] s_o      = 4'd8;
+  localparam [3:0] s_halt   = 4'd9;
+  reg [3:0] state;
 
   
   always @(posedge CLK) begin
@@ -286,20 +287,23 @@ module Controller(
         s_init: begin
           if (boot) begin
             pc <= entry_point;
-            state <= s_fetch;
+            state <= s_fetch1;
           end
         end
 ///////////////////////////////////////////////////
-        s_fetch: begin
+        s_fetch1: begin
           state <= s_decode;
           will_jump <= 0;
           use_imm <= 1'b0;
           reg_we <= 1'b0;
           freg_we <= 1'b0;
         end
+        /*s_fetch2: begin
+          state <= s_decode;
+        end*/
 ///////////////////////////////////////////////////
         s_decode: begin
-          state <= s_exec;
+          state <= s_exec1;
           // now inst_** are valid
           case (inst_op)
             `OP_li: begin
@@ -459,7 +463,7 @@ module Controller(
           endcase
         end
 ///////////////////////////////////////////////////
-        s_exec: begin
+        s_exec1: begin
           case (inst_op)
             `OP_ld: begin
               mem_enable <= 1'b0;
@@ -480,6 +484,7 @@ module Controller(
           endcase
           state <= s_write;
         end
+        //s_exec2: state <= s_write;
 ///////////////////////////////////////////////////
         s_write: begin
           // now ALU output is valid
@@ -504,7 +509,7 @@ module Controller(
             freg_we <= 1'b1;
           end
           if (inst_op == `OP_fmr) begin
-            freg_wdata <= rA;
+            freg_wdata <= frA;
             freg_we <= 1'b1;
           end
 
@@ -546,7 +551,7 @@ module Controller(
             reg_we <= 1'b1;
           end
 
-          state <= s_fetch;
+          state <= s_fetch1;
         end
 ///////////////////////////////////////////////////
         s_i: begin
@@ -557,7 +562,7 @@ module Controller(
               reg_wdata <= {24'd0, io_rdata};
               reg_we <= 1'b1;
               pc <= pc + 1'b1;
-              state <= s_fetch;
+              state <= s_fetch1;
             end
           end else begin
             if (io_ready) io_read_req <= 1'b1;
@@ -567,7 +572,7 @@ module Controller(
           if (io_write_req) begin
             io_write_req <= 1'b0;
             pc <= pc + 1'b1;
-            state <= s_fetch;
+            state <= s_fetch1;
           end else begin
             if (io_ready) io_write_req <= 1'b1;
           end

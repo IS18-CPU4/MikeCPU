@@ -2,9 +2,9 @@
 
 cd ../compiler/min-caml-master/
 make min-caml
+./min-caml shootout/$1
 cd -
-../compiler/min-caml-master/min-caml $1
-echo -e "terminate:\n b terminate" | cat $1.s - > $1_linked.s
+echo -e "terminate:\n b terminate" | cat ../compiler/min-caml-master/shootout/$1.s - > $1_linked.s
 
 cd ../simulator/assembler/
 make

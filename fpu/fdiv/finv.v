@@ -33,7 +33,7 @@ module finv
    wire [11:0] v;
    assign {key, v} = xm;
    // lookup table and get constant and grad
-   lookup_table lt(key, val);
+   finv_lookup_table lt(key, val);
    wire [24:0] constant;
    wire [24:0] grad;
    // constant supplements 1 at the MSB
@@ -50,7 +50,7 @@ module finv
 
 endmodule
 
-module lookup_table
+module finv_lookup_table
    ( input wire [10:0] key,
      output wire [46:0] value);
 
