@@ -440,11 +440,11 @@ module Controller(
             `OP_ftoi: begin
             end
             `OP_ba: begin
-              jump_pc <= rD;
+              jump_pc <= rD >> 2;
               will_jump <= 1'b1;
             end
             `OP_bal: begin
-              jump_pc <= rD;
+              jump_pc <= rD >> 2;
               will_jump <= 1'b1;
               linkreg <= pc + 1;
             end
