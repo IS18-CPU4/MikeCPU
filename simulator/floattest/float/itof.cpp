@@ -11,7 +11,7 @@ uint32_t itof_f(uint32_t x) {
 	s = getBit32(x, 31, 31);
 	i = getBit32(x, 30, 0);
 	uint32_t i_abs;//30bit
-	i_abs = (s == 0) ? i : getBit32((~i + 1), 30, 0);
+	i_abs = (s == 0) ? i : getBit32(~(i - 1), 30, 0);
 	uint32_t l; //5bit
 
 	auto SE =[](uint32_t M){
