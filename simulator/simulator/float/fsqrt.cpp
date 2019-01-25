@@ -39,7 +39,7 @@ uint32_t fsqrt_f(uint32_t x){
 	grad = (uint32_t)getBit64(val, 22, 0);
 
 	uint64_t grad2;//48bit
-	grad2 = (uint32_t)((1  << 23) | grad) * (uint64_t)((1 << 23) | xm);
+	grad2 = (uint64_t)((1  << 23) | grad) * (uint64_t)((1 << 23) | xm);
 
 	uint32_t grad3_even;//25bit
 	grad3_even = ((grad2 & ((uint64_t)1 << 47)) != 0) ? ((uint32_t)getBit64(grad2, 47, 25)) : ((getBit32(xm, 22, 13) != 0b1111111111) ? ((uint32_t)getBit64(grad2, 46, 24)) : ((uint32_t)getBit64(grad2, 47, 25)));
@@ -56,6 +56,7 @@ uint32_t fsqrt_f(uint32_t x){
 	uint32_t tmp_x2 = (s << 31) | (e << 23) | m;
 	tmp_y = fmul_f(x, tmp_x2);
 
+    /*
 	uint32_t root2;//32bit
 	root2 = 0b00111111101101010000010011110011;
 
@@ -70,6 +71,8 @@ uint32_t fsqrt_f(uint32_t x){
 	uint32_t y;
 	y = (xm != 0) ? tmp_y : (((xe & (1 << 0)) != 0) ? ((xs << 31) | (odd_zero_ye << 23) | xm) : even_zero_y);
 	return y;
+    */
+    return tmp_y;
 }
 
 uint64_t lookup_table_fsqrt(uint32_t key) {
