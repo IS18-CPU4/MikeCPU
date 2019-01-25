@@ -1,29 +1,28 @@
 `default_nettype none
 
-module fsqrt
+module fsqrt_p2
    ( input wire [31:0] x,
-     output wire [31:0] y,
-     output wire ovf);
+     output reg [31:0] y,
+     input wire clk,
+     input wire rstn);
 
    // split sequence to each subsequence
    wire xs;
    wire [7:0] xe;
    wire [22:0] xm;
+   reg [7:0] xe_r;
+   reg [22:0] xm_r;
    assign {xs, xe, xm} = x;
-
-   // calc s
-   wire s;
-   assign s = xs;
 
    wire [7:0] shift_xe;
    assign shift_xe = xe >> 1;
 
    // calc e
    wire [7:0] e;
+   reg [7:0] e_r;
    assign e = (xe[0] == 1) ? 8'd189 - shift_xe : 8'd190 - shift_xe; 
 
    // calc m
-   wire [22:0] m;
    wire [47:0] val;
    wire [10:0] key;
    assign key = {xe[0], xm[22:13]};
@@ -31,29 +30,54 @@ module fsqrt
    // lookup table and get constant and grad
    lookup_table lt(key, val);
 
+
    wire [24:0] constant;
+   reg [24:0] constant_r;
    wire [22:0] grad;
    assign constant = val[47:23];
    assign grad = val[22:0];
 
    wire [47:0] grad2;
+   reg [47:0] grad2_r;
    assign grad2 = {1'b1, grad} * {1'b1, xm};
 
+   // register insertion here
+   
    wire [24:0] grad3_even;
-   assign grad3_even = (grad2[47] == 1'b1) ? {2'd0, grad2[47:25]} :
-                       (xm[22:13] != 10'b1111111111) ? {2'd0, grad2[46:24]} : {2'd0, grad2[47:25]};
+   assign grad3_even = (grad2_r[47] == 1'b1) ? {2'd0, grad2_r[47:25]} :
+                       (xm_r[22:13] != 10'b1111111111) ? {2'd0, grad2_r[46:24]} : {2'd0, grad2_r[47:25]};
 
    wire [24:0] grad3_odd;
-   assign grad3_odd = (grad2[47] == 1'b0) ? {2'd0, grad2[46:24]} :
-                      (xm[22:13] != 10'd0) ? {2'd0, grad2[47:25]} : {2'd0, grad2[46:24]};
+   assign grad3_odd = (grad2_r[47] == 1'b0) ? {2'd0, grad2_r[46:24]} :
+                      (xm_r[22:13] != 10'd0) ? {2'd0, grad2_r[47:25]} : {2'd0, grad2_r[46:24]};
 
    wire [24:0] tmp_m;
-   assign tmp_m = (xe[0] == 1) ? constant - grad3_odd : constant - grad3_even;
+   assign tmp_m = (xe_r[0] == 1) ? constant_r - grad3_odd : constant_r - grad3_even;
 
+   wire [22:0] m;
    assign m = tmp_m[22:0]; // ignore implicit 1
 
-   wire [31:0] tmp_y;
-   fmul u1(x, {s, e, m}, y, ovf);
+   wire [31:0] y_w;
+   wire ovf;
+   fmul u1({1'b0, xe_r, xm_r}, {1'b0, e_r, m}, y_w, ovf); // sign is 0
+
+   always @(posedge clk) begin
+    if (~rstn) begin
+      y <= 0;
+      xe_r <= 0;
+      xm_r <= 0;
+      e_r <= 0;
+      constant_r <= 0;
+      grad2_r <= 0;
+    end else begin
+      y <= y_w;
+      xe_r <= xe;
+      xm_r <= xm;
+      e_r <= e;
+      constant_r <= constant;
+      grad2_r <= grad2;
+    end
+   end
 
 endmodule
 
