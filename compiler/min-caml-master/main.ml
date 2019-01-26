@@ -1,4 +1,5 @@
 let limit = ref 1000
+let extinfo = ref []
 
 let rec iter n e = (* 最適化処理をくりかえす (caml2html: main_iter) *)
   Format.eprintf "iteration %d@." n;
@@ -10,7 +11,7 @@ let rec iter n e = (* 最適化処理をくりかえす (caml2html: main_iter) *
 let lexbuf outchan l = (* バッファをコンパイルしてチャンネルへ出力する (caml2html: main_lexbuf) *)
   Id.counter := 0;
   Typing.extenv := M.empty;
-  Emit.f outchan
+  Emit.f outchan !extinfo
     (RegAlloc.f
        (Simm.f
           (Virtual.f
@@ -97,7 +98,7 @@ let dump_lexbuf outchan l = (* lexbufもどき *)
     let _ = PrintKNormal.print_knormal_t cse in
       print_endline "=============================================="
   in let _ = print_newline () in
-  Emit.f outchan
+  Emit.f outchan !extinfo
     (RegAlloc.f
        (Simm.f
           (Virtual.f
@@ -111,15 +112,20 @@ let file f = (* ファイルをコンパイルしてファイルに出力する 
   let outchan = open_out (f ^ ".s") in
 *)
   let inchan = if !global_bool then
-                 let original_inchan = open_in (f ^ ".ml") in
-                 let globals_inchan = open_in "min-rt/globals.s" in
-                 let globals_outchan = open_out (f ^ "_globals.ml") in
-                 let _ = file_concat globals_inchan original_inchan globals_outchan in
-                 let _ = close_in original_inchan in
-                 let _ = close_in globals_inchan in
-                 let _ = close_out globals_outchan in
-                   open_in (f ^ "_globals.ml")
-               else
+                 let globals_inchan = open_in "min-rt/globals.info" in
+                 let lineno = ref 0 in
+                 try
+                   while true; do
+                     let line = input_line globals_inchan in
+                       (lineno := !lineno + 1;
+                       match Str.split (Str.regexp " ") line with
+                       | label :: (size :: []) -> (
+                         print_string "bss: "; print_string label; print_string "\n"; extinfo := (Id.L(label), int_of_string size) :: !extinfo)
+                       | _ -> failwith (Printf.sprintf "invalid info at line: %d" !lineno))
+                   done
+                 with
+                   | End_of_file -> close_in globals_inchan
+               else ();
                  open_in (f ^ ".ml")
                in
   let outchan = open_out (f ^ ".s") in

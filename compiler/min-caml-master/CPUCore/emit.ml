@@ -4,6 +4,7 @@ exception ASM_ERR of string
 
 external get32 : float -> int32 = "get32"
 let floatmap = ref [] (* ref of label * float list *)
+let extmap = ref [] (* ref of extArrayLabel * int(address) list *)
 
 let stackset = ref S.empty (* すでにSaveされた変数の集合 (caml2html: emit_stackset) *)
 let stackmap = ref [] (* Saveされた変数の、スタックにおける位置 (caml2html: emit_stackmap) *)
@@ -119,6 +120,21 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprim
   | NonTail(x), SetL(Id.L(y)) ->
       let s = load_label x y in
       Printf.fprintf oc "%s" s
+  | NonTail(x), SetExtL(Id.L(y)) ->
+      let labeled_address = List.assoc_opt (Id.L(y)) !extmap in
+      (match labeled_address with
+        | None -> (
+          print_string (Printf.sprintf "Warning: external variable %s will not be resolved\n" y);
+          let s = load_label x y in
+          Printf.fprintf oc "%s" s)
+        | Some(i) -> (
+          let n = i lsr 16 in
+          let m = i lxor (n lsl 16) in
+          let m_top = m lsr 15 in
+          let r = reg x in
+          Printf.fprintf oc "\tli\t%s, %d\n" r ((n+m_top) mod 65536);
+          Printf.fprintf oc "\tslwi\t%s, %s, 16\n" r r;
+          Printf.fprintf oc "\taddi\t%s, %s, %d\n" r r m))
   | NonTail(x), Mr(y) when x = y -> ()
   | NonTail(x), Mr(y) -> Printf.fprintf oc "\tmr\t%s, %s\n" (reg x) (reg y)
 (*  | NonTail(x), Neg(y) -> Printf.fprintf oc "\tneg\t%s, %s\n" (reg x) (reg y) *)
@@ -208,7 +224,7 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprim
   | Tail, (Nop | Stw _ | Stfd _ | Comment _ | Save _ as exp) ->
       g' oc (NonTail(Id.gentmp Type.Unit), exp);
       Printf.fprintf oc "\tblr\n";
-  | Tail, (Li _ | SetL _ | Mr _ | Neg _ | Add _ | Sub _ | Slw _ | Srw _ | Lwz _ as exp) ->
+  | Tail, (Li _ | SetExtL _ | SetL _ | Mr _ | Neg _ | Add _ | Sub _ | Slw _ | Srw _ | Lwz _ as exp) ->
       g' oc (NonTail(regs.(0)), exp);
       Printf.fprintf oc "\tblr\n";
   | Tail, (FLi _ | FMr _ | FNeg _ | FAdd _ | FSub _ | FMul _ | FDiv _ | Lfd _ as exp) ->
@@ -470,8 +486,11 @@ let h oc { name = Id.L(x); args = _; fargs = _; body = e; ret = _ } =
   stackmap := [];
   g oc (Tail, e)
 
-let f oc (Prog(data, fundefs, e)) =
+let bss_size = ref 0
+
+let f oc extinfo (Prog(data, fundefs, e)) =
   floatmap := data;
+  extmap := List.map (fun (label, size) -> let addr = !bss_size in (bss_size := !bss_size + size; (label, addr))) extinfo;
   Format.eprintf "generating assembly...@.";
   Printf.fprintf oc "\t.text\n";
   Printf.fprintf oc "\t.globl _min_caml_start\n";
@@ -488,7 +507,27 @@ let f oc (Prog(data, fundefs, e)) =
   Printf.fprintf oc "\tli\t%s, %d\n" (reg reg_sp) 0x7;
   Printf.fprintf oc "\tslwi\t%s, %s, %d\n" (reg reg_sp) (reg reg_sp) 16;
   Printf.fprintf oc "\taddi\t%s, %s, %d\n" (reg reg_sp) (reg reg_sp) 0x4e0;
-  Printf.fprintf oc "\tli\t%s, %d\n" (reg reg_hp) 0;
+  (let n = !bss_size lsr 16 in
+   let m = !bss_size lxor (n lsl 16) in
+   let m_top = m lsr 15 in
+   let r = reg reg_hp in
+   Printf.fprintf oc "\tli\t%s, %d\n" r ((n+m_top) mod 65536);
+   Printf.fprintf oc "\tslwi\t%s, %s, 16\n" r r;
+   Printf.fprintf oc "\taddi\t%s, %s, %d\n" r r m);
+
+  (* this is not needed if memory is initialized with 0 *)
+  Printf.fprintf oc "_bss_cleanup:\n";
+  Printf.fprintf oc "\tmr\t%s, r0\n" (reg reg_tmp);
+  Printf.fprintf oc "_bss_cleanup_loop:\n";
+  Printf.fprintf oc "\tcmpw\tcr0, %s, %s\n" (reg reg_tmp) (reg reg_hp);
+  Printf.fprintf oc "\tblt\t_bss_cleanup_work\n";
+  Printf.fprintf oc "\tb\t_bss_cleanup_finish\n";
+  Printf.fprintf oc "_bss_cleanup_work:\n";
+  Printf.fprintf oc "\tst\tr0, %s, 0\n" (reg reg_tmp);
+  Printf.fprintf oc "\taddi\t%s, %s, 4\n" (reg reg_tmp) (reg reg_tmp);
+  Printf.fprintf oc "\tb\t_bss_cleanup_loop\n";
+  Printf.fprintf oc "_bss_cleanup_finish:\n";
+ 
 (* (* エントリーポイントはいらない *)
   Printf.fprintf oc "_min_caml_start:\n # main entry point\n";
   Printf.fprintf oc "\tmflr\tr0\n";

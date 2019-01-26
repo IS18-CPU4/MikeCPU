@@ -9,6 +9,7 @@ and exp = (* 一つ一つの命令に対応する式 (caml2html: sparcasm_exp) *)
   | Li of int
   | FLi of Id.l
   | SetL of Id.l
+  | SetExtL of Id.l
   | Mr of Id.t
   | Neg of Id.t
   | Add of Id.t * id_or_imm
@@ -69,7 +70,7 @@ let rec remove_and_uniq xs = function
 (* free variables in the order of use (for spilling) (caml2html: sparcasm_fv) *)
 let fv_id_or_imm = function V(x) -> [x] | _ -> []
 let rec fv_exp = function
-  | Nop | Li(_) | FLi(_) | SetL(_) | Comment(_) | Restore(_) -> []
+  | Nop | Li(_) | FLi(_) | SetExtL(_) | SetL(_) | Comment(_) | Restore(_) -> []
   | Mr(x) | Neg(x) | FMr(x) | FNeg(x) | Save(x, _) -> [x]
   | Add(x, y') | Sub(x, y') | Slw(x, y') | Srw(x, y') | Lfd(x, y') | Lwz(x, y') -> x :: fv_id_or_imm y'
   | Stw(x, y, z') | Stfd(x, y, z') -> x :: y :: fv_id_or_imm z'
