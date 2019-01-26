@@ -126,9 +126,10 @@ let rec print_knormal_t knormal =
                                     let _ = print_endline "LETREC" in
                                     let _ = (kn_tab := !kn_tab + 1) in
                                     let _ = print_knormal_fundef fundef in
-                                    let _ = (kn_tab := !kn_tab + 1) in
-                                    let _ = print_knormal_t t in
-                                      kn_tab := !kn_tab - 2
+                                    let _ = (kn_tab := !kn_tab - 1) in
+                                    let _ = print_tab !kn_tab in
+                                    let _ = print_endline "IN" in
+                                      print_knormal_t t
     | KNormal.App (id, id_list) -> let _ = print_tab !kn_tab in
                                    let _ = print_endline "APP" in
                                    let _ = (kn_tab := !kn_tab + 1) in
@@ -150,7 +151,7 @@ let rec print_knormal_t knormal =
                                                 let _ = print_knormal_t t in
                                                   kn_tab := !kn_tab - 1
     | KNormal.Get (id1, id2) -> let _ = print_tab !kn_tab in
-                                let _ = print_endline "FDIV" in
+                                let _ = print_endline "GET" in
                                 let _ = (kn_tab := !kn_tab + 1) in
                                 let _ = print_tab !kn_tab in
                                 let _ = print_endline id1 in
@@ -158,7 +159,7 @@ let rec print_knormal_t knormal =
                                 let _ = print_endline id2 in
                                   kn_tab := !kn_tab - 1
     | KNormal.Put (id1, id2, id3) -> let _ = print_tab !kn_tab in
-                                     let _ = print_endline "FDIV" in
+                                     let _ = print_endline "PUT" in
                                      let _ = (kn_tab := !kn_tab + 1) in
                                      let _ = print_tab !kn_tab in
                                      let _ = print_endline id1 in

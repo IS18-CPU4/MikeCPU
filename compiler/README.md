@@ -15,9 +15,9 @@ $ make bc
 $ ./min-caml hoge
 
 --minrtの場合--
-$ ./to_cpucore (これ大事というよりglobals.sの処遇が大事)
+$ ./to_cpucore (これ大事。というよりglobals.sの処遇が大事)
 $ make bc
-$ ./min-caml -global minrt(minrt.mlがあるとこ一応test/raytracing/raytracingにある)
+$ ./min-caml -global minrt(minrt.mlがあるとこshootoutやtest/raytracing/raytracingにある)
 
 ・make時にエラー吐くけど、ただ実行しようとして命令セットがあってないだけなので基本的には問題なし（解決：　make bcとするだけ）
 ・・でも、もしコンパイルエラーを吐いたら文句言いに来てください
