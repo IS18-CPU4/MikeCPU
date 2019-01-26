@@ -68,7 +68,7 @@ uint32_t CR = 0;//コンディションレジスタ
 uint32_t LR = 0;//リンクレジスタ
 
 const int INST_ADDR = 0x10000;
-const int DATA_ADDR = 0xf000000;
+const int DATA_ADDR = 0x1000000;
 uint32_t INST_MEM[INST_ADDR] = {};//命令のバイナリを読み込むエンディアンに注意!
 
 uint32_t DATA_MEM[DATA_ADDR] = {};//データを保存するメモリ
@@ -84,6 +84,8 @@ return (inst & ((1 << (i+1)) - (1 << j))) >> j;
 }*/
 
 vector<uint32_t> uinput_vector;
+
+vector<long long int> instCount(64, 0);//各命令をカウント
 
 // レジスタに値を設定　引数などに使用
 void initialize();
@@ -231,7 +233,7 @@ void debug() {//レジスタの中身を見る
 					for (citr = outChar.begin();citr != outChar.end();citr++) {
 						cout << "out[" << charcount << "]: " << *citr << endl;
 						charcount++;
-					}
+					} 
 				} else {
 					cout << "no out" << endl;
 				}
@@ -296,13 +298,12 @@ int normal() {//通常実行
 	instNum = 0;
 	PC = mincamlStart >> 2;
 	GPR[3] = initsp;//stack
-	volatile int exception = 0;
 	while(PC < lastPC) {
 		try {
 			int result = do_op();
 			if (GPR[3] >= DATA_ADDR) {
 				throw 1;
-
+			
 			}
 			if (initsp < GPR[4]) {
 				throw 2;
@@ -544,7 +545,7 @@ int step() {//step実行
 					for (citr = outChar.begin();citr != outChar.end();citr++) {
 						cout << "out[" << charcount << "]: " << *citr << endl;
 						charcount++;
-					}
+					} 
 				} else {
 					cout << "no out" << endl;
 				}
@@ -629,58 +630,18 @@ int main(int argc, char**argv) {
 	}
 	if (inputflag == 1) {//deal with sld file
 		cout << "optional input: " << sldname << endl;
-		ifstream inputsld;
-		inputsld.open(sldname, ifstream::in);
+		ifstream inputsld(sldname, ios::binary);
 		if (!inputsld) {
-			cerr << "cannot open optional input file" << endl;
-			return 1;
+			cerr << "cannot open sld file" << endl;
+			return EXIT_FAILURE;
 		}
-		string line;
-		while (getline(inputsld, line)) {
-			if (line == "") {
-				continue;
-			}
-			string trimmedStr = trim(line);
-			vector<string> vitem1 = StringSplit(trimmedStr, ' ');
-			vector<string>::iterator slditr;
-			for (slditr = vitem1.begin(); slditr != vitem1.end(); slditr++) {
-		//		input_string.push_back(*slditr);
-				string input = *slditr;
-				if ((input == " ")| (input == "") | (input == "\t")) {
-					continue;
-				}
-				//cout << "input from sld: " << input << endl;
-				uint32_t uinput;
-				if (input.find(".") != string::npos) {
-				//string to float
-					float finput;
-					try {
-						finput = (float)stod(input, nullptr);
-						uinput = *(uint32_t*)&finput;
-					} catch (const invalid_argument &e) {
-						cout << "invalid input from sld (float)" << endl;
-						return 1;
-					}
-				} else {
-					//string to int
-					try {
-						int iinput = stoi(input, nullptr, 0);
-						uinput = *(uint32_t*)&iinput;
-					} catch (const invalid_argument &e) {
-						cout << "invalid_argument from sld (int)" << endl;
-					}
-				}
-				uinput_vector.push_back(uinput);
-			}
+		unsigned char buf;
+		inputsld.read((char*)&buf, sizeof buf);
+		while(!inputsld.eof()) {
+			cout << (uint32_t)buf << endl;
+			uinput_vector.push_back((uint32_t)buf);
+			inputsld.read((char*)&buf, sizeof buf);
 		}
-		//debug
-		/*vector<uint32_t>::iterator inputitr;
-		cout << "------optional input-------" << endl;
-		for (inputitr = uinput_vector.begin(); inputitr != uinput_vector.end(); inputitr++) {
-			cout << *inputitr << " ";
-		}
-		cout << endl << "--------optional input end--------" << endl;
-		cout << endl;*/
 
 	}//end dealing with sld file
 
@@ -694,7 +655,12 @@ int main(int argc, char**argv) {
 		cerr << "cannot open outputfile" << endl;
 		return 1;
 	}
-
+	ofstream instout;
+	instout.open("instruction_count.out", ios::out|ios::trunc);
+	if (!instout) {
+		cerr << "cannot open outputfile" << endl;
+		return 1;
+	}
 
 	//機械語の読み取り
 	size_t cnt;
@@ -710,11 +676,11 @@ int main(int argc, char**argv) {
 	cout << "_min_caml_start label address: " << hex << mincamlStart << dec << endl;
 	while ((cnt = fread(&INST_MEM[pos], 4, 2048, binary))) {
 		pos += cnt;
-	}
+	} 
 	lastPC = pos;
 	fclose(binary);
 	cout << "end reading!" << endl << endl;//読み取り終わり
-
+	
 	GPR[3] = 0x8000;
 	initialize();
 	cout << endl;
@@ -736,9 +702,6 @@ int main(int argc, char**argv) {
 					fileout << *citr;
 				}
 			}
-			debug();
-		} else {
-			debug();
 		}
 	} else {
 		chrono::system_clock::time_point start, end;
@@ -757,9 +720,90 @@ int main(int argc, char**argv) {
 					fileout << *citr << " "  << endl;
 				}
 			}*/
-			debug();
-		} else {
-			debug();
 		}
 	}
+	//print count of instructions
+	for (int i = 0; i <= 63; i++) {
+		switch (i) {
+		case 0:
+			instout << "li: " << instCount[0] << endl;break;
+		case 1:
+			instout << "mr: " << instCount[1] << endl;break;
+		case 2:
+			instout << "addi: " << instCount[2] << endl;break;
+		case 3:
+			instout << "add: " << instCount[3] << endl;break;
+		case 4:
+			instout << "sub: " << instCount[4] << endl;break;
+		case 5:
+			instout << "slwi: " << instCount[5] << endl;break;
+		case 6:
+			instout << "srwi: " << instCount[6] << endl;break;
+		case 7:
+			instout << "fadd: " << instCount[7] << endl;break;
+		case 8:
+			instout << "fsub: " << instCount[8] << endl;break;
+		case 9:
+			instout << "fdiv: " << instCount[9] << endl;break;
+		case 10:
+			instout << "fmul: " << instCount[10] << endl;break;
+		case 11:
+			instout << "fsqrt: " << instCount[11] << endl;break;
+		case 12:
+			instout << "fabs: " << instCount[12] << endl;break;
+		case 13:
+			instout << "fmr: " << instCount[13] << endl;break;
+		case 14:
+			instout << "b: " << instCount[14] << endl;break;
+		case 15:
+			instout << "beq: " << instCount[15] << endl;break;
+		case 16:
+			instout << "bneq: " << instCount[16] << endl;break;
+		case 17:
+			instout << "blt: " << instCount[17] << endl;break;
+		case 18:
+			instout << "bl: " << instCount[18] << endl;break;
+		case 19:
+			instout << "blr: " << instCount[19]<< endl;break;
+		case 20:
+			instout << "mflr: " << instCount[20] << endl;break;
+		case 21:
+			instout << "mtlr: " << instCount[21] << endl;break;
+		case 22:
+			instout << "cmpwi: " << instCount[22] << endl;break;
+		case 23:
+			instout << "cmpw: " << instCount[23] << endl;break;
+		case 24:
+			instout << "fcmp: " << instCount[24] << endl;break;
+		case 25:
+			instout << "ld: " << instCount[25] << endl;break;
+		case 26:
+			instout << "st: " << instCount[26] << endl;break;
+		case 27:
+			instout << "fld: " << instCount[27] << endl;break;
+		case 28:
+			instout << "fst: " << instCount[28] << endl;break;
+		case 29:
+			instout << "slw: " << instCount[29] << endl;break;
+		case 30:
+			instout << "srw: " << instCount[30] << endl;break;
+		case 31:
+			instout << "bc: " << instCount[31] << endl;break;
+		case 32:
+			instout << "itof: " << instCount[32] << endl;break;
+		case 33:
+			instout << "ftoi: " << instCount[33] << endl;break;
+		case 34:
+			instout << "ba: " << instCount[34] << endl;break;
+		case 35:
+			instout << "bal: " << instCount[35] << endl;break;
+		case 62:
+			instout << "in: " << instCount[62] << endl;break;
+		case 63:
+			instout << "out: " << instCount[63] << endl;break;
+		default:
+			break;
+		}
+	}
+	debug();
 }

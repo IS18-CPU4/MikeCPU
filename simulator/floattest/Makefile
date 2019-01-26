@@ -1,7 +1,7 @@
 CC = g++
 CFLAGS = -std=c++11 -O2 -Wall
 
-ALL:test_fadd test_fsub test_fmul test_fdiv test_finv test_fsqrt test_ftoi
+ALL:test_fadd test_fsub test_fmul test_fdiv test_finv test_fsqrt test_ftoi test_itof
 
 test_fadd: test_fadd.o float/fadd.o
 	$(CC) $(CFLAGS) -o test_fadd test_fadd.o float/fadd.o
@@ -72,6 +72,15 @@ test_ftoi.o: test_ftoi.cpp
 float/ftoi.o: float/ftoi.cpp float/ftoi.h float/fcalc.h
 	$(CC) $(CFLAGS) -o float/ftoi.o -c float/ftoi.cpp
 
+test_itof: test_itof.o float/itof.o
+	$(CC) $(CFLAGS) -o test_itof test_itof.o float/itof.o
+
+test_itof.o: test_itof.cpp
+	$(CC) $(CFLAGS) -o test_itof.o -c test_itof.cpp
+
+float/itof.o: float/itof.cpp float/itof.h float/fcalc.h
+	$(CC) $(CFLAGS) -o float/itof.o -c float/itof.cpp
+
 
 clean:
-	rm -rf *.o float/*.o test_fadd test_fsub test_fmul test_fdiv test_finv test_fsqrt test_ftoi
+	rm -rf *.o float/*.o test_fadd test_fsub test_fmul test_fdiv test_finv test_fsqrt test_ftoi test_itof

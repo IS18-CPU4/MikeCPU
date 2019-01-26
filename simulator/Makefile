@@ -4,7 +4,7 @@ make_asm:
 	(cd assembler; make)
 
 make_sim:
-	(cd simulator; make)
+	(cd simulator; make; cd sld; make)
 
 clean:asm_clean sim_clean
 
@@ -12,4 +12,4 @@ asm_clean:
 	(cd assembler; make clean)
 
 sim_clean:
-	(cd simulator; make clean)
+	(cd simulator; make clean; cd sld; make clean)

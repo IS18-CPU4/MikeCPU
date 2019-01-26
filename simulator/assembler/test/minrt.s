@@ -1999,9 +1999,8 @@ beq_cont.8618:
 	ld	r9, r3, 4
 	slwi	r9, r9, 2
 	ld	r10, r3, 0
-	add	r10, r10, r9
-	st	r5, r10, 0
-	sub	r10, r10, r9
+	add	r31, r10, r9
+	st	r5, r31, 0
 	cmpwi	cr0, r8, 3
 	bne	beq_else.8619
 	fld	fr1, r6, 0
@@ -2237,9 +2236,8 @@ beq_else.8637:
 	ld	r5, r3, 0
 	slwi	r5, r5, 2
 	ld	r6, r3, 4
-	add	r2, r2, r5
-	st	r6, r2, 0
-	sub	r2, r2, r5
+	add	r31, r2, r5
+	st	r6, r31, 0
 	blr
 read_or_network.2571:
 	li	r5, 0
@@ -2274,9 +2272,8 @@ beq_else.8638:
 	ld	r5, r3, 0
 	slwi	r5, r5, 2
 	ld	r6, r3, 4
-	add	r2, r2, r5
-	st	r6, r2, 0
-	sub	r2, r2, r5
+	add	r31, r2, r5
+	st	r6, r31, 0
 	blr
 read_and_network.2573:
 	ld	r5, r30, 4
@@ -2300,9 +2297,8 @@ beq_else.8639:
 	ld	r5, r3, 8
 	slwi	r6, r5, 2
 	ld	r7, r3, 4
-	add	r7, r7, r6
-	st	r2, r7, 0
-	sub	r7, r7, r6
+	add	r31, r7, r6
+	st	r2, r31, 0
 	addi	r2, r5, 1
 	ld	r30, r3, 0
 	ld	r29, r30, 0
@@ -3078,9 +3074,8 @@ solver.2617:
 	ld	r9, r30, 8
 	ld	r10, r30, 4
 	slwi	r2, r2, 2
-	add	r10, r10, r2
-	ld	r2, r10, 0
-	sub	r10, r10, r2
+	add	r31, r10, r2
+	ld	r2, r31, 0
 	fld	fr1, r6, 0
 	st	r8, r3, 0
 	st	r7, r3, 4
@@ -3643,9 +3638,8 @@ solver_fast.2640:
 	ld	r9, r30, 8
 	ld	r10, r30, 4
 	slwi	r11, r2, 2
-	add	r10, r10, r11
-	ld	r10, r10, 0
-	sub	r10, r10, r11
+	add	r31, r10, r11
+	ld	r10, r31, 0
 	fld	fr1, r6, 0
 	st	r8, r3, 0
 	st	r7, r3, 4
@@ -3705,9 +3699,8 @@ solver_fast.2640:
 	mtlr	r31
 	ld	r5, r3, 12
 	slwi	r5, r5, 2
-	add	r2, r2, r5
-	ld	r2, r2, 0
-	sub	r2, r2, r5
+	add	r31, r2, r5
+	ld	r2, r31, 0
 	ld	r5, r3, 20
 	st	r2, r3, 52
 	mflr	r31
@@ -3902,9 +3895,8 @@ solver_fast2.2658:
 	ld	r8, r30, 8
 	ld	r9, r30, 4
 	slwi	r10, r2, 2
-	add	r9, r9, r10
-	ld	r9, r9, 0
-	sub	r9, r9, r10
+	add	r31, r9, r10
+	ld	r9, r31, 0
 	st	r7, r3, 0
 	st	r6, r3, 4
 	st	r8, r3, 8
@@ -3937,9 +3929,8 @@ solver_fast2.2658:
 	mtlr	r31
 	ld	r5, r3, 16
 	slwi	r5, r5, 2
-	add	r2, r2, r5
-	ld	r2, r2, 0
-	sub	r2, r2, r5
+	add	r31, r2, r5
+	ld	r2, r31, 0
 	ld	r5, r3, 12
 	st	r2, r3, 40
 	mflr	r31
@@ -4639,9 +4630,8 @@ iter_setup_dirvec_constants.2670:
 	cmpwi	cr0, r5, 0
 	blt	bge_else.8708
 	slwi	r7, r5, 2
-	add	r6, r6, r7
-	ld	r6, r6, 0
-	sub	r6, r6, r7
+	add	r31, r6, r7
+	ld	r6, r31, 0
 	st	r30, r3, 0
 	st	r5, r3, 4
 	st	r6, r3, 8
@@ -4687,9 +4677,8 @@ iter_setup_dirvec_constants.2670:
 	ld	r5, r3, 4
 	slwi	r6, r5, 2
 	ld	r7, r3, 16
-	add	r7, r7, r6
-	st	r2, r7, 0
-	sub	r7, r7, r6
+	add	r31, r7, r6
+	st	r2, r31, 0
 	b	beq_cont.8710
 beq_else.8709:
 	cmpwi	cr0, r2, 2
@@ -4706,9 +4695,8 @@ beq_else.8709:
 	ld	r5, r3, 4
 	slwi	r6, r5, 2
 	ld	r7, r3, 16
-	add	r7, r7, r6
-	st	r2, r7, 0
-	sub	r7, r7, r6
+	add	r31, r7, r6
+	st	r2, r31, 0
 	b	beq_cont.8712
 beq_else.8711:
 	ld	r2, r3, 20
@@ -4723,9 +4711,8 @@ beq_else.8711:
 	ld	r5, r3, 4
 	slwi	r6, r5, 2
 	ld	r7, r3, 16
-	add	r7, r7, r6
-	st	r2, r7, 0
-	sub	r7, r7, r6
+	add	r31, r7, r6
+	st	r2, r31, 0
 beq_cont.8712:
 beq_cont.8710:
 	addi	r5, r5, -1
@@ -4749,9 +4736,8 @@ setup_startp_constants.2675:
 	cmpwi	cr0, r5, 0
 	blt	bge_else.8714
 	slwi	r7, r5, 2
-	add	r6, r6, r7
-	ld	r6, r6, 0
-	sub	r6, r6, r7
+	add	r31, r6, r7
+	ld	r6, r31, 0
 	st	r30, r3, 0
 	st	r5, r3, 4
 	st	r2, r3, 8
@@ -5210,18 +5196,16 @@ beq_else.8735:
 check_all_inside.2700:
 	ld	r6, r30, 4
 	slwi	r7, r2, 2
-	add	r5, r5, r7
-	ld	r7, r5, 0
-	sub	r5, r5, r7
+	add	r31, r5, r7
+	ld	r7, r31, 0
 	cmpwi	cr0, r7, -1
 	bne	beq_else.8736
 	li	r2, 1
 	blr
 beq_else.8736:
 	slwi	r7, r7, 2
-	add	r6, r6, r7
-	ld	r6, r6, 0
-	sub	r6, r6, r7
+	add	r31, r6, r7
+	ld	r6, r31, 0
 	fst	fr3, r3, 0
 	fst	fr2, r3, 4
 	fst	fr1, r3, 8
@@ -5260,18 +5244,16 @@ shadow_check_and_group.2706:
 	ld	r11, r30, 8
 	ld	r12, r30, 4
 	slwi	r13, r2, 2
-	add	r5, r5, r13
-	ld	r13, r5, 0
-	sub	r5, r5, r13
+	add	r31, r5, r13
+	ld	r13, r31, 0
 	cmpwi	cr0, r13, -1
 	bne	beq_else.8738
 	li	r2, 0
 	blr
 beq_else.8738:
 	slwi	r13, r2, 2
-	add	r5, r5, r13
-	ld	r13, r5, 0
-	sub	r5, r5, r13
+	add	r31, r5, r13
+	ld	r13, r31, 0
 	st	r12, r3, 0
 	st	r11, r3, 4
 	st	r10, r3, 8
@@ -5320,9 +5302,8 @@ beq_cont.8740:
 	ld	r2, r3, 28
 	slwi	r2, r2, 2
 	ld	r5, r3, 24
-	add	r5, r5, r2
-	ld	r2, r5, 0
-	sub	r5, r5, r2
+	add	r31, r5, r2
+	ld	r2, r31, 0
 	mflr	r31
 	st	r31, r3, 36
 	addi	r3, r3, 40
@@ -5395,18 +5376,16 @@ shadow_check_one_or_group.2709:
 	ld	r6, r30, 8
 	ld	r7, r30, 4
 	slwi	r8, r2, 2
-	add	r5, r5, r8
-	ld	r8, r5, 0
-	sub	r5, r5, r8
+	add	r31, r5, r8
+	ld	r8, r31, 0
 	cmpwi	cr0, r8, -1
 	bne	beq_else.8746
 	li	r2, 0
 	blr
 beq_else.8746:
 	slwi	r8, r8, 2
-	add	r7, r7, r8
-	ld	r7, r7, 0
-	sub	r7, r7, r8
+	add	r31, r7, r8
+	ld	r7, r31, 0
 	li	r8, 0
 	st	r5, r3, 0
 	st	r30, r3, 4
@@ -5442,9 +5421,8 @@ shadow_check_one_or_matrix.2712:
 	ld	r9, r30, 8
 	ld	r10, r30, 4
 	slwi	r11, r2, 2
-	add	r5, r5, r11
-	ld	r11, r5, 0
-	sub	r5, r5, r11
+	add	r31, r5, r11
+	ld	r11, r31, 0
 	ld	r12, r11, 0
 	cmpwi	cr0, r12, -1
 	bne	beq_else.8748
@@ -5560,9 +5538,8 @@ solve_each_element.2715:
 	ld	r14, r30, 8
 	ld	r15, r30, 4
 	slwi	r16, r2, 2
-	add	r5, r5, r16
-	ld	r16, r5, 0
-	sub	r5, r5, r16
+	add	r31, r5, r16
+	ld	r16, r31, 0
 	cmpwi	cr0, r16, -1
 	bne	beq_else.8759
 	blr
@@ -5598,9 +5575,8 @@ beq_else.8759:
 	ld	r2, r3, 48
 	slwi	r2, r2, 2
 	ld	r5, r3, 44
-	add	r5, r5, r2
-	ld	r2, r5, 0
-	sub	r5, r5, r2
+	add	r31, r5, r2
+	ld	r2, r31, 0
 	mflr	r31
 	st	r31, r3, 52
 	addi	r3, r3, 56
@@ -5721,17 +5697,15 @@ solve_one_or_network.2719:
 	ld	r7, r30, 8
 	ld	r8, r30, 4
 	slwi	r9, r2, 2
-	add	r5, r5, r9
-	ld	r9, r5, 0
-	sub	r5, r5, r9
+	add	r31, r5, r9
+	ld	r9, r31, 0
 	cmpwi	cr0, r9, -1
 	bne	beq_else.8770
 	blr
 beq_else.8770:
 	slwi	r9, r9, 2
-	add	r8, r8, r9
-	ld	r8, r8, 0
-	sub	r8, r8, r9
+	add	r31, r8, r9
+	ld	r8, r31, 0
 	li	r9, 0
 	st	r6, r3, 0
 	st	r5, r3, 4
@@ -5764,9 +5738,8 @@ trace_or_matrix.2723:
 	ld	r10, r30, 8
 	ld	r11, r30, 4
 	slwi	r12, r2, 2
-	add	r5, r5, r12
-	ld	r12, r5, 0
-	sub	r5, r5, r12
+	add	r31, r5, r12
+	ld	r12, r31, 0
 	ld	r13, r12, 0
 	cmpwi	cr0, r13, -1
 	bne	beq_else.8772
@@ -5933,9 +5906,8 @@ solve_each_element_fast.2729:
 	ld	r5, r3, 48
 	slwi	r6, r5, 2
 	ld	r7, r3, 44
-	add	r7, r7, r6
-	ld	r6, r7, 0
-	sub	r7, r7, r6
+	add	r31, r7, r6
+	ld	r6, r31, 0
 	cmpwi	cr0, r6, -1
 	bne	beq_else.8782
 	blr
@@ -5960,9 +5932,8 @@ beq_else.8782:
 	ld	r2, r3, 56
 	slwi	r2, r2, 2
 	ld	r5, r3, 32
-	add	r5, r5, r2
-	ld	r2, r5, 0
-	sub	r5, r5, r2
+	add	r31, r5, r2
+	ld	r2, r31, 0
 	mflr	r31
 	st	r31, r3, 60
 	addi	r3, r3, 64
@@ -6083,17 +6054,15 @@ solve_one_or_network_fast.2733:
 	ld	r7, r30, 8
 	ld	r8, r30, 4
 	slwi	r9, r2, 2
-	add	r5, r5, r9
-	ld	r9, r5, 0
-	sub	r5, r5, r9
+	add	r31, r5, r9
+	ld	r9, r31, 0
 	cmpwi	cr0, r9, -1
 	bne	beq_else.8793
 	blr
 beq_else.8793:
 	slwi	r9, r9, 2
-	add	r8, r8, r9
-	ld	r8, r8, 0
-	sub	r8, r8, r9
+	add	r31, r8, r9
+	ld	r8, r31, 0
 	li	r9, 0
 	st	r6, r3, 0
 	st	r5, r3, 4
@@ -6125,9 +6094,8 @@ trace_or_matrix_fast.2737:
 	ld	r9, r30, 8
 	ld	r10, r30, 4
 	slwi	r11, r2, 2
-	add	r5, r5, r11
-	ld	r11, r5, 0
-	sub	r5, r5, r11
+	add	r31, r5, r11
+	ld	r11, r31, 0
 	ld	r12, r11, 0
 	cmpwi	cr0, r12, -1
 	bne	beq_else.8795
@@ -7360,9 +7328,8 @@ trace_reflections.2759:
 	cmpwi	cr0, r2, 0
 	blt	bge_else.8841
 	slwi	r14, r2, 2
-	add	r7, r7, r14
-	ld	r7, r7, 0
-	sub	r7, r7, r14
+	add	r31, r7, r14
+	ld	r7, r31, 0
 	st	r30, r3, 0
 	st	r2, r3, 4
 	fst	fr2, r3, 8
@@ -7593,9 +7560,8 @@ le.8849:
 	ld	r5, r3, 92
 	slwi	r6, r5, 2
 	ld	r7, r3, 104
-	add	r7, r7, r6
-	st	r2, r7, 0
-	sub	r7, r7, r6
+	add	r31, r7, r6
+	st	r2, r31, 0
 	cmpwi	cr0, r5, 0
 	bne	beq_else.8852
 	blr
@@ -7653,9 +7619,8 @@ beq_else.8851:
 	ld	r2, r2, 0
 	slwi	r5, r2, 2
 	ld	r6, r3, 68
-	add	r6, r6, r5
-	ld	r5, r6, 0
-	sub	r6, r6, r5
+	add	r31, r6, r5
+	ld	r5, r31, 0
 	st	r2, r3, 112
 	st	r5, r3, 116
 	mflr	r31
@@ -7720,9 +7685,8 @@ beq_else.8851:
 	ld	r5, r3, 92
 	slwi	r6, r5, 2
 	ld	r7, r3, 104
-	add	r7, r7, r6
-	st	r2, r7, 0
-	sub	r7, r7, r6
+	add	r31, r7, r6
+	st	r2, r31, 0
 	ld	r2, r3, 44
 	mflr	r31
 	st	r31, r3, 132
@@ -7733,9 +7697,8 @@ beq_else.8851:
 	mtlr	r31
 	ld	r5, r3, 92
 	slwi	r6, r5, 2
-	add	r2, r2, r6
-	ld	r2, r2, 0
-	sub	r2, r2, r6
+	add	r31, r2, r6
+	ld	r2, r31, 0
 	ld	r6, r3, 56
 	mflr	r31
 	mr	r5, r6
@@ -7777,18 +7740,16 @@ beq_else.8851:
 	ld	r5, r3, 92
 	slwi	r6, r5, 2
 	ld	r7, r3, 128
-	add	r7, r7, r6
-	st	r2, r7, 0
-	sub	r7, r7, r6
+	add	r31, r7, r6
+	st	r2, r31, 0
 	b	gt_cont.8858
 le.8857:
 	li	r2, 1
 	ld	r5, r3, 92
 	slwi	r6, r5, 2
 	ld	r7, r3, 128
-	add	r7, r7, r6
-	st	r2, r7, 0
-	sub	r7, r7, r6
+	add	r31, r7, r6
+	st	r2, r31, 0
 	ld	r2, r3, 44
 	mflr	r31
 	st	r31, r3, 140
@@ -7799,9 +7760,8 @@ le.8857:
 	mtlr	r31
 	ld	r5, r3, 92
 	slwi	r6, r5, 2
-	add	r2, r2, r6
-	ld	r6, r2, 0
-	sub	r2, r2, r6
+	add	r31, r2, r6
+	ld	r6, r31, 0
 	ld	r7, r3, 40
 	st	r2, r3, 136
 	mflr	r31
@@ -7816,9 +7776,8 @@ le.8857:
 	ld	r2, r3, 92
 	slwi	r5, r2, 2
 	ld	r6, r3, 136
-	add	r6, r6, r5
-	ld	r5, r6, 0
-	sub	r6, r6, r5
+	add	r31, r6, r5
+	ld	r5, r31, 0
 	li	r31, 15232
 	slwi	r31, r31, 16
 	addi	r31, r31, 0
@@ -7844,9 +7803,8 @@ le.8857:
 	mtlr	r31
 	ld	r5, r3, 92
 	slwi	r6, r5, 2
-	add	r2, r2, r6
-	ld	r2, r2, 0
-	sub	r2, r2, r6
+	add	r31, r2, r6
+	ld	r2, r31, 0
 	ld	r6, r3, 36
 	mflr	r31
 	mr	r5, r6
@@ -7992,9 +7950,8 @@ bge_else.8862:
 	li	r6, -1
 	slwi	r5, r5, 2
 	ld	r7, r3, 104
-	add	r7, r7, r5
-	st	r6, r7, 0
-	sub	r7, r7, r5
+	add	r31, r7, r5
+	st	r6, r31, 0
 bge_cont.8863:
 	ld	r5, r3, 120
 	cmpwi	cr0, r5, 2
@@ -8086,9 +8043,8 @@ beq_else.8868:
 	ld	r2, r2, 0
 	slwi	r2, r2, 2
 	ld	r5, r3, 44
-	add	r5, r5, r2
-	ld	r2, r5, 0
-	sub	r5, r5, r2
+	add	r31, r5, r2
+	ld	r2, r31, 0
 	ld	r5, r3, 40
 	st	r2, r3, 52
 	mflr	r31
@@ -8190,9 +8146,8 @@ iter_trace_diffuse_rays.2773:
 	cmpwi	cr0, r7, 0
 	blt	bge_else.8874
 	slwi	r9, r7, 2
-	add	r2, r2, r9
-	ld	r9, r2, 0
-	sub	r2, r2, r9
+	add	r31, r2, r9
+	ld	r9, r31, 0
 	st	r6, r3, 0
 	st	r30, r3, 4
 	st	r8, r3, 8
@@ -8228,9 +8183,8 @@ iter_trace_diffuse_rays.2773:
 	ld	r2, r3, 16
 	slwi	r5, r2, 2
 	ld	r6, r3, 12
-	add	r6, r6, r5
-	ld	r5, r6, 0
-	sub	r6, r6, r5
+	add	r31, r6, r5
+	ld	r5, r31, 0
 	li	r31, 17174
 	slwi	r31, r31, 16
 	addi	r31, r31, 0
@@ -8255,9 +8209,8 @@ beq_else.8875:
 	addi	r5, r2, 1
 	slwi	r5, r5, 2
 	ld	r6, r3, 12
-	add	r6, r6, r5
-	ld	r5, r6, 0
-	sub	r6, r6, r5
+	add	r31, r6, r5
+	ld	r5, r31, 0
 	li	r31, 49942
 	slwi	r31, r31, 16
 	addi	r31, r31, 0
@@ -8470,9 +8423,8 @@ calc_diffuse_using_1point.2786:
 	ld	r5, r3, 12
 	slwi	r6, r5, 2
 	ld	r7, r3, 20
-	add	r7, r7, r6
-	ld	r6, r7, 0
-	sub	r7, r7, r6
+	add	r31, r7, r6
+	ld	r6, r31, 0
 	ld	r7, r3, 8
 	st	r2, r3, 32
 	mflr	r31
@@ -8495,14 +8447,12 @@ calc_diffuse_using_1point.2786:
 	ld	r5, r3, 12
 	slwi	r6, r5, 2
 	ld	r7, r3, 24
-	add	r7, r7, r6
-	ld	r6, r7, 0
-	sub	r7, r7, r6
+	add	r31, r7, r6
+	ld	r6, r31, 0
 	slwi	r7, r5, 2
 	ld	r8, r3, 28
-	add	r8, r8, r7
-	ld	r7, r8, 0
-	sub	r8, r8, r7
+	add	r31, r8, r7
+	ld	r7, r31, 0
 	ld	r30, r3, 4
 	mflr	r31
 	mr	r5, r6
@@ -8518,9 +8468,8 @@ calc_diffuse_using_1point.2786:
 	ld	r2, r3, 12
 	slwi	r2, r2, 2
 	ld	r5, r3, 32
-	add	r5, r5, r2
-	ld	r5, r5, 0
-	sub	r5, r5, r2
+	add	r31, r5, r2
+	ld	r5, r31, 0
 	ld	r2, r3, 0
 	ld	r6, r3, 8
 	b	vecaccumv.2479
@@ -8528,9 +8477,8 @@ calc_diffuse_using_5points.2789:
 	ld	r9, r30, 8
 	ld	r10, r30, 4
 	slwi	r11, r2, 2
-	add	r5, r5, r11
-	ld	r5, r5, 0
-	sub	r5, r5, r11
+	add	r31, r5, r11
+	ld	r5, r31, 0
 	st	r9, r3, 0
 	st	r10, r3, 4
 	st	r8, r3, 8
@@ -8549,9 +8497,8 @@ calc_diffuse_using_5points.2789:
 	addi	r6, r5, -1
 	slwi	r6, r6, 2
 	ld	r7, r3, 16
-	add	r7, r7, r6
-	ld	r6, r7, 0
-	sub	r7, r7, r6
+	add	r31, r7, r6
+	ld	r6, r31, 0
 	st	r2, r3, 24
 	mflr	r31
 	mr	r2, r6
@@ -8564,9 +8511,8 @@ calc_diffuse_using_5points.2789:
 	ld	r5, r3, 20
 	slwi	r6, r5, 2
 	ld	r7, r3, 16
-	add	r7, r7, r6
-	ld	r6, r7, 0
-	sub	r7, r7, r6
+	add	r31, r7, r6
+	ld	r6, r31, 0
 	st	r2, r3, 28
 	mflr	r31
 	mr	r2, r6
@@ -8580,9 +8526,8 @@ calc_diffuse_using_5points.2789:
 	addi	r6, r5, 1
 	slwi	r6, r6, 2
 	ld	r7, r3, 16
-	add	r7, r7, r6
-	ld	r6, r7, 0
-	sub	r7, r7, r6
+	add	r31, r7, r6
+	ld	r6, r31, 0
 	st	r2, r3, 32
 	mflr	r31
 	mr	r2, r6
@@ -8595,9 +8540,8 @@ calc_diffuse_using_5points.2789:
 	ld	r5, r3, 20
 	slwi	r6, r5, 2
 	ld	r7, r3, 12
-	add	r7, r7, r6
-	ld	r6, r7, 0
-	sub	r7, r7, r6
+	add	r31, r7, r6
+	ld	r6, r31, 0
 	st	r2, r3, 36
 	mflr	r31
 	mr	r2, r6
@@ -8610,9 +8554,8 @@ calc_diffuse_using_5points.2789:
 	ld	r5, r3, 8
 	slwi	r6, r5, 2
 	ld	r7, r3, 24
-	add	r7, r7, r6
-	ld	r6, r7, 0
-	sub	r7, r7, r6
+	add	r31, r7, r6
+	ld	r6, r31, 0
 	ld	r7, r3, 4
 	st	r2, r3, 40
 	mflr	r31
@@ -8627,9 +8570,8 @@ calc_diffuse_using_5points.2789:
 	ld	r2, r3, 8
 	slwi	r5, r2, 2
 	ld	r6, r3, 28
-	add	r6, r6, r5
-	ld	r5, r6, 0
-	sub	r6, r6, r5
+	add	r31, r6, r5
+	ld	r5, r31, 0
 	ld	r6, r3, 4
 	mflr	r31
 	mr	r2, r6
@@ -8642,9 +8584,8 @@ calc_diffuse_using_5points.2789:
 	ld	r2, r3, 8
 	slwi	r5, r2, 2
 	ld	r6, r3, 32
-	add	r6, r6, r5
-	ld	r5, r6, 0
-	sub	r6, r6, r5
+	add	r31, r6, r5
+	ld	r5, r31, 0
 	ld	r6, r3, 4
 	mflr	r31
 	mr	r2, r6
@@ -8657,9 +8598,8 @@ calc_diffuse_using_5points.2789:
 	ld	r2, r3, 8
 	slwi	r5, r2, 2
 	ld	r6, r3, 36
-	add	r6, r6, r5
-	ld	r5, r6, 0
-	sub	r6, r6, r5
+	add	r31, r6, r5
+	ld	r5, r31, 0
 	ld	r6, r3, 4
 	mflr	r31
 	mr	r2, r6
@@ -8672,9 +8612,8 @@ calc_diffuse_using_5points.2789:
 	ld	r2, r3, 8
 	slwi	r5, r2, 2
 	ld	r6, r3, 40
-	add	r6, r6, r5
-	ld	r5, r6, 0
-	sub	r6, r6, r5
+	add	r31, r6, r5
+	ld	r5, r31, 0
 	ld	r6, r3, 4
 	mflr	r31
 	mr	r2, r6
@@ -8687,9 +8626,8 @@ calc_diffuse_using_5points.2789:
 	ld	r2, r3, 20
 	slwi	r2, r2, 2
 	ld	r5, r3, 16
-	add	r5, r5, r2
-	ld	r2, r5, 0
-	sub	r5, r5, r2
+	add	r31, r5, r2
+	ld	r2, r31, 0
 	mflr	r31
 	st	r31, r3, 44
 	addi	r3, r3, 48
@@ -8699,9 +8637,8 @@ calc_diffuse_using_5points.2789:
 	mtlr	r31
 	ld	r5, r3, 8
 	slwi	r5, r5, 2
-	add	r2, r2, r5
-	ld	r5, r2, 0
-	sub	r2, r2, r5
+	add	r31, r2, r5
+	ld	r5, r31, 0
 	ld	r2, r3, 0
 	ld	r6, r3, 4
 	b	vecaccumv.2479
@@ -8725,9 +8662,8 @@ le.8888:
 	mtlr	r31
 	ld	r5, r3, 12
 	slwi	r6, r5, 2
-	add	r2, r2, r6
-	ld	r2, r2, 0
-	sub	r2, r2, r6
+	add	r31, r2, r6
+	ld	r2, r31, 0
 	cmpwi	cr0, r2, 0
 	blt	bge_else.8890
 	ld	r2, r3, 8
@@ -8740,9 +8676,8 @@ le.8888:
 	mtlr	r31
 	ld	r5, r3, 12
 	slwi	r6, r5, 2
-	add	r2, r2, r6
-	ld	r2, r2, 0
-	sub	r2, r2, r6
+	add	r31, r2, r6
+	ld	r2, r31, 0
 	cmpwi	cr0, r2, 0
 	bne	beq_else.8891
 	b	beq_cont.8892
@@ -8811,15 +8746,13 @@ get_surface_id.2802:
 	mtlr	r31
 	ld	r5, r3, 0
 	slwi	r5, r5, 2
-	add	r2, r2, r5
-	ld	r2, r2, 0
-	sub	r2, r2, r5
+	add	r31, r2, r5
+	ld	r2, r31, 0
 	blr
 neighbors_are_available.2805:
 	slwi	r9, r2, 2
-	add	r6, r6, r9
-	ld	r9, r6, 0
-	sub	r6, r6, r9
+	add	r31, r6, r9
+	ld	r9, r31, 0
 	st	r6, r3, 0
 	st	r7, r3, 4
 	st	r8, r3, 8
@@ -8837,9 +8770,8 @@ neighbors_are_available.2805:
 	ld	r5, r3, 16
 	slwi	r6, r5, 2
 	ld	r7, r3, 12
-	add	r7, r7, r6
-	ld	r6, r7, 0
-	sub	r7, r7, r6
+	add	r31, r7, r6
+	ld	r6, r31, 0
 	ld	r7, r3, 8
 	st	r2, r3, 20
 	mflr	r31
@@ -8857,9 +8789,8 @@ neighbors_are_available.2805:
 	ld	r2, r3, 16
 	slwi	r6, r2, 2
 	ld	r7, r3, 4
-	add	r7, r7, r6
-	ld	r6, r7, 0
-	sub	r7, r7, r6
+	add	r31, r7, r6
+	ld	r6, r31, 0
 	ld	r7, r3, 8
 	mflr	r31
 	mr	r5, r7
@@ -8877,9 +8808,8 @@ neighbors_are_available.2805:
 	addi	r6, r2, -1
 	slwi	r6, r6, 2
 	ld	r7, r3, 0
-	add	r7, r7, r6
-	ld	r6, r7, 0
-	sub	r7, r7, r6
+	add	r31, r7, r6
+	ld	r6, r31, 0
 	ld	r8, r3, 8
 	mflr	r31
 	mr	r5, r8
@@ -8897,9 +8827,8 @@ neighbors_are_available.2805:
 	addi	r2, r2, 1
 	slwi	r2, r2, 2
 	ld	r6, r3, 0
-	add	r6, r6, r2
-	ld	r2, r6, 0
-	sub	r6, r6, r2
+	add	r31, r6, r2
+	ld	r2, r31, 0
 	ld	r6, r3, 8
 	mflr	r31
 	mr	r5, r6
@@ -8930,9 +8859,8 @@ try_exploit_neighbors.2811:
 	ld	r10, r30, 8
 	ld	r11, r30, 4
 	slwi	r12, r2, 2
-	add	r7, r7, r12
-	ld	r12, r7, 0
-	sub	r7, r7, r12
+	add	r31, r7, r12
+	ld	r12, r31, 0
 	cmpwi	cr0, r9, 4
 	blt	le.8902
 	beq	le.8902
@@ -8976,9 +8904,8 @@ le.8902:
 	ld	r2, r3, 36
 	slwi	r2, r2, 2
 	ld	r5, r3, 28
-	add	r5, r5, r2
-	ld	r2, r5, 0
-	sub	r5, r5, r2
+	add	r31, r5, r2
+	ld	r2, r31, 0
 	ld	r5, r3, 20
 	ld	r30, r3, 16
 	ld	r29, r30, 0
@@ -8995,9 +8922,8 @@ beq_else.8905:
 	mtlr	r31
 	ld	r8, r3, 20
 	slwi	r5, r8, 2
-	add	r2, r2, r5
-	ld	r2, r2, 0
-	sub	r2, r2, r5
+	add	r31, r2, r5
+	ld	r2, r31, 0
 	cmpwi	cr0, r2, 0
 	bne	beq_else.8906
 	b	beq_cont.8907
@@ -9206,9 +9132,8 @@ le.8913:
 	mtlr	r31
 	ld	r5, r3, 16
 	slwi	r6, r5, 2
-	add	r2, r2, r6
-	ld	r2, r2, 0
-	sub	r2, r2, r6
+	add	r31, r2, r6
+	ld	r2, r31, 0
 	cmpwi	cr0, r2, 0
 	bne	beq_else.8916
 	b	beq_cont.8917
@@ -9252,19 +9177,16 @@ beq_else.8916:
 	ld	r5, r3, 24
 	slwi	r5, r5, 2
 	ld	r6, r3, 8
-	add	r6, r6, r5
-	ld	r5, r6, 0
-	sub	r6, r6, r5
+	add	r31, r6, r5
+	ld	r5, r31, 0
 	ld	r6, r3, 16
 	slwi	r7, r6, 2
 	ld	r8, r3, 28
-	add	r8, r8, r7
-	ld	r7, r8, 0
-	sub	r8, r8, r7
+	add	r31, r8, r7
+	ld	r7, r31, 0
 	slwi	r8, r6, 2
-	add	r2, r2, r8
-	ld	r2, r2, 0
-	sub	r2, r2, r8
+	add	r31, r2, r8
+	ld	r2, r31, 0
 	ld	r30, r3, 4
 	mflr	r31
 	mr	r6, r2
@@ -9288,9 +9210,8 @@ beq_else.8916:
 	mtlr	r31
 	ld	r5, r3, 16
 	slwi	r6, r5, 2
-	add	r2, r2, r6
-	ld	r2, r2, 0
-	sub	r2, r2, r6
+	add	r31, r2, r6
+	ld	r2, r31, 0
 	ld	r6, r3, 12
 	mflr	r31
 	mr	r5, r6
@@ -9404,9 +9325,8 @@ pretrace_pixels.2827:
 	ld	r5, r3, 20
 	slwi	r6, r5, 2
 	ld	r7, r3, 16
-	add	r7, r7, r6
-	ld	r6, r7, 0
-	sub	r7, r7, r6
+	add	r31, r7, r6
+	ld	r6, r31, 0
 	li	r31, 0
 	slwi	r31, r31, 16
 	addi	r31, r31, 0
@@ -9427,9 +9347,8 @@ pretrace_pixels.2827:
 	ld	r2, r3, 20
 	slwi	r5, r2, 2
 	ld	r6, r3, 16
-	add	r6, r6, r5
-	ld	r5, r6, 0
-	sub	r6, r6, r5
+	add	r31, r6, r5
+	ld	r5, r31, 0
 	mflr	r31
 	mr	r2, r5
 	st	r31, r3, 60
@@ -9449,9 +9368,8 @@ pretrace_pixels.2827:
 	ld	r2, r3, 20
 	slwi	r5, r2, 2
 	ld	r6, r3, 16
-	add	r6, r6, r5
-	ld	r5, r6, 0
-	sub	r6, r6, r5
+	add	r31, r6, r5
+	ld	r5, r31, 0
 	ld	r7, r3, 8
 	mflr	r31
 	mr	r2, r5
@@ -9465,9 +9383,8 @@ pretrace_pixels.2827:
 	ld	r2, r3, 20
 	slwi	r5, r2, 2
 	ld	r6, r3, 16
-	add	r6, r6, r5
-	ld	r5, r6, 0
-	sub	r6, r6, r5
+	add	r31, r6, r5
+	ld	r5, r31, 0
 	li	r7, 0
 	ld	r30, r3, 4
 	mflr	r31
@@ -9572,9 +9489,8 @@ scan_pixel.2838:
 	blt	le.8921
 	beq	le.8921
 	slwi	r13, r2, 2
-	add	r7, r7, r13
-	ld	r13, r7, 0
-	sub	r7, r7, r13
+	add	r31, r7, r13
+	ld	r13, r31, 0
 	st	r30, r3, 0
 	st	r9, r3, 4
 	st	r6, r3, 8
@@ -9621,9 +9537,8 @@ scan_pixel.2838:
 	ld	r2, r3, 32
 	slwi	r5, r2, 2
 	ld	r6, r3, 20
-	add	r6, r6, r5
-	ld	r5, r6, 0
-	sub	r6, r6, r5
+	add	r31, r6, r5
+	ld	r5, r31, 0
 	li	r7, 0
 	ld	r30, r3, 16
 	mflr	r31
@@ -9964,9 +9879,8 @@ init_line_elements.2854:
 	ld	r5, r3, 4
 	slwi	r6, r5, 2
 	ld	r7, r3, 0
-	add	r7, r7, r6
-	st	r2, r7, 0
-	sub	r7, r7, r6
+	add	r31, r7, r6
+	st	r2, r31, 0
 	addi	r5, r5, -1
 	mr	r2, r7
 	b	init_line_elements.2854
@@ -10116,14 +10030,12 @@ calc_dirvec.2864:
 	ld	r2, r3, 8
 	slwi	r2, r2, 2
 	ld	r5, r3, 4
-	add	r5, r5, r2
-	ld	r2, r5, 0
-	sub	r5, r5, r2
+	add	r31, r5, r2
+	ld	r2, r31, 0
 	ld	r5, r3, 0
 	slwi	r6, r5, 2
-	add	r2, r2, r6
-	ld	r6, r2, 0
-	sub	r2, r2, r6
+	add	r31, r2, r6
+	ld	r6, r31, 0
 	st	r2, r3, 24
 	fst	fr1, r3, 28
 	fst	fr3, r3, 32
@@ -10150,9 +10062,8 @@ calc_dirvec.2864:
 	addi	r5, r2, 40
 	slwi	r5, r5, 2
 	ld	r6, r3, 24
-	add	r6, r6, r5
-	ld	r5, r6, 0
-	sub	r6, r6, r5
+	add	r31, r6, r5
+	ld	r5, r31, 0
 	mflr	r31
 	mr	r2, r5
 	st	r31, r3, 44
@@ -10178,9 +10089,8 @@ calc_dirvec.2864:
 	addi	r5, r2, 80
 	slwi	r5, r5, 2
 	ld	r6, r3, 24
-	add	r6, r6, r5
-	ld	r5, r6, 0
-	sub	r6, r6, r5
+	add	r31, r6, r5
+	ld	r5, r31, 0
 	mflr	r31
 	mr	r2, r5
 	st	r31, r3, 44
@@ -10207,9 +10117,8 @@ calc_dirvec.2864:
 	addi	r5, r2, 1
 	slwi	r5, r5, 2
 	ld	r6, r3, 24
-	add	r6, r6, r5
-	ld	r5, r6, 0
-	sub	r6, r6, r5
+	add	r31, r6, r5
+	ld	r5, r31, 0
 	mflr	r31
 	mr	r2, r5
 	st	r31, r3, 44
@@ -10238,9 +10147,8 @@ calc_dirvec.2864:
 	addi	r5, r2, 41
 	slwi	r5, r5, 2
 	ld	r6, r3, 24
-	add	r6, r6, r5
-	ld	r5, r6, 0
-	sub	r6, r6, r5
+	add	r31, r6, r5
+	ld	r5, r31, 0
 	mflr	r31
 	mr	r2, r5
 	st	r31, r3, 44
@@ -10268,9 +10176,8 @@ calc_dirvec.2864:
 	addi	r2, r2, 81
 	slwi	r2, r2, 2
 	ld	r5, r3, 24
-	add	r5, r5, r2
-	ld	r2, r5, 0
-	sub	r5, r5, r2
+	add	r31, r5, r2
+	ld	r2, r31, 0
 	mflr	r31
 	st	r31, r3, 44
 	addi	r3, r3, 48
@@ -10563,9 +10470,8 @@ create_dirvec_elements.2883:
 	ld	r5, r3, 8
 	slwi	r6, r5, 2
 	ld	r7, r3, 4
-	add	r7, r7, r6
-	st	r2, r7, 0
-	sub	r7, r7, r6
+	add	r31, r7, r6
+	st	r2, r31, 0
 	addi	r5, r5, -1
 	ld	r30, r3, 0
 	mr	r2, r7
@@ -10608,13 +10514,11 @@ create_dirvecs.2886:
 	ld	r5, r3, 12
 	slwi	r6, r5, 2
 	ld	r7, r3, 8
-	add	r7, r7, r6
-	st	r2, r7, 0
-	sub	r7, r7, r6
+	add	r31, r7, r6
+	st	r2, r31, 0
 	slwi	r2, r5, 2
-	add	r7, r7, r2
-	ld	r2, r7, 0
-	sub	r7, r7, r2
+	add	r31, r7, r2
+	ld	r2, r31, 0
 	li	r6, 118
 	ld	r30, r3, 4
 	mflr	r31
@@ -10640,9 +10544,8 @@ init_dirvec_constants.2888:
 	cmpwi	cr0, r5, 0
 	blt	bge_else.8940
 	slwi	r7, r5, 2
-	add	r2, r2, r7
-	ld	r7, r2, 0
-	sub	r2, r2, r7
+	add	r31, r2, r7
+	ld	r7, r31, 0
 	st	r2, r3, 0
 	st	r30, r3, 4
 	st	r5, r3, 8
@@ -10672,9 +10575,8 @@ init_vecset_constants.2891:
 	cmpwi	cr0, r2, 0
 	blt	bge_else.8942
 	slwi	r7, r2, 2
-	add	r6, r6, r7
-	ld	r6, r6, 0
-	sub	r6, r6, r7
+	add	r31, r6, r7
+	ld	r6, r31, 0
 	li	r7, 119
 	st	r30, r3, 0
 	st	r2, r3, 4
@@ -10795,9 +10697,8 @@ add_reflection.2895:
 	ld	r5, r3, 4
 	slwi	r5, r5, 2
 	ld	r6, r3, 0
-	add	r6, r6, r5
-	st	r2, r6, 0
-	sub	r6, r6, r5
+	add	r31, r6, r5
+	st	r2, r31, 0
 	blr
 setup_rect_reflection.2902:
 	ld	r6, r30, 12
@@ -11043,9 +10944,8 @@ setup_reflections.2908:
 	cmpwi	cr0, r2, 0
 	blt	bge_else.8947
 	slwi	r8, r2, 2
-	add	r7, r7, r8
-	ld	r7, r7, 0
-	sub	r7, r7, r8
+	add	r31, r7, r8
+	ld	r7, r31, 0
 	st	r5, r3, 0
 	st	r2, r3, 4
 	st	r6, r3, 8
@@ -12805,8 +12705,8 @@ _min_caml_start:
 	st	r18, r30, 12
 	st	r9, r30, 8
 	st	r5, r30, 4
-	li	r2, 512
-	li	r5, 512
+	li	r2, 128
+	li	r5, 128
 	mflr	r31
 	st	r31, r3, 148
 	addi	r3, r3, 152
