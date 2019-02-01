@@ -1,9 +1,5 @@
 min_caml_floor:
-	li	r31, 16128
-	slwi	r31, r31, 16
-	addi	r31, r31, 0
-	st	r31, r3, 8
-	fld	fr2, r3, 8
+	fld	fr2, r0, 0
 	fsub	fr1, fr1, fr2
 	mflr	r31
 	st	r31, r3, 4

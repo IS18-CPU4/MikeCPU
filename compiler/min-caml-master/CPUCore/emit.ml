@@ -3,7 +3,8 @@ open Asm
 exception ASM_ERR of string
 
 external get32 : float -> int32 = "get32"
-let floatmap = ref [] (* ref of label * float list *)
+let floatlabelmap = ref [] (* ref of label * float list *)
+let floatpointmap = ref [] (* ref of float * address(Int) list *)
 
 let stackset = ref S.empty (* すでにSaveされた変数の集合 (caml2html: emit_stackset) *)
 let stackmap = ref [] (* Saveされた変数の、スタックにおける位置 (caml2html: emit_stackmap) *)
@@ -40,6 +41,20 @@ let rec write_library oc ic =
     write_library oc ic
   with
     e -> output_string oc "#End Library\n"
+
+let rec make_float_data hs flabelmap = (* floatlabelmapからfloatをメモリに入れ続ける, hs = heapsize = それまでのfloatの数 ただし hs * 4 < 32768 であって欲しい(即値の限界)*)
+  match flabelmap with
+    | [] -> ""
+    | (_, data)::labels -> floatpointmap := (data, hs)::!floatpointmap;
+                           let i = Int32.to_int (get32 data) in
+                           let n = i lsr 16 in
+                           let m = i lxor (n lsl 16) in
+                           let m_top = m lsr 15 in
+                           (Printf.sprintf "\tli\t%s, %d\n" (reg reg_tmp) ((n+m_top) mod 65536))
+                           ^ (Printf.sprintf "\tslwi\t%s, %s, 16\n" (reg reg_tmp) (reg reg_tmp))
+                           ^ (Printf.sprintf "\taddi\t%s, %s, %d\n" (reg reg_tmp) (reg reg_tmp) m)
+                           ^ (Printf.sprintf "\tst\t%s, %s, %d\n" (reg reg_tmp) (reg reg_hp) hs)
+                           ^ (make_float_data (hs - 4) labels)
 
 let load_label r label =
 (*
@@ -100,9 +115,6 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprim
       Printf.fprintf oc "\tslwi\t%s, %s, 16\n" r r;
       Printf.fprintf oc "\taddi\t%s, %s, %d\n" r r m
 (*
-      Printf.fprintf oc "\tlis\t%s, %d\n" r n;
-      Printf.fprintf oc "\tori\t%s, %s, %d\n" r r m
-*)
   | NonTail(x), FLi(Id.L(l)) ->
       let ss = stacksize () in
       let labeled_float = List.assoc (Id.L(l)) !floatmap in
@@ -116,6 +128,20 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprim
       Printf.fprintf oc "\taddi\t%s, %s, %d\n" (reg reg_tmp) (reg reg_tmp) m;
       Printf.fprintf oc "\tst\t%s, %s, %d\n" (reg reg_tmp) (reg reg_sp) (ss);
       Printf.fprintf oc "\tfld\t%s, %s, %d\n" (reg x) (reg reg_sp) (ss)
+*)
+  | NonTail(x), FLi(Id.L(l)) ->
+      let labeled_float = List.assoc (Id.L(l)) !floatlabelmap in (* ラベルに関連付けられたfloatの値 *)
+      let float_point = List.assoc (labeled_float) !floatpointmap in (* floatの値がある絶対アドレス *)
+      if float_point < 32768 then
+        Printf.fprintf oc "\tfld\t%s, %s, %d\n" (reg x) "r0" (float_point)
+      else
+        let n = float_point lsr 16 in
+        let m = float_point lxor (n lsl 16) in
+        let m_top = m lsr 15 in
+        let r = reg x in
+        Printf.fprintf oc "\tli\t%s, %d\n" (reg reg_tmp) ((n+m_top) mod 65536);
+        Printf.fprintf oc "\tslwi\t%s, %s, 16\n" (reg reg_tmp) (reg reg_tmp);
+        Printf.fprintf oc "\tfld\t%s, %s, %d\n" (reg x) (reg reg_tmp) m
   | NonTail(x), SetL(Id.L(y)) ->
       let s = load_label x y in
       Printf.fprintf oc "%s" s
@@ -132,18 +158,6 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprim
   | NonTail(x), Slw(y, C(z)) -> Printf.fprintf oc "\tslwi\t%s, %s, %d\n" (reg x) (reg y) z
   | NonTail(x), Srw(y, V(z)) -> Printf.fprintf oc "\tsrw\t%s, %s, %s\n" (reg x) (reg y) (reg z)
   | NonTail(x), Srw(y, C(z)) -> Printf.fprintf oc "\tsrwi\t%s, %s, %d\n" (reg x) (reg y) z
-(*
-  | NonTail(x), Lwz(y, V(z)) -> Printf.fprintf oc "\tlwzx\t%s, %s, %s\n" (reg x) (reg y) (reg z)
-  | NonTail(x), Lwz(y, C(z)) -> Printf.fprintf oc "\tlwz\t%s, %d(%s)\n" (reg x) z (reg y)
-  | NonTail(_), Stw(x, y, V(z)) -> Printf.fprintf oc "\tstwx\t%s, %s, %s\n" (reg x) (reg y) (reg z)
-  | NonTail(_), Stw(x, y, C(z)) -> Printf.fprintf oc "\tstw\t%s, %d(%s)\n" (reg x) z (reg y)
-*)
-(*
-気の迷い
-  | NonTail(x), Lwz(y, V(z))-> raise (ASM_ERR("lwzx"))
-  | NonTail(x), Lwz(y, C(z))-> raise (ASM_ERR("lwz"))
-  | NonTail(_), Stw(x, y, C(z)) -> raise (ASM_ERR("stw"))
-*)
   | NonTail(x), Lwz(y, V(z))-> Printf.fprintf oc "\tadd\t%s, %s, %s\n" (reg reg_tmp) (reg y) (reg z);
                                Printf.fprintf oc "\tld\t%s, %s, 0\n" (reg x) (reg reg_tmp)
   | NonTail(x), Lwz(y, C(z)) -> Printf.fprintf oc "\tld\t%s, %s, %d\n" (reg x) (reg y) z
@@ -471,7 +485,6 @@ let h oc { name = Id.L(x); args = _; fargs = _; body = e; ret = _ } =
   g oc (Tail, e)
 
 let f oc (Prog(data, fundefs, e)) =
-  floatmap := data;
   Format.eprintf "generating assembly...@.";
   Printf.fprintf oc "\t.text\n";
   Printf.fprintf oc "\t.globl _min_caml_start\n";
@@ -482,6 +495,12 @@ let f oc (Prog(data, fundefs, e)) =
     let inchan = open_in ("libmincaml.S") in
       write_library oc inchan;
     close_in inchan);
+  (* floatのアドレス対応生成->floatsのstringにまとめて後でコードに埋め込む *)
+  floatlabelmap := data;
+  let hs = (List.length !floatlabelmap - 1) * 4 in
+  if hs >= 32768 then raise (ASM_ERR "too many float_simm!");
+  let floats = make_float_data hs !floatlabelmap in
+  (* 関数埋め込み *)
   List.iter (fun fundef -> h oc fundef) fundefs;
 (*  Printf.fprintf oc "_min_caml_start: # main entry point\n"; *)
   Printf.fprintf oc "_min_caml_start:\n";
@@ -497,6 +516,12 @@ let f oc (Prog(data, fundefs, e)) =
   Printf.fprintf oc "\tst\tr0, r1, 8\n";
   Printf.fprintf oc "\tst\tr1, r1, -96\n"; (* stwuなんてstwと同じだよね(フラグ) *)
 *)
+  (* float data 埋め込み *)
+  Printf.fprintf oc "#\tfloat data\n";
+  Printf.fprintf oc "%s" floats;
+  Printf.fprintf oc "\taddi\t%s, %s, %d\n" (reg reg_hp) (reg reg_hp) hs; (* ヒープポインタ更新 *)
+  Printf.fprintf oc "#\tend float data\n";
+  (* main program *)
   Printf.fprintf oc "#\tmain program starts\n";
   stackset := S.empty;
   stackmap := [];

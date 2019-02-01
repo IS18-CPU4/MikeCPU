@@ -163,9 +163,55 @@ let h { Closure.name = (Id.L(x), t); Closure.args = yts; Closure.formal_fv = zts
       { name = Id.L(x); args = int; fargs = float; body = load; ret = t2 }
   | _ -> assert false
 
+(* libmincaml.Sに登場する浮動小数点数定数を追加 *)
+let add_Lib_float_data () =
+  let l = Id.L(Id.genid "libfloatlabel") in
+  data := (l, 0.5) :: []; (* min_caml_fhalf, floor, ker_cos *)
+  let l = Id.L(Id.genid "libfloatlabel") in
+  data := (l, 0.16666668) :: !data; (* min_caml_sincos_ker_sin *)
+  let l = Id.L(Id.genid "libfloatlabel") in
+  data := (l, 0.008332824) :: !data;
+  let l = Id.L(Id.genid "libfloatlabel") in
+  data := (l, 0.00019587841) :: !data;
+  let l = Id.L(Id.genid "libfloatlabel") in
+  data := (l, 1.0) :: !data; (* min_caml_sincos_ker_cos *)
+  let l = Id.L(Id.genid "libfloatlabel") in
+  data := (l, 0.04166368) :: !data;
+  let l = Id.L(Id.genid "libfloatlabel") in
+  data := (l, 0.0013695068) :: !data;
+  let l = Id.L(Id.genid "libfloatlabel") in
+  data := (l, 3.14159265) :: !data; (* min_caml_sin,cos *)
+  let l = Id.L(Id.genid "libfloatlabel") in
+  data := (l, 3.14159265 *. 2.0) :: !data;
+  let l = Id.L(Id.genid "libfloatlabel") in
+  data := (l, 3.14159265 /. 2.0) :: !data;
+  let l = Id.L(Id.genid "libfloatlabel") in
+  data := (l, 3.14159265 /. 4.0) :: !data;
+  let l = Id.L(Id.genid "libfloatlabel") in
+  data := (l, 0.0) :: !data;
+  let l = Id.L(Id.genid "libfloatlabel") in
+  data := (l, 2.0) :: !data;
+  let l = Id.L(Id.genid "libfloatlabel") in
+  data := (l, 0.3333333) :: !data;
+  let l = Id.L(Id.genid "libfloatlabel") in
+  data := (l, 0.2) :: !data;
+  let l = Id.L(Id.genid "libfloatlabel") in
+  data := (l, 0.142857142) :: !data;
+  let l = Id.L(Id.genid "libfloatlabel") in
+  data := (l, 0.111111104) :: !data;
+  let l = Id.L(Id.genid "libfloatlabel") in
+  data := (l, 0.08976446) :: !data;
+  let l = Id.L(Id.genid "libfloatlabel") in
+  data := (l, 0.060035485) :: !data;
+  let l = Id.L(Id.genid "libfloatlabel") in
+  data := (l, 0.4375) :: !data;
+  let l = Id.L(Id.genid "libfloatlabel") in
+  data := (l, 2.4375) :: !data
+
 (* プログラム全体の仮想マシンコード生成 (caml2html: virtual_f) *)
 let f (Closure.Prog(fundefs, e)) =
-  data := [];
+  (*  data := []; *)
+  add_Lib_float_data ();
   let fundefs = List.map h fundefs in
   let e = g M.empty e in
   Prog(!data, fundefs, e)
