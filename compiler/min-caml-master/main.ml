@@ -30,18 +30,20 @@ let dump_syntax = ref false
 let dump_knormal = ref false
 let dump_alpha = ref false
 let dump_cse = ref false
+let dump_asm = ref false
 (* globals.sのソースを埋め込むかの管理フラグ *)
 let global_bool = ref false
 
 let rec pre_dump_bools op n =
-  if n = 0 then dump_bool := !dump_syntax || !dump_knormal || !dump_alpha || !dump_cse
+  if n = 0 then dump_bool := !dump_syntax || !dump_knormal || !dump_alpha || !dump_cse || !dump_asm
   else
     match String.get op (n - 1) with
       | 's' -> dump_syntax := true; pre_dump_bools op (n-1)
       | 'k' -> dump_knormal := true; pre_dump_bools op (n-1)
       | 'a' -> dump_alpha := true; pre_dump_bools op (n-1)
       | 'c' -> dump_cse := true; pre_dump_bools op (n-1)
-      | _ -> raise (Arg.Bad("invalid option -dump needs s|k|a|c "))
+      | 'm' -> dump_asm := true; pre_dump_bools op (n-1)
+      | _ -> raise (Arg.Bad("invalid option -dump needs s|k|a|c|m "))
 
 let rec dump_bools op =
   let n = String.length op in
@@ -89,6 +91,8 @@ let dump_lexbuf outchan l = (* lexbufもどき *)
     let _ = PrintKNormal.print_knormal_t alpha in
       print_endline "=============================================="
     else ()
+    in let cse = alpha (* cseしないためのでっち上げ *)
+(*
   in let cse = Cse.f alpha in
   let _ = if !dump_cse then
     let _ = print_newline () in
@@ -96,14 +100,22 @@ let dump_lexbuf outchan l = (* lexbufもどき *)
     let _ = print_endline "==============================================" in
     let _ = PrintKNormal.print_knormal_t cse in
       print_endline "=============================================="
+*)
+  in let vir = Virtual.f
+                (Closure.f
+                  (iter !limit
+                    (cse))) in
+  let _ = if !dump_asm then
+    let _ = print_newline () in
+    let _ = print_endline "Asm.prog" in
+    let _ = print_endline "==============================================" in
+    let _ = PrintCPUCoreAsm.print_asm_prog vir in
+      print_endline "=============================================="
   in let _ = print_newline () in
   Emit.f outchan
     (RegAlloc.f
        (Simm.f
-          (Virtual.f
-             (Closure.f
-                (iter !limit
-                   (cse))))))
+          (vir)))
 
 let file f = (* ファイルをコンパイルしてファイルに出力する (caml2html: main_file) *)
 (*
@@ -140,7 +152,7 @@ let file f = (* ファイルをコンパイルしてファイルに出力する 
                                             string_of_int err_start ^
                                             "-" ^
                                             string_of_int err_end))
-    | e -> (close_in inchan; close_out outchan;print_endline "hoge"; print_endline "fuga"; raise e)
+    | e -> (close_in inchan; close_out outchan; raise e)
 
 
 
@@ -156,7 +168,7 @@ let () = (* ここからコンパイラの実行が開始される (caml2html: m
      ("-dump", Arg.String(fun op -> dump_bools op), "intermediate result output")] (* Syntax.tやKNormal.tなどの標準出力 *)
     (fun s -> files := !files @ [s])
     ("Mitou Min-Caml Compiler (C) Eijiro Sumii\n" ^
-     Printf.sprintf "usage: %s [-inline m] [-iter n] [-dump s|k|a|c] [-nonlib] [-global] ...filenames without \".ml\"..." Sys.argv.(0));
+     Printf.sprintf "usage: %s [-inline m] [-iter n] [-dump s|k|a|c|m] [-nonlib] [-global] ...filenames without \".ml\"..." Sys.argv.(0));
   List.iter
     (fun f -> ignore (file f))
     !files
