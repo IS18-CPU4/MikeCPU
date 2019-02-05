@@ -519,7 +519,7 @@ let f oc (Prog(data, fundefs, e)) =
   (* float data 埋め込み *)
   Printf.fprintf oc "#\tfloat data\n";
   Printf.fprintf oc "%s" floats;
-  Printf.fprintf oc "\taddi\t%s, %s, %d\n" (reg reg_hp) (reg reg_hp) hs; (* ヒープポインタ更新 *)
+  Printf.fprintf oc "\taddi\t%s, %s, %d\n" (reg reg_hp) (reg reg_hp) (align hs); (* ヒープポインタ更新 *)
   Printf.fprintf oc "#\tend float data\n";
   (* main program *)
   Printf.fprintf oc "#\tmain program starts\n";
