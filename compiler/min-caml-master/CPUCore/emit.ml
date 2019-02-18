@@ -1,96 +1,8 @@
 open Asm
-
+open Rdui
 exception ASM_ERR of string
 
 external get32 : float -> int32 = "get32"
-
-type t = (* 命令セット *)
-  | E_Li of reg * simm_or_label
-  | E_Mr of reg * reg
-  | E_Addi of reg * reg * simm_or_label
-  | E_Add of reg * reg * reg
-  | E_Sub of reg * reg * reg
-  | E_Slwi of reg * reg * int
-  | E_Srwi of reg * reg * int
-  | E_Slw of reg * reg * reg
-  | E_Srw of reg * reg * reg
-  | E_FAdd of reg * reg * reg
-  | E_FSub of reg * reg * reg
-  | E_FMul of reg * reg * reg
-  | E_FDiv of reg * reg * reg
-  | E_FMr of reg * reg
-  | E_B of string
-  | E_BEq of string
-  | E_BNE of string
-  | E_BLT of string
-  | E_BL of string
-  | E_BLr
-  | E_Ba of reg
-  | E_Bal of reg
-  | E_MfLr of reg
-  | E_MtLr of reg
-  | E_Cmpwi of reg * reg * int (* creg * reg * simm *)
-  | E_Cmpw of reg * reg * reg (* creg * reg * reg *)
-  | E_FCmp of reg * reg * reg (* creg * freg * freg *)
-  | E_Ld of reg * reg * int
-  | E_St of reg * reg * int
-  | E_FLd of reg * reg * int
-  | E_FSt of reg * reg * int
-  | E_Label of string
-  | E_Comment of string
-(*
-  | Li of reg * int * t
-  | Li of reg * label * t
-  | Mr of reg * reg * t
-  | Addi of reg * reg * int * t
-  | Add of reg * reg * reg * t
-  | Sub of reg * reg * reg * t
-  | Slwi of reg * reg * int * t
-  | Srwi of reg * reg * int * t
-  | Slw of reg * reg * reg * t
-  | Srw of reg * reg * reg * t
-  | FAdd of reg * reg * reg * t
-  | FSub of reg * reg * reg * t
-  | FMul of reg * reg * reg * t
-  | FDiv of reg * reg * reg * t
-  | FMr of reg * reg * t
-  | B of str * t
-  | BEq of str * t
-  | BNE of str * t
-  | BLT of str * t
-  | BL of str * t
-  | BLr of t
-  | Ba of reg * t
-  | Bal of reg * t
-  | MfLr of reg * t
-  | MtLr of reg * t
-  | Cmpwi of reg * reg * int * t (* creg * reg * simm *)
-  | Cmpw of reg * reg * reg * t (* creg * reg * reg *)
-  | FCmp of reg * reg * reg * t (* creg * freg * freg *)
-  | Ld of reg * reg * int * t
-  | St of reg * reg * int * t
-  | FLd of reg * reg * int * t
-  | FSt of reg * reg * int * t
-  | END (* コードの最後 *)
-*)
-(*
-  | FSqrt of reg * t
-  | FAbs of reg * t
-  | Out of reg * t
-  | In of reg * t
-*)
-and reg = string
-(*
-  | Reg of int
-  | CReg of int
-  | FReg of int
-*)
-and simm_or_label =
-  | Int of int
-  | Ha16 of string
-  | Lo16 of string
-
-type code = t list
 
 (*
 let regs = Asm.regs
@@ -792,7 +704,7 @@ let f oc (Prog(data, fundefs, e)) =
   if hs >= 32768 then raise (ASM_ERR "too many float_simm!");
   let floats = make_float_data hs !floatlabelmap in
   (* 関数埋め込み *)
-  let fundefcodes = List.concat (List.map (fun fundef -> h fundef) fundefs) in
+  let fundefcodes = List.concat (List.map (fun fundef -> Rdui.f (h fundef)) fundefs) in
   print_code oc fundefcodes;
   (* start program *)
   Printf.fprintf oc "_min_caml_start:\n";
@@ -809,7 +721,7 @@ let f oc (Prog(data, fundefs, e)) =
   Printf.fprintf oc "#\tmain program starts\n";
   stackset := S.empty;
   stackmap := [];
-  let maincode = g (NonTail("_R_0"), e) in
+  let maincode = Rdui.f (g (NonTail("_R_0"), e)) in
   print_code oc maincode;
   Printf.fprintf oc "#\tmain program ends\n";
 
