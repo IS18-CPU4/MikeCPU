@@ -31,11 +31,12 @@ let dump_knormal = ref false
 let dump_alpha = ref false
 let dump_cse = ref false
 let dump_asm = ref false
+let dump_reg = ref false
 (* globals.sのソースを埋め込むかの管理フラグ *)
 let global_bool = ref false
 
 let rec pre_dump_bools op n =
-  if n = 0 then dump_bool := !dump_syntax || !dump_knormal || !dump_alpha || !dump_cse || !dump_asm
+  if n = 0 then dump_bool := !dump_syntax || !dump_knormal || !dump_alpha || !dump_cse || !dump_asm || !dump_reg
   else
     match String.get op (n - 1) with
       | 's' -> dump_syntax := true; pre_dump_bools op (n-1)
@@ -43,7 +44,8 @@ let rec pre_dump_bools op n =
       | 'a' -> dump_alpha := true; pre_dump_bools op (n-1)
       | 'c' -> dump_cse := true; pre_dump_bools op (n-1)
       | 'm' -> dump_asm := true; pre_dump_bools op (n-1)
-      | _ -> raise (Arg.Bad("invalid option -dump needs s|k|a|c|m "))
+      | 'r' -> dump_reg := true; pre_dump_bools op (n-1)
+      | _ -> raise (Arg.Bad("invalid option -dump needs s|k|a|c|m|r "))
 
 let rec dump_bools op =
   let n = String.length op in
@@ -111,11 +113,18 @@ let dump_lexbuf outchan l = (* lexbufもどき *)
     let _ = print_endline "==============================================" in
     let _ = PrintCPUCoreAsm.print_asm_prog vir in
       print_endline "=============================================="
+  in let ra = RegAlloc.f
+                (Simm.f
+                  (vir)) in
+  let _ = if !dump_reg then
+    let _ = print_newline () in
+    let _ = print_endline "RegAlloc.prog" in
+    let _ = print_endline "==============================================" in
+    let _ = PrintCPUCoreAsm.print_asm_prog ra in
+      print_endline "=============================================="
   in let _ = print_newline () in
   Emit.f outchan
-    (RegAlloc.f
-       (Simm.f
-          (vir)))
+    (ra)
 
 let file f = (* ファイルをコンパイルしてファイルに出力する (caml2html: main_file) *)
 (*
@@ -168,7 +177,7 @@ let () = (* ここからコンパイラの実行が開始される (caml2html: m
      ("-dump", Arg.String(fun op -> dump_bools op), "intermediate result output")] (* Syntax.tやKNormal.tなどの標準出力 *)
     (fun s -> files := !files @ [s])
     ("Mitou Min-Caml Compiler (C) Eijiro Sumii\n" ^
-     Printf.sprintf "usage: %s [-inline m] [-iter n] [-dump s|k|a|c|m] [-nonlib] [-global] ...filenames without \".ml\"..." Sys.argv.(0));
+     Printf.sprintf "usage: %s [-inline m] [-iter n] [-dump s|k|a|c|m|r] [-nonlib] [-global] ...filenames without \".ml\"..." Sys.argv.(0));
   List.iter
     (fun f -> ignore (file f))
     !files

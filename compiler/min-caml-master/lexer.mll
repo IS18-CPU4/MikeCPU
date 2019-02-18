@@ -57,7 +57,8 @@ rule token = parse
       let l_end = start + 3 in
         NOT(line, start, l_end)
     }
-(* min-rt用parse時に解釈可能なもの fneg, fless, fequal *)
+(*
+(* min-rt用parse時に解釈可能なもの fneg, fless, fequal *) (* regulation 違反 *)
 | "fneg"
     {
       let start = lexbuf.lex_curr_p.pos_cnum - lexbuf.lex_curr_p.pos_bol in
@@ -79,6 +80,7 @@ rule token = parse
       let l_end = start + 6 in
         FUNFEQUAL(line, start, l_end)
     }
+*)
 | digit+ (* 整数を字句解析するルール (caml2html: lexer_int) *)
     {
       let start = lexbuf.lex_curr_p.pos_cnum - lexbuf.lex_curr_p.pos_bol in
@@ -238,6 +240,7 @@ rule token = parse
       let l_end = start + 1 in
         IDENT(Id.gentmp Type.Unit, line, start, l_end)
     }
+(*
 | "create_array"  (* [XX] ad hoc *)
     {
       let start = lexbuf.lex_curr_p.pos_cnum - lexbuf.lex_curr_p.pos_bol in
@@ -245,6 +248,7 @@ rule token = parse
       let l_end = start + 12 in
         ARRAY_CREATE(line, start, l_end)
     }
+*)
 | "Array.create"  (* [XX] ad hoc *)
     {
       let start = lexbuf.lex_curr_p.pos_cnum - lexbuf.lex_curr_p.pos_bol in

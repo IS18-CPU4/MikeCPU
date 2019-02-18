@@ -225,16 +225,29 @@ let rec g env e = (* 型推論ルーチン (caml2html: typing_g) Syntax.t -> Typ
     | Var(x, line, start, t_end) -> (* 外部変数の型推論 (caml2html: typing_extvar) *)
         Format.eprintf "free variable %s assumed as external@." x;
         let t = Type.gentyp () in
-        extenv := M.add x t !extenv;
+        (if not (x = "create_array") then
+          extenv := M.add x t !extenv
+        else
+          Format.eprintf "%s" x
+        );
         t
     | LetRec({ name = (x, t); args = yts; body = e1 }, e2, line, start, t_end) -> (* let recの型推論 (caml2html: typing_letrec) *)
         let env = M.add x t env in
         unify t (Type.Fun(List.map snd yts, g (M.add_list yts env) e1));
         g env e2
     | App(e, es, line, start, t_end) -> (* 関数適用の型推論 (caml2html: typing_app) *)
-        let t = Type.gentyp () in
-        unify (g env e) (Type.Fun(List.map (g env) es, t));
-        t
+        (match e with
+          | Var(f, _, _, _) when f = "create_array" && not (M.mem f env) && not (M.mem f !extenv) -> (* 外部変数としての関数create_arrayと認識 -> 型多相 *)
+                  if (List.length es = 2) then
+                    let e1 = List.hd es in
+                    let e2 = List.nth es 1 in
+                      unify (g env e1) Type.Int;
+                      Type.Array(g env e2)
+                  else
+                    failwith("create_array needs 2 args !!!")
+          | _ -> let t = Type.gentyp () in
+                 unify (g env e) (Type.Fun(List.map (g env) es, t));
+                 t)
     | Tuple(es, line, start, t_end) -> Type.Tuple(List.map (g env) es)
     | LetTuple(xts, e1, e2, line, start, t_end) ->
         unify (Type.Tuple(List.map snd xts)) (g env e1);

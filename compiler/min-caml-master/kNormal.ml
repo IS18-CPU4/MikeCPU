@@ -136,10 +136,36 @@ let rec g env = function (* K正規化ルーチン本体 (caml2html: knormal_g) *)
       let e1', t1 = g (M.add_list yts env') e1 in
       LetRec({ name = (x, t); args = yts; body = e1' }, e2'), t2
   | Syntax2.App(Syntax2.Var(f), e2s) when not (M.mem f env) -> (* 外部関数の呼び出し (caml2html: knormal_extfunapp) *)
-      (match M.find f !Typing.extenv with
+      (match (try M.find f !Typing.extenv with Not_found -> if f = "create_array" then Type.Fun([Type.Unit], Type.Unit) else failwith("ext fun "^f^" Not found")) with
       | Type.Fun(_, t) ->
           let rec bind xs = function (* "xs" are identifiers for the arguments *)
-            | [] -> ExtFunApp(f, xs), t
+            | [] ->
+                (* 特殊な外部関数 *)
+                if f = "create_array" then
+                  if List.length e2s = 2 then
+                    let e1 = List.hd e2s in
+                    let e2 = List.nth e2s 1 in
+                      g env (Syntax2.Array(e1, e2))
+                  else
+                    failwith(f ^ " needs only 2 args!!!")
+                else if f = "fless" || f = "fequal" then
+                  if List.length e2s = 2 then
+                    let e1 = List.hd e2s in
+                    let e2 = List.nth e2s 1 in
+                    if f = "fless" then
+                      g env (Syntax2.Not (Syntax2.LE(e2, e1)))
+                    else
+                      g env (Syntax2.Eq(e1, e2))
+                  else
+                    failwith(f ^ " needs only 2 args!!!")
+                else if f = "fneg" then
+                  if List.length e2s = 1 then
+                    let e1 = List.hd e2s in
+                      g env (Syntax2.FNeg(e1))
+                  else
+                    failwith(f ^ " needs only 1 args!!!")
+                else
+                  ExtFunApp(f, xs), t
             | e2 :: e2s ->
                 insert_let (g env e2)
                   (fun x -> bind (xs @ [x]) e2s) in
