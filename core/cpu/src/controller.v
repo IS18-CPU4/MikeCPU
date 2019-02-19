@@ -164,6 +164,9 @@ module Controller(
   reg [31:0] pc;
   reg [31:0] jump_pc;
   reg will_jump;
+  
+  // 0xaa trick
+  reg is_first_input;
 
   // instruction
   assign mem_inst_addr = {pc[29:0], 2'b00};
@@ -258,6 +261,8 @@ module Controller(
   
   always @(posedge CLK) begin
     if (~RSTN) begin
+      is_first_input <= 1;
+      
       reg_we <= 0;
       reg_wdata <= 0;
       condreg <= 0;
@@ -555,18 +560,29 @@ module Controller(
         end
 ///////////////////////////////////////////////////
         s_i: begin
-          if (io_read_req) begin
-            // requesting
-            if (io_done) begin
-              io_read_req <= 1'b0;
-              reg_wdata <= {24'd0, io_rdata};
-              reg_we <= 1'b1;
-              pc <= pc + 1'b1;
-              state <= s_fetch1;
+          if (is_first_input) begin
+            // output 0xaa
+            if (~io_write_req) begin
+                io_wdata <= 8'haa;
+                if (io_ready) io_write_req <= 1'b1;
+            end else begin
+                io_write_req <= 1'b0;
+                is_first_input <= 1'b0;
             end
           end else begin
-            if (io_ready) io_read_req <= 1'b1;
-          end
+              if (io_read_req) begin
+                // requesting
+                if (io_done) begin
+                  io_read_req <= 1'b0;
+                  reg_wdata <= {24'd0, io_rdata};
+                  reg_we <= 1'b1;
+                  pc <= pc + 1'b1;
+                  state <= s_fetch1;
+                end
+              end else begin
+                if (io_ready) io_read_req <= 1'b1;
+              end
+           end
         end
         s_o: begin
           if (io_write_req) begin
