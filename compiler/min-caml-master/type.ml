@@ -1,4 +1,4 @@
-type t = (* MinCaml¤Î·¿¤òÉ½¸½¤¹¤ë¥Ç¡¼¥¿·¿. (caml2html: type_t) *)
+type t = (* MinCamlï¿½Î·ï¿½ï¿½ï¿½É½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç¡ï¿½ï¿½ï¿½ï¿½ï¿½. (caml2html: type_t) *)
   | Unit
   | Bool
   | Int
@@ -7,11 +7,12 @@ type t = (* MinCaml¤Î·¿¤òÉ½¸½¤¹¤ë¥Ç¡¼¥¿·¿. (caml2html: type_t) *)
   | Tuple of t list
   | Array of t
   | Var of t option ref
+(*  | Array_size of t * int (* int = size *) *)
 
-let gentyp () = Var(ref None) (* ¿·¤·¤¤·¿ÊÑ¿ô¤òºî¤ë *)
+let gentyp () = Var(ref None) (* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ *)
 
 (*
-type t2 = (* MinCaml¤Î·¿¤È°ÌÃÖ¤òÉ½¸½¤¹¤ë¥Ç¡¼¥¿·¿. (int * int * int)¤Ï(line, start, end)¤Î°ÌÃÖ¾ðÊó(caml2html: type_t) *)
+type t2 = (* MinCamlï¿½Î·ï¿½ï¿½È°ï¿½ï¿½Ö¤ï¿½É½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç¡ï¿½ï¿½ï¿½ï¿½ï¿½. (int * int * int)ï¿½ï¿½(line, start, end)ï¿½Î°ï¿½ï¿½Ö¾ï¿½ï¿½ï¿½(caml2html: type_t) *)
   | Unit of (int * int * int)
   | Bool of (int * int * int)
   | Int of (int * int * int)

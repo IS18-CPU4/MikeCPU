@@ -31,5 +31,6 @@ type fundef = { name : Id.l * Type.t;
                 body : t }
 type prog = Prog of fundef list * t
 
+val ext_arrays_env : (Id.t * Type.t) list ref
 val fv : t -> S.t
 val f : KNormal.t -> prog
