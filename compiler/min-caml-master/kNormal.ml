@@ -120,7 +120,12 @@ let rec g env = function (* K正規化ルーチン本体 (caml2html: knormal_g) *)
               let e3', t3 = g env e3 in
               let e4', t4 = g env e4 in
               IfLE(x, y, e3', e4'), t3))
-  | Syntax2.If(e1, e2, e3) -> g env (Syntax2.If(Syntax2.Eq(e1, Syntax2.Bool(false)), e3, e2)) (* 比較のない分岐を変換 (caml2html: knormal_if) *)
+  | Syntax2.If(e1, e2, e3) ->
+     (match g_fless_feq env e1 with
+      | Syntax2.Not _
+      | Syntax2.LE _
+      | Syntax2.Eq _ as cmp -> g env (Syntax2.If(cmp, e2, e3)) (* fless, feq が外部関数として呼ばれた時の特殊処理 *)
+      | _ -> g env (Syntax2.If(Syntax2.Eq(e1, Syntax2.Bool(false)), e3, e2))) (* 比較のない分岐を変換 (caml2html: knormal_if) *)
   | Syntax2.Let((x, t), e1, e2) ->
       let e1', t1 = g env e1 in
       let e2', t2 = g (M.add x t env) e2 in
@@ -219,5 +224,24 @@ let rec g env = function (* K正規化ルーチン本体 (caml2html: knormal_g) *)
         (fun x -> insert_let (g env e2)
             (fun y -> insert_let (g env e3)
                 (fun z -> Put(x, y, z), Type.Unit)))
+
+and g_fless_feq env = function
+  | Syntax2.App(Syntax2.Var(f), e2s) when not (M.mem f env) -> (* 外部関数の呼び出し (caml2html: knormal_extfunapp) *)
+      (match (try M.find f !Typing.extenv with Not_found -> if f = "create_array" then Type.Fun([Type.Unit], Type.Unit) else failwith("ext fun "^f^" Not found")) with
+       | Type.Fun(_, t) ->
+         if f = "fless" || f = "fequal" then
+           if List.length e2s = 2 then
+             let e1 = List.hd e2s in
+             let e2 = List.nth e2s 1 in
+             if f = "fless" then
+               Syntax2.Not (Syntax2.LE(e2, e1))
+             else
+               Syntax2.Eq(e1, e2)
+           else
+             failwith(f ^ " needs only 2 args!!!")
+         else
+           Syntax2.App(Syntax2.Var(f), e2s)
+       | e -> Syntax2.App(Syntax2.Var(f), e2s))
+  | e -> e
 
 let f e = fst (g M.empty e)
