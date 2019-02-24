@@ -14,7 +14,7 @@ let reg_cl = Asm.reg_cl
 let reg_sp = Asm.reg_sp
 let reg_tmp = Asm.reg_tmp
 *)
-
+(*
 let rec print_each_code oc code =
   match code with
   | E_Li(reg, i_or_l) -> Printf.fprintf oc "\tli\t%s, %s\n" reg (label_to_str i_or_l)
@@ -57,6 +57,7 @@ and label_to_str = function
 
 let print_code oc codes =
   List.iter (print_each_code oc) codes
+*)
 
 let floatlabelmap = ref [] (* ref of label * float list *)
 let floatpointmap = ref [] (* ref of float * address(Int) list *)
@@ -306,6 +307,10 @@ and g' = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) 
   | NonTail(_), Stfd(x, y, V(z)) -> [E_Add(reg reg_tmp, reg y, reg z);
                                          E_FSt (reg x, reg reg_tmp, 0)]
   | NonTail(_), Stfd(x, y, C(z)) -> [E_FSt(reg x, reg y, z)]
+  | NonTail(x), FAbs(y) -> [E_FAbs(reg x, reg y)]
+  | NonTail(x), FSqrt(y) -> [E_FSqrt(reg x, reg y)]
+  | NonTail(x), ItoF(y) -> [E_ItoF(reg x, reg y)]
+  | NonTail(x), FtoI(y) -> [E_FtoI(reg x, reg y)]
   | NonTail(_), Comment(s) -> [E_Comment(s)]
   (* 退避の仮想命令の実装 (caml2html: emit_save) *)
 (*
@@ -405,9 +410,9 @@ and g' = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) 
 *)
   | Tail, (Nop | Stw _ | Stfd _ | Comment _ | Save _ as exp) ->
       (g' (NonTail(Id.gentmp Type.Unit), exp)) @ [E_BLr]
-  | Tail, (Li _ | SetL _ | Mr _ | Neg _ | Add _ | Sub _ | Slw _ | Srw _ | Lwz _ as exp) ->
+  | Tail, (Li _ | SetL _ | Mr _ | Neg _ | Add _ | Sub _ | Slw _ | Srw _ | Lwz _ | FtoI _ as exp) ->
       (g' (NonTail(regs.(0)), exp)) @ [E_BLr]
-  | Tail, (FLi _ | FMr _ | FNeg _ | FAdd _ | FSub _ | FMul _ | FDiv _ | Lfd _ as exp) ->
+  | Tail, (FLi _ | FMr _ | FNeg _ | FAdd _ | FSub _ | FMul _ | FDiv _ | Lfd _ | FAbs _ | FSqrt _ | ItoF _ as exp) ->
       (g' (NonTail(fregs.(0)), exp)) @ [E_BLr]
   | Tail, (Restore(x) as exp) ->
       (match locate x with

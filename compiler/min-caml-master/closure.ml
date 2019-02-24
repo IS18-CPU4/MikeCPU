@@ -25,6 +25,12 @@ type t = (* クロージャ変換後の式 (caml2html: closure_t) *)
   | Get of Id.t * Id.t
   | Put of Id.t * Id.t * Id.t
   | ExtArray of Id.l
+(* Library *)
+  | FAbs of Id.t
+  | FSqrt of Id.t
+  | ItoF of Id.t
+  | FtoI of Id.t
+
 type fundef = { name : Id.l * Type.t;
                 args : (Id.t * Type.t) list;
                 formal_fv : (Id.t * Type.t) list;
@@ -43,6 +49,7 @@ let rec fv = function
   | AppDir(_, xs) | Tuple(xs) -> S.of_list xs
   | LetTuple(xts, y, e) -> S.add y (S.diff (fv e) (S.of_list (List.map fst xts)))
   | Put(x, y, z) -> S.of_list [x; y; z]
+  | FAbs(x) | FSqrt(x) | ItoF(x) | FtoI(x) -> S.singleton x
 
 let toplevel : fundef list ref = ref []
 
@@ -103,6 +110,10 @@ let rec g env known = function (* クロージャ変換ルーチン本体 (caml2html: closure
   | KNormal.Put(x, y, z) -> Put(x, y, z)
   | KNormal.ExtArray(x) -> ExtArray(Id.L(x))
   | KNormal.ExtFunApp(x, ys) -> AppDir(Id.L("min_caml_" ^ x), ys)
+  | KNormal.FAbs(x) -> FAbs(x)
+  | KNormal.FSqrt(x) -> FSqrt(x)
+  | KNormal.ItoF(x) -> ItoF(x)
+  | KNormal.FtoI(x) -> FtoI(x)
 
 let f e =
   toplevel := [];

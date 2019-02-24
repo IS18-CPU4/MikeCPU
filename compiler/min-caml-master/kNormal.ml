@@ -1,5 +1,7 @@
 (* give names to intermediate values (K-normalization) *)
 
+let find x env = try M.find x env with Not_found -> failwith ("Not_found " ^ x)
+
 type t = (* K正規化後の式 (caml2html: knormal_t) *)
   | Unit
   | Int of int
@@ -26,6 +28,11 @@ type t = (* K正規化後の式 (caml2html: knormal_t) *)
   | Put of Id.t * Id.t * Id.t
   | ExtArray of Id.t
   | ExtFunApp of Id.t * Id.t list
+(* Library *)
+  | FAbs of Id.t
+  | FSqrt of Id.t
+  | ItoF of Id.t
+  | FtoI of Id.t
 and fundef = { name : Id.t * Type.t; args : (Id.t * Type.t) list; body : t }
 
 let rec fv = function (* 式に出現する（自由な）変数 (caml2html: knormal_fv) *)
@@ -42,6 +49,7 @@ let rec fv = function (* 式に出現する（自由な）変数 (caml2html: knormal_fv) *)
   | Tuple(xs) | ExtFunApp(_, xs) -> S.of_list xs
   | Put(x, y, z) -> S.of_list [x; y; z]
   | LetTuple(xs, y, e) -> S.add y (S.diff (fv e) (S.of_list (List.map fst xs)))
+  | FAbs(x) | FSqrt(x) | ItoF(x) | FtoI(x) -> S.singleton x
 
 let insert_let (e, t) k = (* letを挿入する補助関数 (caml2html: knormal_insert) *)
   match e with
@@ -130,9 +138,9 @@ let rec g env = function (* K正規化ルーチン本体 (caml2html: knormal_g) *)
       let e1', t1 = g env e1 in
       let e2', t2 = g (M.add x t env) e2 in
       Let((x, t), e1', e2'), t2
-  | Syntax2.Var(x) when M.mem x env -> Var(x), M.find x env
+  | Syntax2.Var(x) when M.mem x env -> Var(x), find x env
   | Syntax2.Var(x) -> (* 外部配列の参照 (caml2html: knormal_extarray) *)
-      (match M.find x !Typing.extenv with
+      (match find x !Typing.extenv with
       | Type.Array(_) as t -> ExtArray x, t
       | _ -> failwith (Printf.sprintf "external variable %s does not have an array type" x))
   | Syntax2.LetRec({ Syntax2.name = (x, t); Syntax2.args = yts; Syntax2.body = e1 }, e2) ->
@@ -143,8 +151,61 @@ let rec g env = function (* K正規化ルーチン本体 (caml2html: knormal_g) *)
   | Syntax2.App(Syntax2.Var(f), e2s) when not (M.mem f env) -> (* 外部関数の呼び出し (caml2html: knormal_extfunapp) *)
       (match (try M.find f !Typing.extenv with Not_found -> if f = "create_array" then Type.Fun([Type.Unit], Type.Unit) else failwith("ext fun "^f^" Not found")) with
       | Type.Fun(_, t) ->
+        (* 特殊な外部関数 *)
+        if f = "create_array" then
+          if List.length e2s = 2 then
+            let e1 = List.hd e2s in
+            let e2 = List.nth e2s 1 in
+              g env (Syntax2.Array(e1, e2))
+          else
+            failwith(f ^ " needs only 2 args!!!")
+        else if f = "fless" || f = "fequal" then
+          if List.length e2s = 2 then
+            let e1 = List.hd e2s in
+            let e2 = List.nth e2s 1 in
+            if f = "fless" then
+              g env (Syntax2.Not (Syntax2.LE(e2, e1)))
+            else
+              g env (Syntax2.Eq(e1, e2))
+          else
+            failwith(f ^ " needs only 2 args!!!")
+        else if f = "fneg" || f = "fhalf" || f = "fabs" || f = "abs_float" || f = "fsqr" || f = "sqrt" || f = "floor" then
+          (* inline化 *)
+          if List.length e2s = 1 then
+            let e1 = List.hd e2s in
+              if f = "fneg" then
+                g env (Syntax2.FNeg(e1))
+              else if f = "fhalf" then
+                g env (Syntax2.FMul(e1, Syntax2.Float(0.5)))
+              else if f = "fabs" || f = "abs_float" then
+                insert_let (g env e1)
+                  (fun x -> FAbs(x), t)
+              else if f = "fsqr" then
+                g env (Syntax2.FMul(e1, e1))
+              else if f = "sqrt" then
+                insert_let (g env e1)
+                  (fun x -> FSqrt(x), t)
+              else (* if f = "floor" then *) (* floor x = float_of_int(int_of_float(x -. 0.5)) *)
+                insert_let (g env (Syntax2.FSub(e1, Syntax2.Float(0.5))))
+                  (fun x -> insert_let (FtoI(x), Type.Int)
+                    (fun y -> ItoF(y), Type.Float))
+          else
+            failwith(f ^ " needs only 1 args!!!")
+        else if f = "int_of_float" || f = "float_of_int" || f = "truncate"(* = int_of_float *) then
+          if List.length e2s = 1 then
+            let e1 = List.hd e2s in
+            if f = "float_of_int" then
+              insert_let (g env e1)
+                (fun x -> ItoF(x), t)
+            else
+              insert_let (g env e1)
+                (fun x -> FtoI(x), t)
+          else
+            failwith(f ^ " needs only 1 args!!!")
+        else
           let rec bind xs = function (* "xs" are identifiers for the arguments *)
             | [] ->
+(*****
                 (* 特殊な外部関数 *)
                 if f = "create_array" then
                   if List.length e2s = 2 then
@@ -163,13 +224,69 @@ let rec g env = function (* K正規化ルーチン本体 (caml2html: knormal_g) *)
                       g env (Syntax2.Eq(e1, e2))
                   else
                     failwith(f ^ " needs only 2 args!!!")
-                else if f = "fneg" then
+                else if f = "fneg" || f = "fhalf" || f = "fabs" || f = "abs_float" || f = "fsqr" || f = "sqrt" || f = "floor" then
+                  (* inline化 *)
                   if List.length e2s = 1 then
-                    let e1 = List.hd e2s in
-                      g env (Syntax2.FNeg(e1))
+(*                    let e1 = List.hd e2s in *)
+                    let x = List.hd xs in
+                      if f = "fneg" then
+(*                        g env (Syntax2.FNeg(e1)) *)
+                        if t = Type.Float then
+                          FNeg(x), t
+                        else
+                          failwith(f ^ " is type fun float -> float")
+                      else if f = "fhalf" then
+                        if t = Type.Float then
+                          g env (Syntax2.FMul(Syntax2.Var(x), Syntax2.Float(0.5)))
+                        else
+                          failwith(f ^ " is type fun float -> float")
+                      else if f = "fabs" || f = "abs_float" then
+(*                        insert_let (g env e1)
+                          (fun x -> FAbs(x), t) (* t = Type.Floatである必要がある *) *)
+                          if t = Type.Float then
+                            FAbs(x), t
+                          else
+                            failwith(f ^ " is type fun float -> float")
+                      else if f = "fsqr" then
+                        g env (Syntax2.FMul(Syntax2.Var(x), Syntax2.Var(x)))
+                      else if f = "sqrt" then
+(*                        insert_let (g env e1)
+                          (fun x -> FSqrt(x), t) *)
+                        if t = Type.Float then
+                          FSqrt(x), t
+                        else
+                          failwith(f ^ " is type fun float -> float")
+                      else (* if f = "floor" then *) (* floor x = float_of_int(int_of_float(x -. 0.5)) *)
+                        if t = Type.Float then
+                          insert_let (g env (Syntax2.FSub(Var(x), Syntax2.Float(0.5))))
+                            (fun x -> insert_let (FtoI(x), Type.Int)
+                              (fun y -> ItoF(y), Type.Float))
+                        else
+                          failwith(f ^ " is type fun float -> float")
+                  else
+                    failwith(f ^ " needs only 1 args!!!")
+                else if f = "int_of_float" || f = "float_of_int" || f = "truncate"(* = int_of_float *) then
+                  if List.length e2s = 1 then
+(*                    let e1 = List.hd e2s in *)
+                    let x = List.hd xs in
+                    if f = "float_of_int" then
+(*                      insert_let (g env e1)
+                        (fun x -> ItoF(x), t) *)
+                      if t = Type.Float then
+                        ItoF(x), t
+                      else
+                        failwith(f ^ " is type fun int -> float")
+                    else
+(*                      insert_let (g env e1)
+                        (fun x -> FtoI(x), t) *)
+                      if t = Type.Int then
+                        FtoI(x), t
+                      else
+                        failwith(f ^ " is type fun float -> int")
                   else
                     failwith(f ^ " needs only 1 args!!!")
                 else
+*****)
                   ExtFunApp(f, xs), t
             | e2 :: e2s ->
                 insert_let (g env e2)
@@ -227,7 +344,7 @@ let rec g env = function (* K正規化ルーチン本体 (caml2html: knormal_g) *)
 
 and g_fless_feq env = function
   | Syntax2.App(Syntax2.Var(f), e2s) when not (M.mem f env) -> (* 外部関数の呼び出し (caml2html: knormal_extfunapp) *)
-      (match (try M.find f !Typing.extenv with Not_found -> if f = "create_array" then Type.Fun([Type.Unit], Type.Unit) else failwith("ext fun "^f^" Not found")) with
+      (match (try find f !Typing.extenv with Not_found -> if f = "create_array" then Type.Fun([Type.Unit], Type.Unit) else failwith("ext fun "^f^" Not found")) with
        | Type.Fun(_, t) ->
          if f = "fless" || f = "fequal" then
            if List.length e2s = 2 then

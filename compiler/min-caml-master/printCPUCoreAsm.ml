@@ -39,6 +39,10 @@ and print_asm_exp exp need_tab =
     | Asm.Stfd (id, id2, id_or_imm) -> print_endline ("Stfd " ^ id ^
                                                             " " ^ id2 ^
                                                             " " ^ (id_or_imm_to_string id_or_imm))
+    | Asm.FAbs (id) -> print_endline ("FAbs " ^ id)
+    | Asm.FSqrt (id) -> print_endline ("FSqrt " ^ id)
+    | Asm.ItoF (id) -> print_endline ("ItoF " ^ id)
+    | Asm.FtoI (id) -> print_endline ("FtoI " ^ id)    
     | Asm.Comment (str) -> print_endline ("# " ^ str)
     (* virtual instructions *)
     | Asm.IfEq (id, id_or_imm, asm1, asm2) -> let _ = print_endline ("IfEq " ^ id ^

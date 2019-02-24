@@ -150,6 +150,10 @@ and g' dest cont regenv = function (* 各命令のレジスタ割り当て (caml2html: regal
       else
         g'_call dest cont regenv exp (fun ys zs -> CallDir(Id.L(x), ys, zs)) ys zs
   | Save(x, y) -> assert false
+  | FAbs(x) -> (Ans(FAbs(find x Type.Float regenv)), regenv)
+  | FSqrt(x) -> (Ans(FSqrt(find x Type.Float regenv)), regenv)
+  | ItoF(x) -> (Ans(ItoF(find x Type.Int regenv)), regenv)
+  | FtoI(x) -> (Ans(FtoI(find x Type.Float regenv)), regenv)
 and g'_if dest cont regenv exp constr e1 e2 = (* ifのレジスタ割り当て (caml2html: regalloc_if) *)
   let (e1', regenv1) = g dest cont regenv e1 in
   let (e2', regenv2) = g dest cont regenv e2 in

@@ -181,6 +181,32 @@ let rec print_knormal_t knormal =
                                          let _ = print_endline id in
                                          let _ = print_id_list id_list in
                                            kn_tab := !kn_tab - 1
+    | KNormal.FAbs(id) -> let _ = print_tab !kn_tab in
+                          let _ = print_endline "FAbs" in
+                          let _ = (kn_tab := !kn_tab + 1) in
+                          let _ = print_tab !kn_tab in
+                          let _ = print_endline id in
+                            kn_tab := !kn_tab - 1
+    | KNormal.FSqrt(id) -> let _ = print_tab !kn_tab in
+                           let _ = print_endline "FSqrt" in
+                           let _ = (kn_tab := !kn_tab + 1) in
+                           let _ = print_tab !kn_tab in
+                           let _ = print_endline id in
+                             kn_tab := !kn_tab - 1
+    | KNormal.ItoF(id) -> let _ = print_tab !kn_tab in
+                          let _ = print_endline "ItoF" in
+                          let _ = (kn_tab := !kn_tab + 1) in
+                          let _ = print_tab !kn_tab in
+                          let _ = print_endline id in
+                             kn_tab := !kn_tab - 1
+    | KNormal.FtoI(id) -> let _ = print_tab !kn_tab in
+                          let _ = print_endline "FtoI" in
+                          let _ = (kn_tab := !kn_tab + 1) in
+                          let _ = print_tab !kn_tab in
+                          let _ = print_endline id in
+                             kn_tab := !kn_tab - 1
+
+
 and print_knormal_fundef fundef = (* KNormal.fundef型の標準出力 *)
   let {KNormal.name = (id, ty); KNormal.args = args_list; KNormal.body = normal} = fundef in
   let _ = print_tab !kn_tab in

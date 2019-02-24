@@ -198,8 +198,6 @@ min_caml_fsqr:
   fmul	fr1, fr1, fr1
   blr
 min_caml_abs_float:
-  fabs fr1, fr1
-  blr
 min_caml_fabs:
   fabs fr1, fr1
   blr
@@ -213,10 +211,8 @@ min_caml_floor:
   ftoi r2, fr1
   itof fr1, r2
 	blr
-min_caml_int_of_float:
-  ftoi r2, fr1
-  blr
 min_caml_truncate:
+min_caml_int_of_float:
   ftoi r2, fr1
   blr
 min_caml_float_of_int:
