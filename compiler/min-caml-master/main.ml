@@ -3,7 +3,7 @@ let limit = ref 1000
 let rec iter n e = (* 最適化処理をくりかえす (caml2html: main_iter) *)
   Format.eprintf "iteration %d@." n;
   if n = 0 then e else
-  let e' = Elim.f (ConstFold.f (Inline.f (Assoc.f (Beta.f e)))) in
+  let e' = Elim.f (ConstFold.f (Inline.f (Assoc.f (Beta.f ((* Cse.f *) e))))) in
   if e = e' then e else
   iter (n - 1) e'
 
@@ -95,27 +95,19 @@ let dump_lexbuf outchan l = (* lexbufもどき *)
     let _ = PrintKNormal.print_knormal_t alpha in
       print_endline "=============================================="
     else ()
+    (*
     in let cse = alpha (* cseしないためのでっち上げ *)
-(*
-  in let cse = Cse.f alpha in
+    *)
+  in let cse = iter !limit alpha in
   let _ = if !dump_cse then
     let _ = print_newline () in
     let _ = print_endline "Cse.t" in
     let _ = print_endline "==============================================" in
     let _ = PrintKNormal.print_knormal_t cse in
       print_endline "=============================================="
-*)
-  in let cls = (Closure.f
-                (iter !limit
-                  (cse))) in
-  let _ = if !dump_cls then
-    let _ = print_newline () in
-    let _ = print_endline "Closure.prog" in
-    let _ = print_endline "==============================================" in
-    let _ = PrintClosure.print_closure_prog cls in
-      print_endline "=============================================="
-    else ()
-  in let vir = Virtual.f cls in
+  in let vir = Virtual.f
+                (Closure.f
+                    (cse)) in
   let _ = if !dump_asm then
     let _ = print_newline () in
     let _ = print_endline "Asm.prog" in

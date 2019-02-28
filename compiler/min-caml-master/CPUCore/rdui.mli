@@ -31,6 +31,10 @@ type t = (* 命令セット *)
   | E_FLd of reg * reg * int
   | E_FSt of reg * reg * int
   | E_Label of string
+  | E_FAbs of reg * reg
+  | E_FSqrt of reg * reg
+  | E_ItoF of reg * reg (* freg * reg *)
+  | E_FtoI of reg * reg (* reg * freg *)
   | E_Comment of string
 (*
   | FSqrt of reg * t

@@ -36,6 +36,10 @@ type t = (* 命令セット *)
   | E_FLd of reg * reg * int
   | E_FSt of reg * reg * int
   | E_Label of string
+  | E_FAbs of reg * reg
+  | E_FSqrt of reg * reg
+  | E_ItoF of reg * reg (* freg * reg *)
+  | E_FtoI of reg * reg (* reg * freg *)
   | E_Comment of string
 (*
   | FSqrt of reg * t
@@ -90,6 +94,10 @@ let rec print_each_code oc code =
   | E_FLd (reg1, reg2, i) -> Printf.fprintf oc "\tfld\t%s, %s, %d\n" reg1 reg2 i
   | E_FSt (reg1, reg2, i) -> Printf.fprintf oc "\tfst\t%s, %s, %d\n" reg1 reg2 i
   | E_Label (str) -> Printf.fprintf oc "%s:\n" str
+  | E_FAbs (reg1, reg2) -> Printf.fprintf oc "\tfabs\t%s, %s\n" reg1 reg2
+  | E_FSqrt (reg1, reg2) -> Printf.fprintf oc "\tfsqrt\t%s, %s\n" reg1 reg2
+  | E_ItoF (reg1, reg2) -> Printf.fprintf oc "\titof\t%s, %s\n" reg1 reg2
+  | E_FtoI (reg1, reg2) -> Printf.fprintf oc "\tftoi\t%s, %s\n" reg1 reg2
   | E_Comment (str) -> Printf.fprintf oc "# %s\n" str
 and label_to_str = function
   | Int(i) -> Printf.sprintf "%d" i
@@ -143,6 +151,10 @@ let rec is_reg_modified target_reg codes length =
                     | E_Slwi (_, reg2, _)
                     | E_Srwi (_, reg2, _)
                     | E_FMr (_, reg2)
+                    | E_FAbs (_, reg2)
+                    | E_FSqrt (_, reg2)
+                    | E_ItoF (_, reg2)
+                    | E_FtoI (_, reg2)
                     | E_Cmpwi (_, reg2, _) when reg2 = target_reg (* cmpのreg1はcreg *)
                       -> true
                     | E_MtLr (reg) when reg = target_reg
@@ -179,6 +191,10 @@ let rec is_reg_modified target_reg codes length =
                     | E_FMul (reg1, _, _)
                     | E_FDiv (reg1, _, _)
                     | E_FMr (reg1, _)
+                    | E_FAbs (reg1, _)
+                    | E_FSqrt (reg1, _)
+                    | E_ItoF (reg1, _)
+                    | E_FtoI (reg1, _)
                     | E_Ld (reg1, _, _)
                     | E_FLd (reg1, _, _) when reg1 = target_reg
                         -> false
@@ -210,6 +226,10 @@ let rec is_mtlr target_reg codes length =
                       | E_Slwi (_, reg2, _)
                       | E_Srwi (_, reg2, _)
                       | E_FMr (_, reg2)
+                      | E_FAbs (_, reg2)
+                      | E_FSqrt (_, reg2)
+                      | E_ItoF (_, reg2)
+                      | E_FtoI (_, reg2)
                       | E_Cmpwi (_, reg2, _) when reg2 = target_reg (* cmpのreg1はcreg *)
                           -> false
                       | E_Add (_, reg2, reg3)
@@ -243,6 +263,10 @@ let rec is_mtlr target_reg codes length =
                       | E_FMul (reg1, _, _)
                       | E_FDiv (reg1, _, _)
                       | E_FMr (reg1, _)
+                      | E_FAbs (reg1, _)
+                      | E_FSqrt (reg1, _)
+                      | E_ItoF (reg1, _)
+                      | E_FtoI (reg1, _)
                       | E_Ld (reg1, _, _)
                       | E_FLd (reg1, _, _) when reg1 = target_reg
                           -> true
@@ -319,6 +343,10 @@ let rec rdui codes = (* 不要命令消去 *)
                   | E_FMul (reg1, _, _)
                   | E_FDiv (reg1, _, _)
                   | E_FMr (reg1, _)
+                  | E_FAbs (reg1, _)
+                  | E_FSqrt (reg1, _)
+                  | E_ItoF (reg1, _)
+                  | E_FtoI (reg1, _)
                   | E_Ld (reg1, _, _)
                   | E_FLd (reg1, _, _) when not (is_reg_modified reg1 is search_len)
                       -> rdui is

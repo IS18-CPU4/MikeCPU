@@ -62,7 +62,7 @@ let get_pos syntax_t =
 
 
 (*
-type t = (* MinCaml�ι�ʸ��ɽ�������ǡ����� (caml2html: syntax_t) *)
+type t = (* MinCamlの構文を表現するデータ型 (caml2html: syntax_t) *)
   | Unit
   | Bool of bool
   | Int of int

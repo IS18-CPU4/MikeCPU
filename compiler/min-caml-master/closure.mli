@@ -25,6 +25,11 @@ type t =
   | Get of Id.t * Id.t
   | Put of Id.t * Id.t * Id.t
   | ExtArray of Id.l
+(* Library *)
+  | FAbs of Id.t
+  | FSqrt of Id.t
+  | ItoF of Id.t
+  | FtoI of Id.t  
 type fundef = { name : Id.l * Type.t;
                 args : (Id.t * Type.t) list;
                 formal_fv : (Id.t * Type.t) list;

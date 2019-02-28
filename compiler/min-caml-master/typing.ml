@@ -98,85 +98,6 @@ let is_int_2 e = (* eがInt(2**n)か？ *)
    | Int(n,_,_,_) -> is_2 n
    | _ -> false
 
-(*
-let rec g env e = (* 型推論ルーチン (caml2html: typing_g) *)
-  try
-    match e with
-    | Unit -> Type.Unit
-    | Bool(_) -> Type.Bool
-    | Int(_) -> Type.Int
-    | Float(_) -> Type.Float
-    | Not(e) ->
-        unify Type.Bool (g env e);
-        Type.Bool
-    | Neg(e) ->
-        unify Type.Int (g env e);
-        Type.Int
-    | Add(e1, e2) | Sub(e1, e2) -> (* ­足し算（と引き算）の型推論 (caml2html: typing_add) *)
-        unify Type.Int (g env e1);
-        unify Type.Int (g env e2);
-        Type.Int
-    | Mul(e1, e2) | Div(e1, e2) ->
-        unify Type.Int (g env e1);
-        unify Type.Int (g env e2);
-        if is_int_2 e2 then (* e2が即値の２のべき乗か？ *)
-          Type.Int
-        else
-          raise (ShiftError(deref_term e))
-    | FNeg(e) ->
-        unify Type.Float (g env e);
-        Type.Float
-    | FAdd(e1, e2) | FSub(e1, e2) | FMul(e1, e2) | FDiv(e1, e2) ->
-        unify Type.Float (g env e1);
-        unify Type.Float (g env e2);
-        Type.Float
-    | Eq(e1, e2) | LE(e1, e2) ->
-        unify (g env e1) (g env e2);
-        Type.Bool
-    | If(e1, e2, e3) ->
-        unify (g env e1) Type.Bool;
-        let t2 = g env e2 in
-        let t3 = g env e3 in
-        unify t2 t3;
-        t2
-    | Let((x, t), e1, e2) -> (* let�η����� (caml2html: typing_let) *)
-        unify t (g env e1);
-        g (M.add x t env) e2
-    | Var(x) when M.mem x env -> M.find x env (* �ѿ��η����� (caml2html: typing_var) *)
-    | Var(x) when M.mem x !extenv -> M.find x !extenv
-    | Var(x) -> (* �����ѿ��η����� (caml2html: typing_extvar) *)
-        Format.eprintf "free variable %s assumed as external@." x;
-        let t = Type.gentyp () in
-        extenv := M.add x t !extenv;
-        t
-    | LetRec({ name = (x, t); args = yts; body = e1 }, e2) -> (* let rec�η����� (caml2html: typing_letrec) *)
-        let env = M.add x t env in
-        unify t (Type.Fun(List.map snd yts, g (M.add_list yts env) e1));
-        g env e2
-    | App(e, es) -> (* �ؿ�Ŭ�Ѥη����� (caml2html: typing_app) *)
-        let t = Type.gentyp () in
-        unify (g env e) (Type.Fun(List.map (g env) es, t));
-        t
-    | Tuple(es) -> Type.Tuple(List.map (g env) es)
-    | LetTuple(xts, e1, e2) ->
-        unify (Type.Tuple(List.map snd xts)) (g env e1);
-        g (M.add_list xts env) e2
-    | Array(e1, e2) -> (* must be a primitive for "polymorphic" typing *)
-        unify (g env e1) Type.Int;
-        Type.Array(g env e2)
-    | Get(e1, e2) ->
-        let t = Type.gentyp () in
-        unify (Type.Array(t)) (g env e1);
-        unify Type.Int (g env e2);
-        t
-    | Put(e1, e2, e3) ->
-        let t = g env e3 in
-        unify (Type.Array(t)) (g env e1);
-        unify Type.Int (g env e2);
-        Type.Unit
-  with Unify(t1, t2) -> raise (Error(deref_term e, deref_typ t1, deref_typ t2))
-*)
-
 let rec g env e = (* 型推論ルーチン (caml2html: typing_g) Syntax.t -> Type.t *)
   try
     match e with
@@ -197,10 +118,10 @@ let rec g env e = (* 型推論ルーチン (caml2html: typing_g) Syntax.t -> Typ
     | Mul(e1, e2, line, start, t_end) | Div(e1, e2, line, start, t_end) ->
         unify Type.Int (g env e1);
         unify Type.Int (g env e2);
-        if is_int_2 e2 then (* e2が即値の２のべき乗か？ *)
+(*        if is_int_2 e2 then (* e2が即値の２のべき乗か？ *) *)
           Type.Int
-        else
-          raise (ShiftError(deref_term e, line, start, t_end))
+(*        else
+          raise (ShiftError(deref_term e, line, start, t_end)) *)
     | FNeg(e, line, start, t_end) ->
         unify Type.Float (g env e);
         Type.Float
@@ -226,7 +147,16 @@ let rec g env e = (* 型推論ルーチン (caml2html: typing_g) Syntax.t -> Typ
         Format.eprintf "free variable %s assumed as external@." x;
         let t = Type.gentyp () in
         (if not (x = "create_array") then
-          extenv := M.add x t !extenv
+          if x = "fneg" || x = "fhalf" || x = "fabs" || x = "abs_float" || x = "fsqr" || x = "sqrt" || x = "floor" || x = "sin" || x = "cos" || x = "atan" then
+            extenv := M.add x (Type.Fun([Type.Float], Type.Float)) !extenv
+          else if x = "fless" || x = "fequal" then
+            extenv := M.add x (Type.Fun([Type.Float;Type.Float], Type.Bool)) !extenv
+          else if x = "int_of_float" || x = "truncate" then
+            extenv := M.add x (Type.Fun([Type.Float], Type.Int)) !extenv
+          else if x = "float_of_int" then
+            extenv := M.add x (Type.Fun([Type.Int], Type.Float)) !extenv
+          else
+            extenv := M.add x t !extenv
         else
           Format.eprintf "%s" x
         );

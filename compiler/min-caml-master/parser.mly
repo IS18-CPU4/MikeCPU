@@ -1,10 +1,10 @@
 %{
-(* parser¤¬ÍøÍÑ¤¹¤ëÊÑ¿ô¡¢´Ø¿ô¡¢·¿¤Ê¤É¤ÎÄêµÁ *)
+(* parserãŒåˆ©ç”¨ã™ã‚‹å¤‰æ•°ã€é–¢æ•°ã€å‹ãªã©ã®å®šç¾© *)
 open Syntax
 let addtyp (x, _, _, _) = (x, Type.gentyp ())
 %}
 
-/* (* »ú¶ç¤òÉ½¤¹¥Ç¡¼¥¿·¿¤ÎÄêµÁ (caml2html: parser_token) *) */
+/* (* å­—å¥ã‚’è¡¨ã™ãƒ‡ãƒ¼ã‚¿å‹ã®å®šç¾© (caml2html: parser_token) *) */
 %token <bool * int * int * int> BOOL
 %token <int * int * int * int> INT
 %token <float * int * int * int> FLOAT
@@ -42,7 +42,7 @@ let addtyp (x, _, _, _) = (x, Type.gentyp ())
 %token <int * int * int> RPAREN
 %token EOF
 
-/* (* Í¥Àè½ç°Ì¤Èassociativity¤ÎÄêµÁ¡ÊÄã¤¤Êı¤«¤é¹â¤¤Êı¤Ø¡Ë (caml2html: parser_prior) *) */
+/* (* å„ªå…ˆé †ä½ã¨associativityã®å®šç¾©ï¼ˆä½ã„æ–¹ã‹ã‚‰é«˜ã„æ–¹ã¸ï¼‰ (caml2html: parser_prior) *) */
 %nonassoc IN
 %right prec_let
 %right SEMICOLON
@@ -57,13 +57,13 @@ let addtyp (x, _, _, _) = (x, Type.gentyp ())
 %left prec_app
 %left DOT
 
-/* (* ³«»Ïµ­¹æ¤ÎÄêµÁ *) */
+/* (* é–‹å§‹è¨˜å·ã®å®šç¾© *) */
 %type <Syntax.t> exp
 %start exp
 
 %%
 
-simple_exp: /* (* ³ç¸Ì¤ò¤Ä¤±¤Ê¤¯¤Æ¤â´Ø¿ô¤Î°ú¿ô¤Ë¤Ê¤ì¤ë¼° (caml2html: parser_simple) *) */
+simple_exp: /* (* æ‹¬å¼§ã‚’ã¤ã‘ãªãã¦ã‚‚é–¢æ•°ã®å¼•æ•°ã«ãªã‚Œã‚‹å¼ (caml2html: parser_simple) *) */
 | LPAREN exp RPAREN
     { $2 }
 | LPAREN RPAREN
@@ -98,7 +98,7 @@ simple_exp: /* (* ³ç¸Ì¤ò¤Ä¤±¤Ê¤¯¤Æ¤â´Ø¿ô¤Î°ú¿ô¤Ë¤Ê¤ì¤ë¼° (caml2html: parser_simp
         Get($1, $4, line, start, p_end)
     }
 
-exp: /* (* °ìÈÌ¤Î¼° (caml2html: parser_exp) *) */
+exp: /* (* ä¸€èˆ¬ã®å¼ (caml2html: parser_exp) *) */
 | simple_exp
     { $1 }
 | NOT exp
@@ -112,10 +112,10 @@ exp: /* (* °ìÈÌ¤Î¼° (caml2html: parser_exp) *) */
     {
     let (line, start, p_end) = $1 in
       match $2 with
-       | Float(f, _, _, f_end) -> Float(-.f, line, start, f_end) (* -1.23¤Ê¤É¤Ï·¿¥¨¥é¡¼¤Ç¤Ï¤Ê¤¤¤Î¤ÇÊÌ°·¤¤ *)
+       | Float(f, _, _, f_end) -> Float(-.f, line, start, f_end) (* -1.23ãªã©ã¯å‹ã‚¨ãƒ©ãƒ¼ã§ã¯ãªã„ã®ã§åˆ¥æ‰±ã„ *)
        | e -> Neg(e, line, start, p_end)
     }
-| exp PLUS exp /* (* Â­¤·»»¤ò¹½Ê¸²òÀÏ¤¹¤ë¥ë¡¼¥ë (caml2html: parser_add) *) */
+| exp PLUS exp /* (* è¶³ã—ç®—ã‚’æ§‹æ–‡è§£æã™ã‚‹ãƒ«ãƒ¼ãƒ« (caml2html: parser_add) *) */
     {
       let (line, start, p_end) = $2 in
         Add($1, $3, line, start, p_end)
@@ -125,7 +125,7 @@ exp: /* (* °ìÈÌ¤Î¼° (caml2html: parser_exp) *) */
       let (line, start, p_end) = $2 in
         Sub($1, $3, line, start, p_end)
     }
-| exp AST exp /* (* ³İ¤±»»¡Êº¸¥·¥Õ¥È¡Ë¤ò¹½Ê¸²òÀÏ¤¹¤ë¥ë¡¼¥ë *) */
+| exp AST exp /* (* æ›ã‘ç®—ã‚’æ§‹æ–‡è§£æã™ã‚‹ãƒ«ãƒ¼ãƒ« *) */
     {
       let (line, start, p_end) = $2 in
         Mul($1, $3, line, start, p_end)
@@ -225,7 +225,7 @@ exp: /* (* °ìÈÌ¤Î¼° (caml2html: parser_exp) *) */
       let (line, start, p_end) = $2 in
         FDiv($1, $3, line, start, p_end)
     }
-/* (* min-rtÍÑ¤Ç¤Ã¤Á¾å¤²¥ë¡¼¥ë¡£ºÇ¸å¤ò in 0¤Ë¤µ¤ì¤¿ÂĞ±ş*) */
+/* (* min-rtã§ã¯ in ã®å¾Œã«ï¼ˆï¼‰ã§ãŠã‚ã‚‹ã“ã¨ã‚‚ã‚ã‚‹*) */
 | LET IDENT EQUAL exp IN exp
     %prec prec_let
     {
@@ -270,7 +270,7 @@ exp: /* (* °ìÈÌ¤Î¼° (caml2html: parser_exp) *) */
       let (line, start, p_end) = $2 in
         Let((Id.gentmp Type.Unit, Type.Unit), $1, $3, line, start, p_end)
     }
-| exp SEMICOLON /*(* minrtÍÑsuper¤Ç¤Ã¤Á¾å¤² ";"¤Î¤¢¤È¤Ë½ñ¤¤¤Æ¤Ê¤¯¤Æ¤âÄÌ¤ë¼Â¼Á¥Ğ¥° *)*/
+| exp SEMICOLON /*(* minrtç”¨superæ‰‹æŠœã ";"ã§çµ‚ã‚ã£ã¦ã‚‚å¤§ä¸ˆå¤«ãªã‚ˆã†ã« *)*/
     {
       let (line, start, p_end) = $2 in
         Let((Id.gentmp Type.Unit, Type.Unit), $1, Unit(line, start + 1, p_end + 1), line, start, p_end)
