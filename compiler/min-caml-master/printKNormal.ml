@@ -118,9 +118,12 @@ let rec print_knormal_t knormal =
                                            let _ = kn_tab := !kn_tab - 1 in
                                            let _ = print_tab !kn_tab in
                                            let _ = print_endline "IN" in
+                                             print_knormal_t t2
+(*
                                            let _ = kn_tab := !kn_tab + 1 in
                                            let _ = print_knormal_t t2 in
                                              kn_tab := !kn_tab - 1
+*)
     | KNormal.Var id -> let _ = print_tab !kn_tab in print_endline ("VAR " ^ id)
     | KNormal.LetRec (fundef, t) -> let _ = print_tab !kn_tab in
                                     let _ = print_endline "LETREC" in
