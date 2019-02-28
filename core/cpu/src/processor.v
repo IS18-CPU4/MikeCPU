@@ -49,12 +49,26 @@ module Processor(
 
   assign err = {cont_err[3:0], boot_err[3:0]};
 
-  Controller cont(
-    mem_rdata, mem_wdata, mem_addr, mem_wenable, mem_enable,
-    inst_rdata, cont_inst_addr, cont_inst_enable,
-    cont_io_read_req, cont_io_write_req, io_ready, io_done, cont_io_wdata, io_rdata,
-    boot, entry_point, cont_err, CLK, RSTN);
+  reg [31:0] delayClock;
+  reg boot_;
+  always @(posedge CLK) begin
+   if (~RSTN) begin
+    delayClock <= 32'd0;
+    boot_ <= 0;
+   end else begin
+    if (delayClock > 32'h10000000) boot_ <= boot;
+    else begin
+     if (boot) delayClock <= delayClock + 32'd1;
+    end
+   end
+  end
 
+    Controller cont(
+      mem_rdata, mem_wdata, mem_addr, mem_wenable, mem_enable,
+      inst_rdata, cont_inst_addr, cont_inst_enable,
+      cont_io_read_req, cont_io_write_req, io_ready, io_done, cont_io_wdata, io_rdata,
+      boot_, entry_point, cont_err, CLK, RSTN);
+      
   Bootloader_IO bootloader(
     boot_inst_addr, inst_wdata, inst_we, boot_inst_enable,
     boot_io_read_req, io_ready, io_done, io_rdata,
