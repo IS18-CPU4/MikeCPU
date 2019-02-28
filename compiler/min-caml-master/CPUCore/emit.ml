@@ -4,61 +4,6 @@ exception ASM_ERR of string
 
 external get32 : float -> int32 = "get32"
 
-(*
-let regs = Asm.regs
-let fregs = Asm.fregs
-let reg_sw = Asm.reg_sw
-let reg_fsw = Asm.reg_fsw
-let reg_hp = Asm.reg_hp
-let reg_cl = Asm.reg_cl
-let reg_sp = Asm.reg_sp
-let reg_tmp = Asm.reg_tmp
-*)
-(*
-let rec print_each_code oc code =
-  match code with
-  | E_Li(reg, i_or_l) -> Printf.fprintf oc "\tli\t%s, %s\n" reg (label_to_str i_or_l)
-  | E_Mr (reg1, reg2) -> Printf.fprintf oc "\tmr\t%s, %s\n" reg1 reg2
-  | E_Addi (reg1, reg2, i_or_l) -> Printf.fprintf oc "\taddi\t%s, %s, %s\n" reg1 reg2 (label_to_str i_or_l)
-  | E_Add (reg1, reg2, reg3) -> Printf.fprintf oc "\tadd\t%s, %s, %s\n" reg1 reg2 reg3
-  | E_Sub (reg1, reg2, reg3) -> Printf.fprintf oc "\tsub\t%s, %s, %s\n" reg1 reg2 reg3
-  | E_Slwi (reg1, reg2, i) -> Printf.fprintf oc "\tslwi\t%s, %s, %d\n" reg1 reg2 i
-  | E_Srwi (reg1, reg2, i) -> Printf.fprintf oc "\tsrwi\t%s, %s, %d\n" reg1 reg2 i
-  | E_Slw (reg1, reg2, reg3) -> Printf.fprintf oc "\tslw\t%s, %s, %s\n" reg1 reg2 reg3
-  | E_Srw (reg1, reg2, reg3) -> Printf.fprintf oc "\tsrw\t%s, %s, %s\n" reg1 reg2 reg3
-  | E_FAdd (reg1, reg2, reg3) -> Printf.fprintf oc "\tfadd\t%s, %s, %s\n" reg1 reg2 reg3
-  | E_FSub (reg1, reg2, reg3) -> Printf.fprintf oc "\tfsub\t%s, %s, %s\n" reg1 reg2 reg3
-  | E_FMul (reg1, reg2, reg3) -> Printf.fprintf oc "\tfmul\t%s, %s, %s\n" reg1 reg2 reg3
-  | E_FDiv (reg1, reg2, reg3) -> Printf.fprintf oc "\tfdiv\t%s, %s, %s\n" reg1 reg2 reg3
-  | E_FMr (reg1, reg2) -> Printf.fprintf oc "\tfmr\t%s, %s\n" reg1 reg2
-  | E_B (str) -> Printf.fprintf oc "\tb\t%s\n" str
-  | E_BEq (str) -> Printf.fprintf oc "\tbeq\t%s\n" str
-  | E_BNE (str) -> Printf.fprintf oc "\tbne\t%s\n" str
-  | E_BLT (str) -> Printf.fprintf oc "\tblt\t%s\n" str
-  | E_BL (str) -> Printf.fprintf oc "\tbl\t%s\n" str
-  | E_BLr -> Printf.fprintf oc "\tblr\n"
-  | E_Ba (reg) -> Printf.fprintf oc "\tba\t%s\n" reg
-  | E_Bal (reg) -> Printf.fprintf oc "\tbal\t%s\n" reg
-  | E_MfLr (reg) -> Printf.fprintf oc "\tmflr\t%s\n" reg
-  | E_MtLr (reg) -> Printf.fprintf oc "\tmtlr\t%s\n" reg
-  | E_Cmpwi (reg1, reg2, i) -> Printf.fprintf oc "\tcmpwi\t%s, %s, %d\n" reg1 reg2 i (* creg * reg * simm *)
-  | E_Cmpw (reg1, reg2, reg3) -> Printf.fprintf oc "\tcmpw\t%s, %s, %s\n" reg1 reg2 reg3 (* creg * reg * reg *)
-  | E_FCmp (reg1, reg2, reg3) -> Printf.fprintf oc "\tfcmp\t%s, %s, %s\n" reg1 reg2 reg3 (* creg * freg * freg *)
-  | E_Ld (reg1, reg2, i) -> Printf.fprintf oc "\tld\t%s, %s, %d\n" reg1 reg2 i
-  | E_St (reg1, reg2, i) -> Printf.fprintf oc "\tst\t%s, %s, %d\n" reg1 reg2 i
-  | E_FLd (reg1, reg2, i) -> Printf.fprintf oc "\tfld\t%s, %s, %d\n" reg1 reg2 i
-  | E_FSt (reg1, reg2, i) -> Printf.fprintf oc "\tfst\t%s, %s, %d\n" reg1 reg2 i
-  | E_Label (str) -> Printf.fprintf oc "%s:\n" str
-  | E_Comment (str) -> Printf.fprintf oc "# %s\n" str
-and label_to_str = function
-  | Int(i) -> Printf.sprintf "%d" i
-  | Ha16(label) -> Printf.sprintf "ha16(%s)" label
-  | Lo16(label) -> Printf.sprintf "lo16(%s)" label
-
-let print_code oc codes =
-  List.iter (print_each_code oc) codes
-*)
-
 let floatlabelmap = ref [] (* ref of label * float list *)
 let floatpointmap = ref [] (* ref of float * address(Int) list *)
 
@@ -110,25 +55,8 @@ let rec make_float_data hs flabelmap = (* floatlabelmapからfloatをメモリ�
                              E_Slwi(reg reg_tmp, reg reg_tmp, 16);
                              E_Addi(reg reg_tmp, reg reg_tmp, Int(m));
                              E_St(reg reg_tmp, reg reg_hp, hs)] @ (make_float_data (hs - 4) labels)
-(*
-                           (Printf.sprintf "\tli\t%s, %d\n" (reg reg_tmp) ((n+m_top) mod 65536))
-                           ^ (Printf.sprintf "\tslwi\t%s, %s, 16\n" (reg reg_tmp) (reg reg_tmp))
-                           ^ (Printf.sprintf "\taddi\t%s, %s, %d\n" (reg reg_tmp) (reg reg_tmp) m)
-                           ^ (Printf.sprintf "\tst\t%s, %s, %d\n" (reg reg_tmp) (reg reg_hp) hs)
-                           ^ (make_float_data (hs - 4) labels)
-*)
 
 let load_label r label =
-(*
-  let r' = reg r in
-  let int_label = int_of_string label in (* labelが10進前提 -> 嘘、L(関数名) の関数名がlabel、、、その命令アドレスは取得できない *)
-  let ha_label = int_label lsr 16 in
-  let lo_label = int_label - (ha_label lsl 16) in
-  Printf.sprintf
-(*    "\tli\t%s, %d\n\tslwi\t%s, %s, %d\n\taddi\t%s, %s, %d\n" *)
-    "\tli\t%s, %d\n\taddi\t%s, %s, %d\n"
-    r' ha_label r' r' lo_label
-*)
   let r' = reg r in
     [E_Li(r', Lo16(label));
     E_Slwi(r', r', 16);

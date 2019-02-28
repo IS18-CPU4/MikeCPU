@@ -1,16 +1,16 @@
 {
-(* lexer¤¬ÍøÍÑ¤¹¤ëÊÑ¿ô¡¢´Ø¿ô¡¢·¿¤Ê¤É¤ÎÄêµÁ *)
+(* lexerãŒåˆ©ç”¨ã™ã‚‹å¤‰æ•°ã€é–¢æ•°ã€å‹ãªã©ã®å®šç¾© *)
 open Parser
 open Type
 open Lexing
 }
 
-(* Àµµ¬É½¸½¤ÎÎ¬µ­ *)
+(* æ­£è¦è¡¨ç¾ã®ç•¥è¨˜ *)
 let space = [' ' '\t']
 let digit = ['0'-'9']
 let lower = ['a'-'z']
 let upper = ['A'-'Z']
-(* ²İÂê1-£²¡¢ËÜÍè\r\n¤Ï¾å¤Îspace¤Ë¤¢¤ë *)
+(* æ”¹è¡Œã‚’ç‰¹åˆ¥æ‰±ã„ \r\n *)
 let enter = ['\n' '\r']
 
 rule token = parse
@@ -20,7 +20,7 @@ rule token = parse
     { Lexing.new_line lexbuf;
       token lexbuf}
 | "(*"
-    { comment lexbuf; (* ¥Í¥¹¥È¤·¤¿¥³¥á¥ó¥È¤Î¤¿¤á¤Î¥È¥ê¥Ã¥¯ *)
+    { comment lexbuf; (* ãƒã‚¹ãƒˆã—ãŸã‚³ãƒ¡ãƒ³ãƒˆã®ãŸã‚ã®ãƒˆãƒªãƒƒã‚¯ *)
       token lexbuf }
 | '('
     {
@@ -58,7 +58,7 @@ rule token = parse
         NOT(line, start, l_end)
     }
 (*
-(* min-rtÍÑparse»ş¤Ë²ò¼á²ÄÇ½¤Ê¤â¤Î fneg, fless, fequal *) (* regulation °ãÈ¿ *)
+(* min-rtç”¨parse fneg, fless, fequal *) (* regulation é•å *)
 | "fneg"
     {
       let start = lexbuf.lex_curr_p.pos_cnum - lexbuf.lex_curr_p.pos_bol in
@@ -81,7 +81,7 @@ rule token = parse
         FUNFEQUAL(line, start, l_end)
     }
 *)
-| digit+ (* À°¿ô¤ò»ú¶ç²òÀÏ¤¹¤ë¥ë¡¼¥ë (caml2html: lexer_int) *)
+| digit+ (* æ•´æ•°ã‚’å­—å¥è§£æã™ã‚‹ãƒ«ãƒ¼ãƒ« (caml2html: lexer_int) *)
     {
       let start = lexbuf.lex_curr_p.pos_cnum - lexbuf.lex_curr_p.pos_bol in
       let line = lexbuf.lex_curr_p.pos_lnum in
@@ -99,28 +99,28 @@ rule token = parse
         FLOAT(float_of_string (id), line, start, l_end)
     (*      FLOAT(float_of_string (Lexing.lexeme lexbuf)) *)
  }
-| '-' (* -.¤è¤ê¸å²ó¤·¤Ë¤·¤Ê¤¯¤Æ¤âÎÉ¤¤? ºÇÄ¹°ìÃ×? *)
+| '-' (* -.ã‚ˆã‚Šå¾Œå›ã—ã«ã—ãªãã¦ã‚‚è‰¯ã„? æœ€é•·ä¸€è‡´? *)
     {
       let start = lexbuf.lex_curr_p.pos_cnum - lexbuf.lex_curr_p.pos_bol in
       let line = lexbuf.lex_curr_p.pos_lnum in
       let l_end = start + 1 in
         MINUS(line, start, l_end)
     }
-| '+' (* +.¤è¤ê¸å²ó¤·¤Ë¤·¤Ê¤¯¤Æ¤âÎÉ¤¤? ºÇÄ¹°ìÃ×? *)
+| '+' (* +.ã‚ˆã‚Šå¾Œå›ã—ã«ã—ãªãã¦ã‚‚è‰¯ã„? æœ€é•·ä¸€è‡´? *)
     {
       let start = lexbuf.lex_curr_p.pos_cnum - lexbuf.lex_curr_p.pos_bol in
       let line = lexbuf.lex_curr_p.pos_lnum in
       let l_end = start + 1 in
         PLUS(line, start, l_end)
     }
-| '*' (* *.¤è¤ê¸å²ó¤·¤Ë¤·¤Ê¤¯¤Æ¤âÎÉ¤¤? ºÇÄ¹°ìÃ×? *)
+| '*' (* *.ã‚ˆã‚Šå¾Œå›ã—ã«ã—ãªãã¦ã‚‚è‰¯ã„? æœ€é•·ä¸€è‡´? *)
     {
       let start = lexbuf.lex_curr_p.pos_cnum - lexbuf.lex_curr_p.pos_bol in
       let line = lexbuf.lex_curr_p.pos_lnum in
       let l_end = start + 1 in
         AST(line, start, l_end)
     }
-| '/' (* /.¤è¤ê¸å²ó¤·¤Ë¤·¤Ê¤¯¤Æ¤âÎÉ¤¤? ºÇÄ¹°ìÃ×? *)
+| '/' (* /.ã‚ˆã‚Šå¾Œå›ã—ã«ã—ãªãã¦ã‚‚è‰¯ã„? æœ€é•·ä¸€è‡´? *)
     {
       let start = lexbuf.lex_curr_p.pos_cnum - lexbuf.lex_curr_p.pos_bol in
       let line = lexbuf.lex_curr_p.pos_lnum in
@@ -286,7 +286,7 @@ rule token = parse
     }
 | eof
     { EOF }
-| lower (digit|lower|upper|'_')* (* Â¾¤Î¡ÖÍ½Ìó¸ì¡×¤è¤ê¸å¤Ç¤Ê¤¤¤È¤¤¤±¤Ê¤¤ *)
+| lower (digit|lower|upper|'_')* (* ä»–ã®ã€Œäºˆç´„èªã€ã‚ˆã‚Šå¾Œã§ãªã„ã¨ã„ã‘ãªã„ *)
     {
       let start = lexbuf.lex_curr_p.pos_cnum - lexbuf.lex_curr_p.pos_bol in
       let line = lexbuf.lex_curr_p.pos_lnum in
@@ -296,7 +296,7 @@ rule token = parse
     }
 | _
     { failwith
-        ( let err_start = lexbuf.lex_curr_p.pos_cnum - lexbuf.lex_curr_p.pos_bol in (* pos_cnum¤Ï¹ÔÆ¬¤Î¥³¡¼¥É¤ÎÀèÆ¬¤«¤é¤ÎÊ¸»ú¿ô, pos_bol¤Ï¸½ºß°ÌÃÖ¤Î¥³¡¼¥É¤ÎÀèÆ¬¤«¤é¤ÎÊ¸»ú¿ô *)
+        ( let err_start = lexbuf.lex_curr_p.pos_cnum - lexbuf.lex_curr_p.pos_bol in (* pos_cnumï¼šè¡Œ, pos_bolå…ˆé ­ä½ç½® *)
           Printf.sprintf "unknown token %s near line %d, characters %d-%d"
            (Lexing.lexeme lexbuf)
            (lexbuf.lex_curr_p.pos_lnum)

@@ -1,4 +1,4 @@
-type t = (* MinCaml¤Î·¿¤òÉ½¸½¤¹¤ë¥Ç¡¼¥¿·¿. (caml2html: type_t) *)
+type t = (* MinCamlã®å‹ã‚’è¡¨ç¾ã™ã‚‹ãƒ‡ãƒ¼ã‚¿å‹ (caml2html: type_t) *)
   | Unit
   | Bool
   | Int
@@ -8,28 +8,4 @@ type t = (* MinCaml¤Î·¿¤òÉ½¸½¤¹¤ë¥Ç¡¼¥¿·¿. (caml2html: type_t) *)
   | Array of t
   | Var of t option ref
 
-let gentyp () = Var(ref None) (* ¿·¤·¤¤·¿ÊÑ¿ô¤òºî¤ë *)
-
-(*
-type t2 = (* MinCaml¤Î·¿¤È°ÌÃÖ¤òÉ½¸½¤¹¤ë¥Ç¡¼¥¿·¿. (int * int * int)¤Ï(line, start, end)¤Î°ÌÃÖ¾ğÊó(caml2html: type_t) *)
-  | Unit of (int * int * int)
-  | Bool of (int * int * int)
-  | Int of (int * int * int)
-  | Float of (int * int * int)
-  | Fun of t list * t (* arguments are uncurried *)
-  | Tuple of t list
-  | Array of t
-  | Var of t option ref
-
-
-
-let t2_to_t = function
-  | Unit _ -> (Unit :t)
-  | Bool _ -> Bool
-  | Int _ -> Int
-  | Float _ -> Float
-  | Fun (t_list, t) -> Fun (t_list, t)
-  | Tuple t_list -> Tuple t_list
-  | Array t -> Array t
-  | Var t -> Var t
-*)
+let gentyp () = Var(ref None) (* æ–°ã—ã„å‹å¤‰æ•°ã‚’ä½œã‚‹ *)
