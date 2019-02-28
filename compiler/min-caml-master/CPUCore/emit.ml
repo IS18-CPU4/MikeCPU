@@ -7,9 +7,6 @@ external get32 : float -> int32 = "get32"
 let floatlabelmap = ref [] (* ref of label * float list *)
 let floatpointmap = ref [] (* ref of float * address(Int) list *)
 
-let arraypointmap = ref [] (* ref of Id.t * address(Int) list *)
-let arrayenv = ref [] (* ref of Id.t list *)
-
 let stackset = ref S.empty (* すでにSaveされた変数の集合 (caml2html: emit_stackset) *)
 let stackmap = ref [] (* Saveされた変数の、スタックにおける位置 (caml2html: emit_stackmap) *)
 let save x =
@@ -59,13 +56,6 @@ let rec make_float_data hs flabelmap = (* floatlabelmapからfloatをメモリ�
                              E_Addi(reg reg_tmp, reg reg_tmp, Int(m));
                              E_St(reg reg_tmp, reg reg_hp, hs)] @ (make_float_data (hs - 4) labels)
 
-let rec make_array_label array_list num offset (* Id.t * Type.t list *) =
-  match array_list with
-   | [] -> ()
-   | (a, _)::al -> arrayenv := a::!arrayenv;
-                   arraypointmap := (a, num * 4 + offset)::!arraypointmap;
-                   (make_array_label al (num + 1) offset)
-
 let load_label r label =
   let r' = reg r in
     [E_Li(r', Lo16(label));
@@ -109,12 +99,6 @@ let rec shuffle sw xys =
 type dest = Tail | NonTail of Id.t (* 末尾かどうかを表すデータ型 (caml2html: emit_dest) *)
 let rec g = function (* 命令列のアセンブリ生成 (caml2html: emit_g) *)
   | dest, Ans(exp) -> g' (dest, exp)
-  | dest, Let((x, t), exp, e) when List.mem x !arrayenv ->
-      let code1 = g' (NonTail(x), exp) in
-      let point = List.assoc x !arraypointmap in
-      let code2 = [E_St("r2", "r0", point)] in
-      let code3 = g (dest, e) in
-        code1 @ code2 @ code3
   | dest, Let((x, t), exp, e) ->
       let code1 = g' (NonTail(x), exp) in
       let code2 = g (dest, e) in
@@ -265,8 +249,6 @@ and g' = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) 
       save y;
       Printf.fprintf oc "\tfst\t%s, %s, %d\n" (reg x) (reg reg_sp) (offset y)
 *)
-  | NonTail(_), Save(x, y) when List.mem y !arrayenv ->
-      [] (* 何もしなくて良い *)
   | NonTail(_), Save(x, y) when List.mem x allregs && not (S.mem y !stackset) ->
       save y;
       [E_St(reg x, reg reg_sp, offset y)]
@@ -282,15 +264,9 @@ and g' = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) 
       assert (List.mem x allfregs);
       Printf.fprintf oc "\tfld\t%s, %s, %d\n" (reg x) (reg reg_sp) (offset y)
 *)
-  | NonTail(x), Restore(y) when List.mem y !arrayenv ->
-      print_endline("ext_array " ^ y);
-      let point = List.assoc y !arraypointmap in
-      [E_Ld(reg x, "r0", point)]
   | NonTail(x), Restore(y) when List.mem x allregs ->
-      print_endline("searching,,, " ^ y);
       [E_Ld(reg x, reg reg_sp, offset y)]
   | NonTail(x), Restore(y) ->
-      print_endline("searching,,, " ^ y);
       assert (List.mem x allfregs);
       [E_FLd(reg x, reg reg_sp, offset y)]
 
@@ -660,9 +636,6 @@ let f oc (Prog(data, fundefs, e)) =
   let hs = (List.length !floatlabelmap - 1) * 4 in
   if hs >= 32768 then raise (ASM_ERR "too many float_simm!");
   let floats = make_float_data hs !floatlabelmap in
-  (* 外部配列配置 *)
-  let _ = make_array_label !Closure.ext_arrays_env 0 (align hs) in
-  let array_num = align (List.length !arrayenv * 4) in
   (* 関数埋め込み *)
   let fundefcodes = List.concat (List.map (fun fundef -> Rdui.f (h fundef)) fundefs) in
   print_code oc fundefcodes;
@@ -675,10 +648,8 @@ let f oc (Prog(data, fundefs, e)) =
   (* float data 埋め込み *)
   Printf.fprintf oc "#\tfloat data\n";
   print_code oc floats;
-(*  Printf.fprintf oc "\taddi\t%s, %s, %d\n" (reg reg_hp) (reg reg_hp) (align hs); (* ヒープポインタ更新 *) *)
+  Printf.fprintf oc "\taddi\t%s, %s, %d\n" (reg reg_hp) (reg reg_hp) (align hs); (* ヒープポインタ更新 *)
   Printf.fprintf oc "#\tend float data\n";
-  (* 外部配列アドレス分確保 *)
-  Printf.fprintf oc "\taddi\t%s, %s, %d\n" (reg reg_hp) (reg reg_hp) (align hs + array_num); (* ヒープポインタ更新 *)
   (* main program *)
   Printf.fprintf oc "#\tmain program starts\n";
   stackset := S.empty;
