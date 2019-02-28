@@ -30,21 +30,19 @@ let dump_syntax = ref false
 let dump_knormal = ref false
 let dump_alpha = ref false
 let dump_cse = ref false
-let dump_cls = ref false
 let dump_asm = ref false
 let dump_reg = ref false
 (* globals.sのソースを埋め込むかの管理フラグ *)
 let global_bool = ref false
 
 let rec pre_dump_bools op n =
-  if n = 0 then dump_bool := !dump_syntax || !dump_knormal || !dump_alpha || !dump_cse || !dump_cls || !dump_asm || !dump_reg
+  if n = 0 then dump_bool := !dump_syntax || !dump_knormal || !dump_alpha || !dump_cse || !dump_asm || !dump_reg
   else
     match String.get op (n - 1) with
       | 's' -> dump_syntax := true; pre_dump_bools op (n-1)
       | 'k' -> dump_knormal := true; pre_dump_bools op (n-1)
       | 'a' -> dump_alpha := true; pre_dump_bools op (n-1)
       | 'c' -> dump_cse := true; pre_dump_bools op (n-1)
-      | 'x' -> dump_cls := true; pre_dump_bools op (n-1)
       | 'm' -> dump_asm := true; pre_dump_bools op (n-1)
       | 'r' -> dump_reg := true; pre_dump_bools op (n-1)
       | _ -> raise (Arg.Bad("invalid option -dump needs s|k|a|c|m|r "))
@@ -178,7 +176,7 @@ let () = (* ここからコンパイラの実行が開始される (caml2html: m
      ("-dump", Arg.String(fun op -> dump_bools op), "intermediate result output")] (* Syntax.tやKNormal.tなどの標準出力 *)
     (fun s -> files := !files @ [s])
     ("Mitou Min-Caml Compiler (C) Eijiro Sumii\n" ^
-     Printf.sprintf "usage: %s [-inline m] [-iter n] [-dump s|k|a|c|x|m|r] [-nonlib] [-global] ...filenames without \".ml\"..." Sys.argv.(0));
+     Printf.sprintf "usage: %s [-inline m] [-iter n] [-dump s|k|a|c|m|r] [-nonlib] [-global] ...filenames without \".ml\"..." Sys.argv.(0));
   List.iter
     (fun f -> ignore (file f))
     !files

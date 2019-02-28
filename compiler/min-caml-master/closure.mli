@@ -29,7 +29,7 @@ type t =
   | FAbs of Id.t
   | FSqrt of Id.t
   | ItoF of Id.t
-  | FtoI of Id.t
+  | FtoI of Id.t  
 type fundef = { name : Id.l * Type.t;
                 args : (Id.t * Type.t) list;
                 formal_fv : (Id.t * Type.t) list;
