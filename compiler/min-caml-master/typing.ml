@@ -147,7 +147,7 @@ let rec g env e = (* 型推論ルーチン (caml2html: typing_g) Syntax.t -> Typ
         Format.eprintf "free variable %s assumed as external@." x;
         let t = Type.gentyp () in
         (if not (x = "create_array") then
-          if x = "fneg" || x = "fhalf" || x = "fabs" || x = "abs_float" || x = "fsqr" || x = "sqrt" || x = "floor" then
+          if x = "fneg" || x = "fhalf" || x = "fabs" || x = "abs_float" || x = "fsqr" || x = "sqrt" || x = "floor" || x = "sin" || x = "cos" || x = "atan" then
             extenv := M.add x (Type.Fun([Type.Float], Type.Float)) !extenv
           else if x = "fless" || x = "fequal" then
             extenv := M.add x (Type.Fun([Type.Float;Type.Float], Type.Bool)) !extenv
