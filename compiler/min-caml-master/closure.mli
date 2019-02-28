@@ -29,13 +29,12 @@ type t =
   | FAbs of Id.t
   | FSqrt of Id.t
   | ItoF of Id.t
-  | FtoI of Id.t  
+  | FtoI of Id.t
 type fundef = { name : Id.l * Type.t;
                 args : (Id.t * Type.t) list;
                 formal_fv : (Id.t * Type.t) list;
                 body : t }
 type prog = Prog of fundef list * t
 
-val ext_arrays_env : (Id.t * Type.t) list ref
 val fv : t -> S.t
 val f : KNormal.t -> prog
